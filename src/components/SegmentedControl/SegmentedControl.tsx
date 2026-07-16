@@ -9,6 +9,9 @@ export interface SegmentedControlItem {
   label?: React.ReactNode;
   icon?: IconName;
   disabled?: boolean;
+  /** Accessible name for icon-only segments (no `label`) — required in that
+   * case, since the icon alone gives screen readers nothing to announce. */
+  ariaLabel?: string;
 }
 
 export interface SegmentedControlProps {
@@ -63,6 +66,7 @@ export function SegmentedControl({
               value={item.value}
               checked={isActive}
               disabled={disabled || item.disabled}
+              aria-label={item.label ? undefined : item.ariaLabel}
               onChange={() => {
                 setInternal(item.value);
                 onChange?.(item.value);
