@@ -110,7 +110,14 @@ export function DataTable<Row>({
           className="sy-table__scroll-hint"
           style={{
             position: 'absolute',
-            top: 8,
+            // Anchored to the bottom-right corner, not the top — the header
+            // row is a single, persistent line that always has real column
+            // labels right up to the edge on narrow/many-column tables, so a
+            // top-right badge reliably obscured them. Body rows are lower
+            // stakes: there are many of them, and covering one corner cell
+            // for the moment before the user scrolls (which dismisses this)
+            // is far less disruptive than covering the only header row.
+            bottom: 8,
             right: 8,
             display: 'flex',
             alignItems: 'center',
