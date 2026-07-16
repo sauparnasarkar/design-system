@@ -38,8 +38,12 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<string[]>([]);
+  const [highlighted, setHighlighted] = React.useState(0);
   const rootRef = React.useRef<HTMLDivElement>(null);
   const selected = value ?? internal;
+  const labelId = React.useId();
+  const listboxId = React.useId();
+  const optionId = (i: number) => `${listboxId}-option-${i}`;
 
   React.useEffect(() => {
     if (!open) return;
@@ -50,6 +54,14 @@ export function MultiSelect({
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
 
+  // Land on the first non-disabled option whenever the menu opens, so arrow-key
+  // navigation and aria-activedescendant have a sane starting point.
+  React.useEffect(() => {
+    if (!open) return;
+    const firstEnabled = options.findIndex((o) => !o.disabled);
+    setHighlighted(firstEnabled === -1 ? 0 : firstEnabled);
+  }, [open, options]);
+
   const commit = (next: string[]) => {
     setInternal(next);
     onChange?.(next);
@@ -57,9 +69,19 @@ export function MultiSelect({
   const toggle = (v: string) =>
     commit(selected.includes(v) ? selected.filter((x) => x !== v) : [...selected, v]);
 
+  const moveHighlight = (delta: number) => {
+    if (options.length === 0) return;
+    let next = highlighted;
+    for (let i = 0; i < options.length; i++) {
+      next = (next + delta + options.length) % options.length;
+      if (!options[next].disabled) break;
+    }
+    setHighlighted(next);
+  };
+
   return (
     <div ref={rootRef} className={className} style={{ position: 'relative', minWidth: 280 }}>
-      {label && <span className="sy-label3" style={{ display: 'block', marginBottom: 4 }}>{label}</span>}
+      {label && <span id={labelId} className="sy-label3" style={{ display: 'block', marginBottom: 4 }}>{label}</span>}
       <div
         className={cx(
           'sy-dropdown-multi-select',
@@ -73,15 +95,38 @@ export function MultiSelect({
           role="combobox"
           aria-expanded={open}
           aria-haspopup="listbox"
+          aria-labelledby={label ? labelId : undefined}
+          aria-controls={open ? listboxId : undefined}
+          aria-activedescendant={open ? optionId(highlighted) : undefined}
           tabIndex={disabled ? -1 : 0}
           onClick={() => !disabled && setOpen((o) => !o)}
           onKeyDown={(e) => {
             if (disabled) return;
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              setOpen((o) => !o);
+              if (!open) {
+                setOpen(true);
+              } else {
+                const opt = options[highlighted];
+                if (opt && !opt.disabled) toggle(opt.value);
+              }
+              return;
             }
-            if (e.key === 'Escape') setOpen(false);
+            if (e.key === 'Escape') {
+              setOpen(false);
+              return;
+            }
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              if (!open) setOpen(true);
+              else moveHighlight(1);
+              return;
+            }
+            if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              if (!open) setOpen(true);
+              else moveHighlight(-1);
+            }
           }}
           style={{ display: 'flex', alignItems: 'center', borderRadius: 3, cursor: disabled ? 'default' : 'pointer', minHeight: 32, padding: '2px 8px' }}
         >
@@ -120,20 +165,23 @@ export function MultiSelect({
         </div>
         {open && (
           <div className={cx('sy-dropdown-multi-select__menu', 'sy-dropdown-multi-select__menu--open')} style={{ position: 'absolute', zIndex: 20, left: 0, right: 0, marginTop: 4 }}>
-            <ul className="sy-dropdown-multi-select__menu-list" role="listbox" aria-multiselectable="true" style={{ listStyle: 'none', margin: 0, padding: 4, maxHeight: 240, overflowY: 'auto' }}>
-              {options.map((o) => {
+            <ul id={listboxId} className="sy-dropdown-multi-select__menu-list" role="listbox" aria-multiselectable="true" style={{ listStyle: 'none', margin: 0, padding: 4, maxHeight: 240, overflowY: 'auto' }}>
+              {options.map((o, i) => {
                 const isSel = selected.includes(o.value);
                 return (
                   <li
                     key={o.value}
+                    id={optionId(i)}
                     role="option"
                     aria-selected={isSel}
                     className={cx(
                       'sy-dropdown-multi-select__option',
                       isSel && 'sy-dropdown-multi-select__option--is-selected',
+                      i === highlighted && 'sy-dropdown-multi-select__option--is-focused',
                       o.disabled && 'sy-dropdown-multi-select__option--is-disabled',
                     )}
                     onClick={() => !o.disabled && toggle(o.value)}
+                    onMouseEnter={() => setHighlighted(i)}
                     style={{ cursor: o.disabled ? 'default' : 'pointer' }}
                   >
                     <label className="sy-dropdown-multi-select__checkbox sy-checkbox" style={{ display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
