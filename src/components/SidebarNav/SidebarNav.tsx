@@ -115,9 +115,14 @@ export function SidebarNav({
             width: 40,
             height: 40,
             borderRadius: 8,
-            background: 'var(--sy-static-background-standard)',
-            border: '1px solid var(--sy-static-divider-standard, rgba(31,31,31,0.16))',
-            color: 'inherit',
+            // The elevated "menus, popovers, toasts" surface tone, not the flat
+            // card background — against a header that's often a similarly dark
+            // static-background-weak, the plain card tone left this control
+            // nearly imperceptible as a tappable element.
+            background: 'var(--sy-static-layer-standard)',
+            border: '1px solid var(--sy-static-divider-strong, rgba(31,31,31,0.24))',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+            color: 'var(--sy-static-text-strong)',
             cursor: 'pointer',
           }}
         >
