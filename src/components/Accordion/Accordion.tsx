@@ -41,13 +41,17 @@ export function Accordion({
     <div className={cx('sy-accordion', `sy-accordion--icon-${iconPosition}`, `sy-accordion--${size}`, className)}>
       {items.map((item) => {
         const open = openIds.has(item.id);
+        const buttonId = `${item.id}-accordion-button`;
+        const panelId = `${item.id}-accordion-panel`;
         return (
           <div key={item.id} className={cx('sy-accordion__item', item.disabled && 'sy-accordion__item--disabled')}>
             <h3 className="sy-accordion__heading" style={{ margin: 0 }}>
               <button
                 type="button"
+                id={buttonId}
                 className="sy-accordion__button"
                 aria-expanded={open}
+                aria-controls={panelId}
                 disabled={item.disabled}
                 onClick={() => toggle(item.id)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 8 }}
@@ -66,7 +70,7 @@ export function Accordion({
               </button>
             </h3>
             {open && (
-              <div className="sy-accordion__panel sy-body3-long" role="region">
+              <div id={panelId} className="sy-accordion__panel sy-body3-long" role="region" aria-labelledby={buttonId}>
                 {item.content}
               </div>
             )}
