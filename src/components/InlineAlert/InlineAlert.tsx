@@ -32,7 +32,7 @@ export function InlineAlert({
 }: InlineAlertProps) {
   return (
     <div
-      role="status"
+      role={variant === 'error' || variant === 'warning' ? 'alert' : 'status'}
       className={cx(
         'sy-inline-alert',
         `sy-inline-alert--${variant}`,
