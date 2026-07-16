@@ -80,7 +80,7 @@ export function MultiSelect({
   };
 
   return (
-    <div ref={rootRef} className={className} style={{ position: 'relative', minWidth: 280 }}>
+    <div ref={rootRef} className={className} style={{ position: 'relative', minWidth: 'min(280px, 100%)' }}>
       {label && <span id={labelId} className="sy-label3" style={{ display: 'block', marginBottom: 4 }}>{label}</span>}
       <div
         className={cx(
