@@ -47,6 +47,15 @@ export interface SyChartProps {
   yTickFormat?: string;
   /** Dashed horizontal reference line (e.g. "1990 level"). Drawn on the y-axis — intended for vertical charts; in 'h' mode y is the category axis. */
   referenceY?: { value: number; label?: string };
+  /**
+   * Accessible text alternative — Plotly's chart is otherwise entirely
+   * invisible to screen readers (canvas/SVG with no semantic content). A
+   * concise, specific description (e.g. "Line chart of CO2 emissions for
+   * China, India, and the US, 1990 to 2024") is far more useful than the
+   * auto-generated fallback below, which only knows the axis titles and
+   * series names.
+   */
+  ariaLabel?: string;
   className?: string;
 }
 
@@ -93,6 +102,7 @@ export function SyChart({
   showLegend = true,
   yTickFormat,
   referenceY,
+  ariaLabel,
   className,
 }: SyChartProps) {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -232,5 +242,18 @@ export function SyChart({
     };
   }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY]);
 
-  return <div ref={ref} className={cx('sy-chart', 'sy-chart-plotly', className)} style={{ width: '100%' }} />;
+  const fallbackDescription =
+    [yTitle, xTitle ? `by ${xTitle}` : null, series.length ? `— ${series.map((s) => s.name).join(', ')}` : null]
+      .filter(Boolean)
+      .join(' ') || 'Chart';
+
+  return (
+    <div
+      ref={ref}
+      role="img"
+      aria-label={ariaLabel ?? fallbackDescription}
+      className={cx('sy-chart', 'sy-chart-plotly', className)}
+      style={{ width: '100%' }}
+    />
+  );
 }
