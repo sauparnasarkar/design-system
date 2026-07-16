@@ -12,6 +12,10 @@ export interface TableColumn<Row> {
   render?: (row: Row) => React.ReactNode;
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
+  /** Wrap cell content across lines instead of the default single-line
+   * ellipsis truncation — for columns whose value is genuinely important to
+   * read in full (a URL, a long description), not just a label. */
+  wrap?: boolean;
 }
 
 export interface TableProps<Row> {
@@ -55,6 +59,11 @@ export function Table<Row extends Record<string, unknown>>({
     }));
 
   return (
+    // overflow-x:auto as a last-resort safety net — the primary fix is
+    // overflow-wrap on the cells below, so unbroken long strings (URLs, IDs)
+    // wrap within their own cell instead of forcing this table, and the page
+    // body around it, wider than the viewport.
+    <div style={{ overflowX: 'auto' }}>
     <table
       className={cx(
         'sy-simple-table',
@@ -67,7 +76,12 @@ export function Table<Row extends Record<string, unknown>>({
         withBorder && 'sy-simple-table--has-border',
         className,
       )}
-      style={{ borderCollapse: 'collapse', width: '100%' }}
+      // table-layout: fixed is what actually makes overflow-wrap effective —
+      // without it, the browser's automatic table layout sizes each column to
+      // its content's *unwrapped* width first, so a long unbroken string (a
+      // URL, an ID) still grows the column/table past its container no matter
+      // what wrapping rules the cells themselves have.
+      style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}
     >
       {caption && <caption className="sy-simple-table__caption sy-label3">{caption}</caption>}
       <thead>
@@ -76,7 +90,7 @@ export function Table<Row extends Record<string, unknown>>({
             <th
               key={c.key}
               className={cx('sy-simple-table-cell', 'sy-simple-table-cell--header', c.align && `sy-simple-table-cell--${c.align}`, 'sy-label2')}
-              style={{ padding: '8px 12px', textAlign: c.align ?? 'left' }}
+              style={{ padding: '8px 12px', textAlign: c.align ?? 'left', overflowWrap: 'anywhere' }}
               aria-sort={sort.key === c.key && sort.dir ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
             >
               {c.sortable ? (
@@ -106,8 +120,8 @@ export function Table<Row extends Record<string, unknown>>({
             {columns.map((c) => (
               <td
                 key={c.key}
-                className={cx('sy-simple-table-cell', c.align && `sy-simple-table-cell--${c.align}`, 'sy-body3-short')}
-                style={{ padding: '8px 12px', textAlign: c.align ?? 'left' }}
+                className={cx('sy-simple-table-cell', c.align && `sy-simple-table-cell--${c.align}`, c.wrap && 'sy-simple-table-cell--wrap-text', 'sy-body3-short')}
+                style={{ padding: '8px 12px', textAlign: c.align ?? 'left', overflowWrap: 'anywhere' }}
               >
                 {c.render ? c.render(row) : (row[c.key] as React.ReactNode)}
               </td>
@@ -116,5 +130,6 @@ export function Table<Row extends Record<string, unknown>>({
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
