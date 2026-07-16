@@ -1,0 +1,37 @@
+.fg-date-table-filter__menu {
+  background-color: var(--fg-c-table-date-filter-menu-background-color-default);
+  box-shadow: var(--fg-c-table-date-filter-menu-shadow-color-default);
+  margin-bottom: 0;
+  min-width: 164px;
+  position: static !important;
+  width: 100%;
+}
+
+.fg-date-table-filter__option {
+  align-items: center;
+  display: flex !important;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.fg-date-table-filter__option--focused,
+.fg-date-table-filter__option:focus {
+  background-color: var(
+    --fg-c-table-date-filter-option-focused-background-color
+  ) !important;
+  outline: none;
+}
+
+.fg-date-table-filter__option:hover {
+  background-color: var(
+    --fg-c-table-date-filter-menu-option-background-color-hover
+  );
+  cursor: pointer;
+}
+
+.fg-date-table-filter__option--selected,
+.fg-date-table-filter__option:active {
+  background-color: var(
+    --fg-c-table-date-filter-menu-option-background-color-selected
+  );
+}

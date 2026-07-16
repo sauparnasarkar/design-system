@@ -1,0 +1,103 @@
+.fg-dropdown-menu--small .fg-dropdown-menu__list-action,
+.fg-dropdown-menu--small .fg-dropdown-menu__list-item {
+  padding: 4px 8px;
+}
+
+.fg-dropdown-menu--small .fg-dropdown-menu__list-footer,
+.fg-dropdown-menu--small .fg-dropdown-menu__list-header {
+  padding: 8px 12px;
+}
+
+.fg-dropdown-menu--small .fg-dropdown-menu__list-content {
+  padding: 4px;
+}
+
+.fg-dropdown-menu--medium .fg-dropdown-menu__list-action,
+.fg-dropdown-menu--medium .fg-dropdown-menu__list-item {
+  padding: 8px;
+}
+
+.fg-dropdown-menu--medium .fg-dropdown-menu__list-footer,
+.fg-dropdown-menu--medium .fg-dropdown-menu__list-header {
+  padding: 12px 14px;
+}
+
+.fg-dropdown-menu--medium .fg-dropdown-menu__list-content {
+  padding: 6px;
+}
+
+.fg-dropdown-menu--large .fg-dropdown-menu__list-action,
+.fg-dropdown-menu--large .fg-dropdown-menu__list-item {
+  padding: 12px 8px;
+}
+
+.fg-dropdown-menu--large .fg-dropdown-menu__list-footer,
+.fg-dropdown-menu--large .fg-dropdown-menu__list-header {
+  padding: 16px;
+}
+
+.fg-dropdown-menu--large .fg-dropdown-menu__list-content {
+  padding: 8px;
+}
+
+.fg-dropdown-menu--with-border .fg-dropdown-menu__list {
+  border: 1px solid var(--fg-c-dropdownmenu-border-color-default);
+}
+
+.fg-dropdown-menu__list {
+  background-color: var(--fg-c-dropdownmenu-background-color-default);
+  border-radius: 4px;
+  filter: var(--fg-c-dropdownmenu-shadow-color-default);
+}
+
+.fg-dropdown-menu__divider {
+  background-color: var(--fg-c-dropdownmenu-divider-background-color-default);
+  margin: 0;
+}
+
+.fg-dropdown-menu__list-content {
+  overflow-y: auto;
+}
+
+.fg-dropdown-menu__list-action {
+  position: relative;
+}
+
+.fg-dropdown-menu__list-action > :after {
+  content: "";
+  cursor: pointer;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.fg-dropdown-menu__list-action:hover {
+  background-color: var(--fg-c-dropdownmenu-item-background-color-hover);
+  border-radius: 3px;
+}
+
+.fg-dropdown-menu__content > * {
+  margin-bottom: 4px;
+}
+
+.fg-dropdown-menu__content > :last-child {
+  margin-bottom: 0;
+}
+
+.fg-dropdown-menu [data-placement^="top"] > div.tippy-svg-arrow {
+  bottom: -4.5px;
+}
+
+.fg-dropdown-menu [data-placement^="bottom"] > div.tippy-svg-arrow {
+  top: -4.5px;
+}
+
+.fg-dropdown-menu [data-placement^="left"] > div.tippy-svg-arrow {
+  right: -4.5px;
+}
+
+.fg-dropdown-menu [data-placement^="right"] > div.tippy-svg-arrow {
+  left: -4.5px;
+}

@@ -1,0 +1,16 @@
+.fg-gauge-chart {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.fg-gauge-chart__title {
+  border-top: 1px solid var(--fg-c-gauge-chart-divider-color-default);
+  color: var(--fg-c-gauge-chart-title-color-default);
+  padding-top: 8px;
+  text-align: center;
+}
+
+.fg-gauge-chart__title--no-divider {
+  border: none;
+}

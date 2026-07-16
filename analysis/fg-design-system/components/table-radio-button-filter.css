@@ -1,0 +1,10 @@
+.fg-table-radio-button-filter {
+  height: 240px;
+  padding: 6px;
+}
+
+.fg-table-radio-button-filter__wrapper {
+  height: 100%;
+  overflow: auto;
+  width: 100%;
+}

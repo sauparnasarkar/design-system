@@ -1,0 +1,13 @@
+.fg-file-upload-content {
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  width: 100%;
+}
+
+.fg-file-upload-content,
+.fg-file-upload-icon {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}

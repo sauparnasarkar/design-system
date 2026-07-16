@@ -1,0 +1,37 @@
+.fg-nested-checkbox + .fg-nested-checkbox {
+  margin-top: 16px;
+}
+
+.fg-nested-checkbox__option-wrapper,
+.fg-nested-checkbox__parent-wrapper {
+  align-items: center;
+  display: flex;
+}
+
+.fg-nested-checkbox--expandable-left .fg-nested-checkbox__option-wrapper,
+.fg-nested-checkbox--expandable-left .fg-nested-checkbox__parent-wrapper {
+  gap: 8px;
+}
+
+.fg-nested-checkbox--expandable-left .fg-nested-checkbox__option-wrapper {
+  padding-left: 28px;
+}
+
+.fg-nested-checkbox--expandable-right .fg-nested-checkbox__option-wrapper,
+.fg-nested-checkbox--expandable-right .fg-nested-checkbox__parent-wrapper {
+  justify-content: space-between;
+}
+
+.fg-nested-checkbox__content {
+  display: none;
+  margin-left: 24px;
+}
+
+.fg-nested-checkbox__content > .fg-nested-checkbox__expandable-wrapper,
+.fg-nested-checkbox__content > .fg-nested-checkbox__option-wrapper {
+  margin-top: 16px;
+}
+
+.fg-nested-checkbox--expanded > .fg-nested-checkbox__content {
+  display: block;
+}

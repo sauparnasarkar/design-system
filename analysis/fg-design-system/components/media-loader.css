@@ -1,0 +1,6 @@
+.fg-media-loader {
+  border: 1px solid var(--fg-c-loaders-media-border-color-default);
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}

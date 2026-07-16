@@ -1,0 +1,99 @@
+.Toastify .Toastify__toast-container .Toastify__toast--error .fg-toast__icon,
+.Toastify .Toastify__toast-container .Toastify__toast--error .fg-toast__text {
+  color: var(--fg-c-toast-error-text-color);
+}
+
+.Toastify .Toastify__toast-container .Toastify__toast--success .fg-toast__icon,
+.Toastify .Toastify__toast-container .Toastify__toast--success .fg-toast__text {
+  color: var(--fg-c-toast-success-text-color);
+}
+
+.Toastify .Toastify__toast-container .Toastify__toast--warning .fg-toast__icon,
+.Toastify .Toastify__toast-container .Toastify__toast--warning .fg-toast__text {
+  color: var(--fg-c-toast-warning-text-color);
+}
+
+.Toastify .Toastify__toast-container .Toastify__toast--default .fg-toast__icon,
+.Toastify .Toastify__toast-container .Toastify__toast--default .fg-toast__text {
+  color: var(--fg-c-toast-default-text-color);
+}
+
+.fg-toast {
+  display: flex;
+}
+
+.fg-toast__text {
+  word-break: break-word;
+}
+
+.fg-toast--long {
+  border-right: 1px solid var(--fg-c-toast-long-divider-color);
+  display: flex;
+  flex-direction: column;
+  margin-right: 46px;
+  max-width: 501px;
+  min-height: 80px;
+  padding-right: 12px;
+}
+
+.fg-toast--long .fg-toast__button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fg-toast--long .fg-toast__text {
+  padding-right: 15px;
+}
+
+.fg-toast--long .fg-toast__wrapper {
+  padding-bottom: 8px;
+}
+
+.fg-toast:not(.fg-toast--long) {
+  align-items: center;
+  display: flex;
+}
+
+.fg-toast__close-button-wrapper {
+  position: absolute;
+  right: 10px;
+}
+
+.fg-toast__close-button-wrapper--top {
+  top: 13px;
+}
+
+.fg-toast__close-button-icon {
+  color: var(--fg-c-toast-close-button-color);
+}
+
+.fg-toast__wrapper {
+  align-items: center;
+  display: flex;
+}
+
+.fg-toast__wrapper .fg-toast__icon {
+  margin-right: 8px;
+  min-width: 16px;
+}
+
+.fg-toast__button-wrapper {
+  display: flex;
+  gap: 4px;
+  height: fit-content;
+  padding-left: 32px;
+}
+
+.fg-toast__button-wrapper--with-close-button {
+  margin-right: 42px;
+}
+
+.fg-toast__wrapper--without-buttons {
+  padding-right: 70px;
+}
+
+.fg-toast--without-close-icon.fg-toast--long {
+  border: none;
+  margin-right: 0;
+  padding-right: 0;
+}

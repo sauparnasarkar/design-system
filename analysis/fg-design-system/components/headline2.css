@@ -1,0 +1,8 @@
+.fg-headline2 {
+  font-family: var(--fg-web-headline-2-font-family);
+  font-size: var(--fg-web-headline-2-font-size);
+  font-weight: var(--fg-web-headline-2-font-weight);
+  letter-spacing: var(--fg-web-headline-2-letter-spacing);
+  line-height: var(--fg-web-headline-2-line-height);
+  text-decoration: var(--fg-web-headline-2-text-decoration);
+}

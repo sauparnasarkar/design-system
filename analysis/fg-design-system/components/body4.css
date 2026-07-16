@@ -1,0 +1,36 @@
+.fg-body4,
+.fg-card-header__title + .fg-card-header__support-text,
+.fg-chart-tooltip-template,
+.fg-dropdown-menu-button--small,
+.fg-dropdown-multi-select--small .fg-dropdown-multi-select__input-container,
+.fg-dropdown-multi-select--small .fg-dropdown-multi-select__placeholder,
+.fg-dropdown-nested-multi-select--small
+  .fg-dropdown-nested-multi-select__input-container,
+.fg-dropdown-nested-multi-select--small
+  .fg-dropdown-nested-multi-select__placeholder,
+.fg-dropdown__additional-label,
+.fg-dropdown__button--small,
+.fg-input--xs .fg-input__input,
+.fg-krf-slider__description,
+.fg-score__number,
+.fg-search-input .fg-search-input__placeholder,
+.fg-segmented-control__item-content,
+.fg-select--small .fg-select__input-container,
+.fg-select--small .fg-select__placeholder,
+.fg-select--small .fg-select__single-value,
+.fg-sidebar-nav-flyout__content__title,
+.fg-sidebar-nav__logo-wrapper .fg-sidebar-nav__app-name-2,
+.fg-status-light__label,
+.fg-tabs .fg-tab--small,
+.fg-tags__label,
+.fg-tooltip--hint .tippy-content .fg-tooltip__hint-text,
+.fg-tooltip__description,
+.fg-tooltip__header .fg-tooltip__label,
+.fg-tooltip__header .fg-tooltip__sublabel {
+  font-family: var(--fg-web-body-4-font-family);
+  font-size: var(--fg-web-body-4-font-size);
+  font-weight: var(--fg-web-body-4-font-weight);
+  letter-spacing: var(--fg-web-body-4-letter-spacing);
+  line-height: var(--fg-web-body-4-line-height);
+  text-decoration: var(--fg-web-body-4-text-decoration);
+}

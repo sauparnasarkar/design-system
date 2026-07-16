@@ -1,0 +1,26 @@
+.fg-simple-table-cell {
+  max-width: 163px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fg-simple-table-cell--left {
+  text-align: left;
+}
+
+.fg-simple-table-cell--center {
+  text-align: center;
+}
+
+.fg-simple-table-cell--right {
+  text-align: right;
+}
+
+.fg-simple-table-cell--header {
+  border-bottom: 2px solid var(--fg-static-divider-standard);
+}
+
+.fg-simple-table-cell--wrap-text {
+  white-space: wrap;
+}

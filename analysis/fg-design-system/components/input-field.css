@@ -1,0 +1,44 @@
+.fg-input-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.fg-input-field + .fg-input-field {
+  margin-top: 16px;
+}
+
+.fg-input-field--m .fg-input-field__label {
+  color: var(--fg-c-input-field-label-text-color-default);
+}
+
+.fg-input-field__label {
+  width: fit-content;
+}
+
+.fg-input-field__label + .fg-input-field__children-wrapper {
+  margin-top: 8px;
+}
+
+.fg-input-field__error-message {
+  color: var(--fg-c-input-field-message-text-color-error);
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.fg-input-field__error-message-icon {
+  margin-top: 2px;
+  min-width: 12px;
+}
+
+.fg-input-field--m .fg-input-field__label,
+.fg-label2,
+.fg-simple-table .fg-simple-table-cell--header {
+  font-family: var(--fg-web-label-2-font-family);
+  font-size: var(--fg-web-label-2-font-size);
+  font-weight: var(--fg-web-label-2-font-weight);
+  letter-spacing: var(--fg-web-label-2-letter-spacing);
+  line-height: var(--fg-web-label-2-line-height);
+  text-decoration: var(--fg-web-label-2-text-decoration);
+}

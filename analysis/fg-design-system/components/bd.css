@@ -1,0 +1,67 @@
+.fg-bd--n {
+  border: none;
+}
+
+.fg-bd--cl-s {
+  border-collapse: separate;
+}
+
+.fg-bd--rs-micro {
+  border-radius: 1px;
+}
+
+.fg-bd--rs-tiny {
+  border-radius: 2px;
+}
+
+.fg-bd--rs-small {
+  border-radius: 3px;
+}
+
+.fg-bd--rs-large {
+  border-radius: 5px;
+}
+
+.fg-bd--rs-huge {
+  border-radius: 8px;
+}
+
+.fg-bd--rs-circle {
+  border-radius: 50%;
+}
+
+.fg-bd--s-s {
+  border-style: solid;
+}
+
+.fg-bd--bs-s {
+  border-bottom-style: solid;
+}
+
+.fg-bd--ls-s {
+  border-left-style: solid;
+}
+
+.fg-bd--rst-s {
+  border-right-style: solid;
+}
+
+.fg-bd--ts-s {
+  border-top-style: solid;
+}
+
+.fg-bd--w-0 {
+  border-width: 0;
+}
+
+.fg-bd--w-1 {
+  border-width: 1px;
+}
+
+.fg-bd--r-2 {
+  border-radius: 2px;
+}
+
+.fg-bd--r-3 {
+  border-radius: 3px;
+}

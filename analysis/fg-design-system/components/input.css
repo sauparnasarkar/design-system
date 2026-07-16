@@ -1,0 +1,168 @@
+.fg-input {
+  position: relative;
+}
+
+.fg-input__input {
+  background-color: var(--fg-c-input-background-color-default);
+  border: 1px solid var(--fg-c-input-border-color-default);
+  box-shadow: var(--fg-c-input-shadow-color-default);
+  color: var(--fg-c-input-text-color-default);
+  outline: none;
+  width: 100%;
+}
+
+.fg-input__input::placeholder {
+  color: var(--fg-c-input-placeholder-color-default);
+  opacity: 1;
+}
+
+.fg-input__input:hover:not(.fg-input__input--error):not(
+    .fg-input__input:disabled
+  ) {
+  border-color: var(--fg-c-input-border-color-hover);
+}
+
+.fg-input__input:disabled {
+  background-color: var(--fg-c-input-background-color-disabled);
+  border: 1px solid var(--fg-c-input-border-color-disabled);
+}
+
+.fg-input__input:focus {
+  border-radius: 2px;
+  box-shadow: unset;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: -1px;
+}
+
+.fg-input__input:focus::placeholder {
+  color: var(--fg-c-input-placeholder-color-default);
+}
+
+.fg-input__input--error {
+  border-color: var(--fg-c-input-input-border-color-error);
+}
+
+.fg-input__input--error:focus {
+  border-radius: 2px;
+  box-shadow: unset;
+  outline: 2px solid var(--fg-c-input-input-border-color-error);
+  outline-offset: -1px;
+}
+
+.fg-input--xs .fg-input__input {
+  border-radius: 2px;
+  height: 20px;
+  padding: 1px 3px;
+}
+
+.fg-input--xs .fg-input__right-element {
+  right: 4px;
+}
+
+.fg-input--xs.fg-input--with-right-element .fg-input__input {
+  padding-right: 16px;
+}
+
+.fg-input--xs .fg-input__left-element {
+  left: 4px;
+}
+
+.fg-input--xs.fg-input--with-left-element .fg-input__input {
+  padding-left: 20px;
+}
+
+.fg-input--s .fg-input__input {
+  border-radius: 3px;
+  height: 24px;
+  padding: 3px 7px;
+}
+
+.fg-input--s .fg-input__right-element {
+  right: 8px;
+}
+
+.fg-input--s.fg-input--with-right-element .fg-input__input {
+  padding-right: 16px;
+}
+
+.fg-input--s .fg-input__left-element {
+  left: 8px;
+}
+
+.fg-input--s.fg-input--with-left-element .fg-input__input {
+  padding-left: 24px;
+}
+
+.fg-input--m .fg-input__input {
+  border-radius: 3px;
+  height: 32px;
+  padding: 8px;
+}
+
+.fg-input--m .fg-input__right-element {
+  right: 8px;
+}
+
+.fg-input--m.fg-input--with-right-element .fg-input__input {
+  padding-right: 24px;
+}
+
+.fg-input--m .fg-input__left-element {
+  left: 8px;
+}
+
+.fg-input--m.fg-input--with-left-element .fg-input__input {
+  padding-left: 24px;
+}
+
+.fg-input--l .fg-input__input {
+  border-radius: 3px;
+  height: 40px;
+  padding: 11px;
+}
+
+.fg-input--l .fg-input__right-element {
+  right: 12px;
+}
+
+.fg-input--l.fg-input--with-right-element .fg-input__input {
+  padding-right: 24px;
+}
+
+.fg-input--l .fg-input__left-element {
+  left: 12px;
+}
+
+.fg-input--l.fg-input--with-left-element .fg-input__input {
+  padding-left: 32px;
+}
+
+.fg-input--xl .fg-input__input {
+  border-radius: 3px;
+  height: 48px;
+  padding: 15px 11px;
+}
+
+.fg-input--xl .fg-input__right-element {
+  right: 12px;
+}
+
+.fg-input--xl.fg-input--with-right-element .fg-input__input {
+  padding-right: 32px;
+}
+
+.fg-input--xl .fg-input__left-element {
+  left: 12px;
+}
+
+.fg-input--xl.fg-input--with-left-element .fg-input__input {
+  padding-left: 32px;
+}
+
+.fg-input__left-element,
+.fg-input__right-element {
+  align-items: center;
+  display: inline-flex;
+  height: 100%;
+  position: absolute;
+}

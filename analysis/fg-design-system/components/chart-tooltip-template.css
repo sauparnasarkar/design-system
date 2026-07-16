@@ -1,0 +1,11 @@
+.fg-chart-tooltip-template {
+  align-items: center;
+  border-radius: 3px;
+  display: flex;
+  filter: var(--fg-c-chart-tooltip-template-shadow-filter);
+  justify-content: center;
+  min-height: 24px;
+  min-width: 58px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}

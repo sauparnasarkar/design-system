@@ -1,0 +1,12 @@
+.fg-dot-navs {
+  display: flex;
+  flex-direction: row;
+}
+
+.fg-dot-navs--vertical {
+  flex-direction: column;
+}
+
+.fg-dot-navs--vertical .fg-dot {
+  padding: 2px 0;
+}

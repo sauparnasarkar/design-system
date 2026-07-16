@@ -1,0 +1,214 @@
+{
+ "url": "/reports",
+ "components": {
+  "inputText": {
+   "count": 3,
+   "sample": {
+    "tag": "INPUT",
+    "cls": "fg-search-input__input",
+    "fontSize": "14px",
+    "fontWeight": "500",
+    "color": "rgb(0, 0, 0)",
+    "backgroundColor": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(0, 0, 0)",
+    "borderBottom": "0px none rgb(0, 0, 0)",
+    "borderRadius": "0px",
+    "padding": "0px",
+    "boxShadow": "none",
+    "height": "21px",
+    "textTransform": "none"
+   },
+   "text": ""
+  },
+  "checkbox": {
+   "count": 7,
+   "sample": {
+    "tag": "INPUT",
+    "cls": "ag-input-field-input ag-checkbox-input",
+    "fontSize": "13.3333px",
+    "fontWeight": "400",
+    "color": "rgb(0, 0, 0)",
+    "backgroundColor": "rgb(255, 255, 255)",
+    "border": "0px none rgb(0, 0, 0)",
+    "borderBottom": "0px none rgb(0, 0, 0)",
+    "borderRadius": "0px",
+    "padding": "0px",
+    "boxShadow": "none",
+    "height": "100%",
+    "textTransform": "none"
+   },
+   "text": ""
+  },
+  "card": {
+   "count": 17,
+   "sample": {
+    "tag": "DIV",
+    "cls": "fg-card fg-card--with-border",
+    "fontSize": "16px",
+    "fontWeight": "400",
+    "color": "rgb(74, 74, 74)",
+    "backgroundColor": "rgb(255, 255, 255)",
+    "border": "1px solid rgba(0, 0, 0, 0.12)",
+    "borderBottom": "1px solid rgba(0, 0, 0, 0.12)",
+    "borderRadius": "3px",
+    "padding": "0px",
+    "boxShadow": "none",
+    "height": "434px",
+    "textTransform": "none"
+   },
+   "text": "Latest ReportsAutoliv Inc. - Framework Rating (Multi-ISIN - "
+  },
+  "filter": {
+   "count": 58,
+   "sample": {
+    "tag": "DIV",
+    "cls": "ag-header-row ag-header-row-column-filter",
+    "fontSize": "12px",
+    "fontWeight": "600",
+    "color": "rgb(73, 73, 73)",
+    "backgroundColor": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(73, 73, 73)",
+    "borderBottom": "0px none rgb(73, 73, 73)",
+    "borderRadius": "0px",
+    "padding": "0px",
+    "boxShadow": "none",
+    "height": "32px",
+    "textTransform": "none"
+   },
+   "text": "Select DateTypeTypeTypeType"
+  },
+  "dropdownBtn": {
+   "count": 8,
+   "sample": {
+    "tag": "LI",
+    "cls": "fg-sidebar-nav__sidebar-item",
+    "fontSize": "16px",
+    "fontWeight": "400",
+    "color": "rgb(74, 74, 74)",
+    "backgroundColor": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(74, 74, 74)",
+    "borderBottom": "0px none rgb(74, 74, 74)",
+    "borderRadius": "0px",
+    "padding": "0px",
+    "boxShadow": "none",
+    "height": "32px",
+    "textTransform": "none"
+   },
+   "text": "Home"
+  },
+  "breadcrumb": {
+   "count": 6,
+   "sample": {
+    "tag": "DIV",
+    "cls": "fg-grid-container fg-grid-container--fluid ux-layout__breadc",
+    "fontSize": "16px",
+    "fontWeight": "400",
+    "color": "rgb(74, 74, 74)",
+    "backgroundColor": "rgb(255, 255, 255)",
+    "border": "",
+    "borderBottom": "1px solid rgba(0, 0, 0, 0.12)",
+    "borderRadius": "0px",
+    "padding": "0px 32px",
+    "boxShadow": "none",
+    "height": "48px",
+    "textTransform": "none"
+   },
+   "text": "HomeReports"
+  }
+ },
+ "buttonVariants": [
+  {
+   "text": "",
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(0, 0, 0)",
+   "border": "0px none rgb(0, 0, 0)",
+   "radius": "4px",
+   "pad": "1px 6px",
+   "font": "13.3333px/400"
+  },
+  {
+   "text": "",
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(31, 31, 31)",
+   "border": "0px none rgb(31, 31, 31)",
+   "radius": "0px",
+   "pad": "0px",
+   "font": "14px/500"
+  },
+  {
+   "text": "",
+   "bg": "rgba(0, 0, 0, 0)",
+   "color": "rgb(31, 31, 31)",
+   "border": "0px none rgba(0, 0, 0, 0)",
+   "radius": "3px",
+   "pad": "8px 12px",
+   "font": "14px/600"
+  },
+  {
+   "text": "",
+   "bg": "rgba(31, 31, 31, 0.06)",
+   "color": "rgb(153, 153, 153)",
+   "border": "1px solid rgb(78, 81, 94)",
+   "radius": "2px",
+   "pad": "3px",
+   "font": "12px/600"
+  },
+  {
+   "text": "",
+   "bg": "rgb(255, 255, 255)",
+   "color": "rgb(31, 31, 31)",
+   "border": "1px solid rgba(31, 31, 31, 0.16)",
+   "radius": "2px",
+   "pad": "3px",
+   "font": "12px/600"
+  },
+  {
+   "text": "Download",
+   "bg": "rgb(255, 255, 255)",
+   "color": "rgb(31, 31, 31)",
+   "border": "1px solid rgba(31, 31, 31, 0.16)",
+   "radius": "3px",
+   "pad": "7px 11px",
+   "font": "14px/600"
+  },
+  {
+   "text": "Select Date",
+   "bg": "rgb(255, 255, 255)",
+   "color": "rgb(117, 117, 117)",
+   "border": "0px none rgb(117, 117, 117)",
+   "radius": "0px",
+   "pad": "4px",
+   "font": "13.3333px/400"
+  }
+ ],
+ "backgrounds": [
+  [
+   "rgb(255, 255, 255)",
+   109
+  ],
+  [
+   "rgba(153, 153, 153, 0.12)",
+   48
+  ],
+  [
+   "rgb(31, 31, 31)",
+   48
+  ],
+  [
+   "rgb(245, 245, 245)",
+   6
+  ],
+  [
+   "rgb(235, 235, 235)",
+   2
+  ],
+  [
+   "rgba(0, 0, 0, 0.08)",
+   1
+  ],
+  [
+   "rgba(31, 31, 31, 0.06)",
+   1
+  ]
+ ]
+}

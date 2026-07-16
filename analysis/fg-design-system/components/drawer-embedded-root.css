@@ -1,0 +1,12 @@
+.fg-drawer-embedded-root {
+  height: 100%;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.fg-drawer-embedded-root,
+.fg-slider {
+  display: flex;
+  position: relative;
+  width: 100%;
+}

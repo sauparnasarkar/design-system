@@ -1,0 +1,205 @@
+.fg-tooltip {
+  border-radius: 3px;
+  filter: var(--fg-c-tooltip-shadow-filter);
+  outline: 0;
+  pointer-events: auto;
+  position: relative;
+  transition-property: visibility, opacity, transform;
+}
+
+.fg-tooltip--dark {
+  background-color: var(--fg-c-tooltip-dark-background-color);
+  color: var(--fg-c-tooltip-dark-text-color);
+}
+
+.fg-tooltip--dark[data-placement^="top"] > .tippy-arrow {
+  border-top-color: var(--fg-c-tooltip-dark-background-color);
+}
+
+.fg-tooltip--dark[data-placement^="bottom"] > .tippy-arrow {
+  border-bottom-color: var(--fg-c-tooltip-dark-background-color);
+}
+
+.fg-tooltip--dark[data-placement^="left"] > .tippy-arrow {
+  border-left-color: var(--fg-c-tooltip-dark-background-color);
+}
+
+.fg-tooltip--dark[data-placement^="right"] > .tippy-arrow {
+  border-right-color: var(--fg-c-tooltip-dark-background-color);
+}
+
+.fg-tooltip--dark .fg-tooltip__description,
+.fg-tooltip--dark .fg-tooltip__sublabel {
+  color: var(--fg-c-tooltip-dark-description-color);
+}
+
+.fg-tooltip--light {
+  background-color: var(--fg-c-tooltip-light-background-color);
+  color: var(--fg-c-tooltip-light-text-color);
+}
+
+.fg-tooltip--light[data-placement^="top"] > .tippy-arrow {
+  border-top-color: var(--fg-c-tooltip-light-background-color);
+}
+
+.fg-tooltip--light[data-placement^="bottom"] > .tippy-arrow {
+  border-bottom-color: var(--fg-c-tooltip-light-background-color);
+}
+
+.fg-tooltip--light[data-placement^="left"] > .tippy-arrow {
+  border-left-color: var(--fg-c-tooltip-light-background-color);
+}
+
+.fg-tooltip--light[data-placement^="right"] > .tippy-arrow {
+  border-right-color: var(--fg-c-tooltip-light-background-color);
+}
+
+.fg-tooltip--light .fg-tooltip__sublabel {
+  color: var(--fg-c-tooltip-description-color);
+}
+
+.fg-tooltip--warning {
+  background-color: var(--fg-c-tooltip-warning-background-color);
+  color: var(--fg-c-tooltip-warning-text-color);
+}
+
+.fg-tooltip--warning[data-placement^="top"] > .tippy-arrow {
+  border-top-color: var(--fg-c-tooltip-warning-background-color);
+}
+
+.fg-tooltip--warning[data-placement^="bottom"] > .tippy-arrow {
+  border-bottom-color: var(--fg-c-tooltip-warning-background-color);
+}
+
+.fg-tooltip--warning[data-placement^="left"] > .tippy-arrow {
+  border-left-color: var(--fg-c-tooltip-warning-background-color);
+}
+
+.fg-tooltip--warning[data-placement^="right"] > .tippy-arrow {
+  border-right-color: var(--fg-c-tooltip-warning-background-color);
+}
+
+.fg-tooltip--warning svg {
+  fill: var(--fg-c-tooltip-warning-icon-color);
+}
+
+.fg-tooltip--warning .fg-tooltip__description,
+.fg-tooltip--warning .fg-tooltip__sublabel {
+  color: var(--fg-c-tooltip-warning-description-color);
+}
+
+.fg-tooltip--alert {
+  background-color: var(--fg-c-tooltip-alert-background-color);
+  color: var(--fg-c-tooltip-alert-text-color);
+}
+
+.fg-tooltip--alert[data-placement^="top"] > .tippy-arrow {
+  border-top-color: var(--fg-c-tooltip-alert-background-color);
+}
+
+.fg-tooltip--alert[data-placement^="bottom"] > .tippy-arrow {
+  border-bottom-color: var(--fg-c-tooltip-alert-background-color);
+}
+
+.fg-tooltip--alert[data-placement^="left"] > .tippy-arrow {
+  border-left-color: var(--fg-c-tooltip-alert-background-color);
+}
+
+.fg-tooltip--alert[data-placement^="right"] > .tippy-arrow {
+  border-right-color: var(--fg-c-tooltip-alert-background-color);
+}
+
+.fg-tooltip--alert svg,
+.fg-tooltip--alert svg path {
+  fill: var(--fg-c-tooltip-alert-icon-color);
+}
+
+.fg-tooltip--alert .fg-tooltip__description,
+.fg-tooltip--alert .fg-tooltip__sublabel {
+  color: var(--fg-c-tooltip-alert-description-color);
+}
+
+.fg-tooltip--hint .tippy-content {
+  height: 144px;
+  padding: 8px 6px 8px 8px;
+  width: 250px;
+}
+
+.fg-tooltip--hint .tippy-content .fg-tooltip__hint-text {
+  overflow: auto;
+  word-break: break-word;
+}
+
+.fg-tooltip--hint .tippy-content .fg-tooltip__hint-text:focus {
+  outline: none;
+}
+
+.fg-tooltip--hint .tippy-content > div {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+.fg-tooltip--hint .tippy-content > div:focus {
+  outline: none;
+}
+
+.fg-tooltip__header {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  word-break: break-word;
+}
+
+.fg-tooltip__header .fg-tooltip__label {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}
+
+.fg-tooltip__description {
+  color: var(--fg-c-tooltip-description-color);
+  margin-top: 4px;
+  word-break: break-word;
+}
+
+.fg-tooltip[data-placement^="top"] > .tippy-arrow {
+  border-width: 3px 3px 0;
+  bottom: -3px;
+  margin: 0 auto;
+  transform-origin: 50% 0;
+}
+
+.fg-tooltip[data-placement^="bottom"] > .tippy-arrow {
+  border-width: 0 3px 3px;
+  margin: 0 auto;
+  top: -3px;
+  transform-origin: 50% 7px;
+}
+
+.fg-tooltip[data-placement^="left"] > .tippy-arrow {
+  border-width: 3px 0 3px 3px;
+  margin: auto 0;
+  right: -3px;
+  transform-origin: 0 50%;
+}
+
+.fg-tooltip[data-placement^="right"] > .tippy-arrow {
+  border-width: 3px 3px 3px 0;
+  left: -3px;
+  margin: auto 0;
+  transform-origin: 7px 50%;
+}
+
+.fg-tooltip[data-interactive][data-state="visible"] {
+  pointer-events: auto;
+}
+
+.fg-tooltip[data-inertia][data-state="visible"] {
+  transition-timing-function: cubic-bezier(0.54, 1.5, 0.38, 1.11);
+}
+
+.fg-tooltip[data-animation="fade"][data-state="hidden"] {
+  opacity: 0;
+}

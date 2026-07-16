@@ -1,0 +1,3 @@
+.fg-simple-table-foot .fg-simple-table-cell {
+  border-top: 1px solid var(--fg-static-divider-standard);
+}

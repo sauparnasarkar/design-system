@@ -1,0 +1,11 @@
+.fg-w--full {
+  width: 100%;
+}
+
+.fg-w--fc {
+  width: fit-content;
+}
+
+.fg-w--100vw {
+  width: 100vw;
+}

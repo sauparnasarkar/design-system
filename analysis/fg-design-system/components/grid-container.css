@@ -1,0 +1,384 @@
+.fg-grid-container {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(12, 1fr);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media only screen and (min-width: 640px) {
+  .fg-grid-container {
+    padding: 0 24px;
+  }
+}
+
+@media only screen and (min-width: 1440px) {
+  .fg-grid-container {
+    padding: 0 32px;
+  }
+}
+
+.fg-grid-container--1-cols {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.fg-grid-container--2-cols {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.fg-grid-container--3-cols {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.fg-grid-container--4-cols {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.fg-grid-container--5-cols {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.fg-grid-container--6-cols {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.fg-grid-container--7-cols {
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.fg-grid-container--8-cols {
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.fg-grid-container--9-cols {
+  grid-template-columns: repeat(9, 1fr);
+}
+
+.fg-grid-container--10-cols {
+  grid-template-columns: repeat(10, 1fr);
+}
+
+.fg-grid-container--11-cols {
+  grid-template-columns: repeat(11, 1fr);
+}
+
+.fg-grid-container--12-cols {
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.fg-grid-container--gap-0 {
+  gap: 0;
+}
+
+.fg-grid-container--col-gap-0 {
+  column-gap: 0;
+}
+
+.fg-grid-container--gap-8 {
+  gap: 8px;
+}
+
+.fg-grid-container--col-gap-8 {
+  column-gap: 8px;
+}
+
+.fg-grid-container--gap-16 {
+  gap: 16px;
+}
+
+.fg-grid-container--col-gap-16 {
+  column-gap: 16px;
+}
+
+.fg-grid-container--gap-32 {
+  gap: 32px;
+}
+
+.fg-grid-container--col-gap-32 {
+  column-gap: 32px;
+}
+
+.fg-grid-container--padding-0 {
+  padding: 0;
+}
+
+.fg-grid-container--padding-16 {
+  padding: 0 16px;
+}
+
+.fg-grid-container--padding-24 {
+  padding: 0 24px;
+}
+
+.fg-grid-container--padding-32 {
+  padding: 0 32px;
+}
+
+@media only screen and (min-width: 0px) {
+  .fg-grid-container {
+    max-width: 640px;
+  }
+}
+
+@media only screen and (min-width: 640px) {
+  .fg-grid-container {
+    max-width: 960px;
+  }
+}
+
+@media only screen and (min-width: 960px) {
+  .fg-grid-container {
+    max-width: 1240px;
+  }
+}
+
+@media only screen and (min-width: 1240px) {
+  .fg-grid-container {
+    max-width: 1440px;
+  }
+}
+
+@media only screen and (min-width: 1440px) {
+  .fg-grid-container {
+    max-width: 1920px;
+  }
+}
+
+@media only screen and (min-width: 0px) {
+  .fg-grid-container--xxs-1-cols {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .fg-grid-container--xxs-2-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fg-grid-container--xxs-3-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .fg-grid-container--xxs-4-cols {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .fg-grid-container--xxs-5-cols {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .fg-grid-container--xxs-6-cols {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .fg-grid-container--xxs-7-cols {
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .fg-grid-container--xxs-8-cols {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  .fg-grid-container--xxs-9-cols {
+    grid-template-columns: repeat(9, 1fr);
+  }
+  .fg-grid-container--xxs-10-cols {
+    grid-template-columns: repeat(10, 1fr);
+  }
+  .fg-grid-container--xxs-11-cols {
+    grid-template-columns: repeat(11, 1fr);
+  }
+  .fg-grid-container--xxs-12-cols {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+@media only screen and (min-width: 640px) {
+  .fg-grid-container--xs-1-cols {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .fg-grid-container--xs-2-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fg-grid-container--xs-3-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .fg-grid-container--xs-4-cols {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .fg-grid-container--xs-5-cols {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .fg-grid-container--xs-6-cols {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .fg-grid-container--xs-7-cols {
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .fg-grid-container--xs-8-cols {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  .fg-grid-container--xs-9-cols {
+    grid-template-columns: repeat(9, 1fr);
+  }
+  .fg-grid-container--xs-10-cols {
+    grid-template-columns: repeat(10, 1fr);
+  }
+  .fg-grid-container--xs-11-cols {
+    grid-template-columns: repeat(11, 1fr);
+  }
+  .fg-grid-container--xs-12-cols {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+@media only screen and (min-width: 960px) {
+  .fg-grid-container--sm-1-cols {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .fg-grid-container--sm-2-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fg-grid-container--sm-3-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .fg-grid-container--sm-4-cols {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .fg-grid-container--sm-5-cols {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .fg-grid-container--sm-6-cols {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .fg-grid-container--sm-7-cols {
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .fg-grid-container--sm-8-cols {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  .fg-grid-container--sm-9-cols {
+    grid-template-columns: repeat(9, 1fr);
+  }
+  .fg-grid-container--sm-10-cols {
+    grid-template-columns: repeat(10, 1fr);
+  }
+  .fg-grid-container--sm-11-cols {
+    grid-template-columns: repeat(11, 1fr);
+  }
+  .fg-grid-container--sm-12-cols {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+@media only screen and (min-width: 1240px) {
+  .fg-grid-container--md-1-cols {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .fg-grid-container--md-2-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fg-grid-container--md-3-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .fg-grid-container--md-4-cols {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .fg-grid-container--md-5-cols {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .fg-grid-container--md-6-cols {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .fg-grid-container--md-7-cols {
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .fg-grid-container--md-8-cols {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  .fg-grid-container--md-9-cols {
+    grid-template-columns: repeat(9, 1fr);
+  }
+  .fg-grid-container--md-10-cols {
+    grid-template-columns: repeat(10, 1fr);
+  }
+  .fg-grid-container--md-11-cols {
+    grid-template-columns: repeat(11, 1fr);
+  }
+  .fg-grid-container--md-12-cols {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+@media only screen and (min-width: 1440px) {
+  .fg-grid-container--lg-1-cols {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .fg-grid-container--lg-2-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fg-grid-container--lg-3-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .fg-grid-container--lg-4-cols {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .fg-grid-container--lg-5-cols {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .fg-grid-container--lg-6-cols {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .fg-grid-container--lg-7-cols {
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .fg-grid-container--lg-8-cols {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  .fg-grid-container--lg-9-cols {
+    grid-template-columns: repeat(9, 1fr);
+  }
+  .fg-grid-container--lg-10-cols {
+    grid-template-columns: repeat(10, 1fr);
+  }
+  .fg-grid-container--lg-11-cols {
+    grid-template-columns: repeat(11, 1fr);
+  }
+  .fg-grid-container--lg-12-cols {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+@media only screen and (min-width: 1920px) {
+  .fg-grid-container--xl-1-cols {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .fg-grid-container--xl-2-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fg-grid-container--xl-3-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .fg-grid-container--xl-4-cols {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .fg-grid-container--xl-5-cols {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .fg-grid-container--xl-6-cols {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .fg-grid-container--xl-7-cols {
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .fg-grid-container--xl-8-cols {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  .fg-grid-container--xl-9-cols {
+    grid-template-columns: repeat(9, 1fr);
+  }
+  .fg-grid-container--xl-10-cols {
+    grid-template-columns: repeat(10, 1fr);
+  }
+  .fg-grid-container--xl-11-cols {
+    grid-template-columns: repeat(11, 1fr);
+  }
+  .fg-grid-container--xl-12-cols {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+.fg-grid-container--fluid {
+  max-width: 100%;
+  width: 100%;
+}

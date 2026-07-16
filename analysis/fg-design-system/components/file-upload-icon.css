@@ -1,0 +1,11 @@
+.fg-file-upload-icon {
+  background: var(--fg-c-file-upload-icon-background-color-default);
+  border-radius: 3px;
+  height: fit-content;
+  padding: 10px;
+  width: fit-content;
+}
+
+.fg-file-upload-icon__svg {
+  color: var(--fg-c-file-upload-icon-fill-default);
+}

@@ -1,0 +1,22 @@
+.fg-cell-edit,
+.fg-date-table-filter__menu,
+.fg-set-table-filter__input,
+.fg-set-table-filter__no-options-message,
+.fg-table-radio-button-filter {
+  font-family: var(--fg-web-body-3-short-font-family);
+  font-size: var(--fg-web-body-3-short-font-size);
+  font-weight: var(--fg-web-body-3-short-font-weight);
+  letter-spacing: var(--fg-web-body-3-short-letter-spacing);
+  line-height: var(--fg-web-body-3-short-line-height);
+  text-decoration: var(--fg-web-body-3-short-text-decoration);
+}
+
+.fg-cell-edit {
+  background-color: var(--fg-c-table-cell-edit-background-color-default);
+  border: none;
+  color: var(--fg-c-table-cell-edit-text-color-default);
+  outline: none;
+  padding: 0;
+  width: 100%;
+  word-break: break-word;
+}

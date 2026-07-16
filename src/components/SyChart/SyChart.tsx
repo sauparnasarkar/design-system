@@ -1,0 +1,236 @@
+import React from 'react';
+import Plotly from 'plotly.js-dist-min';
+import { cx } from '../../lib/cx';
+
+export interface SyChartSeries {
+  name: string;
+  x: Array<string | number>;
+  y: Array<number | null>;
+  /** 'bar' (default), 'line', or 'band' (shaded range, e.g. a confidence interval) */
+  kind?: 'bar' | 'line' | 'band';
+  /** Lower bound for kind 'band'; `y` is the upper bound */
+  yLower?: Array<number | null>;
+  /** Any CSS color; defaults to the categorical palette in order */
+  color?: string;
+  /**
+   * Per-bar colors for 'bar' series (e.g. sign-based or gradient coloring).
+   * Index i overrides `color`/palette for bar i; undefined entries fall back.
+   */
+  pointColors?: Array<string | undefined>;
+  /**
+   * Continuous color scale for 'bar' series (e.g. a magnitude- or % change-driven gradient).
+   * Numeric values (typically the same as `y`) mapped through Plotly's native colorscale,
+   * rendering a real colorbar legend. Takes precedence over `pointColors`/`color`.
+   */
+  colorValues?: Array<number | null>;
+  /** Plotly colorscale — array of [stop 0–1, CSS color] pairs. Defaults to green→lightgrey→crimson. */
+  colorScale?: Array<[number, string]>;
+  /** Show the colorbar legend for `colorValues`. Defaults to true when `colorValues` is set. */
+  showColorbar?: boolean;
+  /** Colorbar title, shown above the scale (e.g. "% Change in CO₂ (1990→2024)") */
+  colorbarTitle?: string;
+  /** Dotted overlay line (as in Upgrade/Downgrade Ratio) */
+  dashed?: boolean;
+}
+
+export interface SyChartProps {
+  series: SyChartSeries[];
+  /** How bar series combine */
+  barmode?: 'group' | 'stack';
+  /** Bar orientation — 'v' (default, categories on x) or 'h' (categories on y, values on x) */
+  orientation?: 'v' | 'h';
+  height?: number;
+  xTitle?: string;
+  yTitle?: string;
+  showLegend?: boolean;
+  /** e.g. '.0%' or ',d' (Plotly d3-format) */
+  yTickFormat?: string;
+  /** Dashed horizontal reference line (e.g. "1990 level"). Drawn on the y-axis — intended for vertical charts; in 'h' mode y is the category axis. */
+  referenceY?: { value: number; label?: string };
+  className?: string;
+}
+
+function cssVar(el: Element, name: string, fallback: string): string {
+  if (typeof window === 'undefined') return fallback;
+  // resolve against the component's own element so [data-theme] wrappers apply
+  const v = getComputedStyle(el).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
+const FALLBACK_PALETTE = ['#7accf5', '#e66066', '#d19e27', '#87ca65', '#fed26a', '#be8cd7', '#3950c4', '#a333a1', '#46b7b7'];
+
+const DEFAULT_CONTINUOUS_SCALE: Array<[number, string]> = [
+  [0, 'green'],
+  [0.5, 'lightgrey'],
+  [1, 'crimson'],
+];
+
+function syPalette(el: Element): string[] {
+  return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--sy-chart-categorical-default-0${i + 1}`, fb));
+}
+
+function withAlpha(color: string, alpha: number): string {
+  // hex → rgba; anything else falls back to the raw color
+  const m = color.match(/^#([0-9a-f]{6})/i);
+  if (!m) return color;
+  const n = parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+/**
+ * Plotly chart in the `sy-chart` / `sy-chart-plotly` wrapper — the charting
+ * stack used across Syena data products. Shapes: single-series column,
+ * stacked column (+ line overlay), grouped column, multi-series line, and
+ * shaded bands (forecast confidence intervals) with optional reference line.
+ */
+export function SyChart({
+  series,
+  barmode = 'group',
+  orientation = 'v',
+  height = 280,
+  xTitle,
+  yTitle,
+  showLegend = true,
+  yTickFormat,
+  referenceY,
+  className,
+}: SyChartProps) {
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const palette = syPalette(el);
+    const font = {
+      family: cssVar(el, '--sy-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
+      size: 12,
+      color: cssVar(el, '--sy-static-text-weak', '#757575'),
+    };
+    const data = series.flatMap((s, i): unknown[] => {
+      const color = s.color ?? palette[i % palette.length];
+      if (s.kind === 'band') {
+        return [
+          {
+            type: 'scatter',
+            mode: 'lines',
+            name: s.name,
+            x: s.x,
+            y: s.yLower ?? s.y,
+            line: { width: 0 },
+            hoverinfo: 'skip',
+            showlegend: false,
+          },
+          {
+            type: 'scatter',
+            mode: 'lines',
+            name: s.name,
+            x: s.x,
+            y: s.y,
+            line: { width: 0 },
+            fill: 'tonexty',
+            fillcolor: withAlpha(color, 0.25),
+          },
+        ];
+      }
+      if (s.kind === 'line') {
+        return [
+          {
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: s.name,
+            x: s.x,
+            y: s.y,
+            line: { color, width: 1.5, dash: s.dashed ? 'dot' : 'solid' },
+            marker: { color, size: 5 },
+          },
+        ];
+      }
+      const marker = s.colorValues
+        ? {
+            color: s.colorValues,
+            colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+            showscale: s.showColorbar ?? true,
+            colorbar: {
+              title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
+              thickness: 14,
+              outlinewidth: 0,
+              tickfont: font,
+            },
+          }
+        : { color: s.pointColors ? s.pointColors.map((c) => c ?? color) : color };
+      return [
+        {
+          type: 'bar',
+          name: s.name,
+          x: orientation === 'h' ? s.y : s.x,
+          y: orientation === 'h' ? s.x : s.y,
+          orientation,
+          marker,
+        },
+      ];
+    });
+    const layout = {
+      barmode,
+      height,
+      font,
+      margin: { l: 48, r: 8, t: 8, b: 32 },
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      showlegend: showLegend,
+      legend: { orientation: 'h', y: 1.12, x: 0, font },
+      xaxis: {
+        title: xTitle ? { text: xTitle, font } : undefined,
+        fixedrange: true,
+        tickfont: font,
+        automargin: true,
+        // yTickFormat formats the value axis; in horizontal mode values live on x
+        tickformat: orientation === 'h' ? yTickFormat : undefined,
+        gridcolor: cssVar(el, '--sy-color-brand-100', '#ebebeb'),
+        zerolinecolor: cssVar(el, '--sy-color-brand-200', '#e0e0e0'),
+      },
+      yaxis: {
+        title: yTitle ? { text: yTitle, font } : undefined,
+        fixedrange: true,
+        tickfont: font,
+        automargin: true,
+        tickformat: orientation === 'h' ? undefined : yTickFormat,
+        gridcolor: cssVar(el, '--sy-color-brand-100', '#ebebeb'),
+        zerolinecolor: cssVar(el, '--sy-color-brand-200', '#e0e0e0'),
+      },
+      hovermode: 'x unified',
+      shapes: referenceY
+        ? [
+            {
+              type: 'line',
+              xref: 'paper',
+              x0: 0,
+              x1: 1,
+              y0: referenceY.value,
+              y1: referenceY.value,
+              line: { color: cssVar(el, '--sy-static-text-weak', '#757575'), width: 1, dash: 'dot' },
+            },
+          ]
+        : undefined,
+      annotations: referenceY?.label
+        ? [
+            {
+              xref: 'paper',
+              x: 1,
+              y: referenceY.value,
+              xanchor: 'right',
+              yanchor: 'bottom',
+              text: referenceY.label,
+              showarrow: false,
+              font: { ...font, size: 11 },
+            },
+          ]
+        : undefined,
+    };
+    Plotly.react(el, data, layout, { displayModeBar: false, responsive: true });
+    return () => {
+      Plotly.purge(el);
+    };
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY]);
+
+  return <div ref={ref} className={cx('sy-chart', 'sy-chart-plotly', className)} style={{ width: '100%' }} />;
+}

@@ -1,0 +1,219 @@
+.fg-search-input.fg-search-input--classic .fg-search-input__control {
+  background-color: var(
+    --fg-c-search-input-control-classic-background-color-default
+  );
+  border-color: var(--fg-c-search-input-control-classic-border-color-default);
+}
+
+.fg-search-input.fg-search-input--classic .fg-search-input__control:hover {
+  background-color: var(
+    --fg-c-search-input-control-classic-background-color-hover
+  );
+  border-color: var(--fg-c-search-input-control-classic-border-color-hover);
+}
+
+.fg-search-input.fg-search-input--full .fg-search-input__control {
+  border-radius: 999px;
+}
+
+.fg-search-input .fg-search-input__control {
+  align-items: center;
+  background-color: var(--fg-c-search-input-control-background-color-default);
+  border: 1px solid var(--fg-c-search-input-control-background-color-default);
+  border-radius: 2px;
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  position: relative;
+  transition: all 0.1s;
+}
+
+.fg-search-input .fg-search-input__control:hover {
+  background-color: var(--fg-c-search-input-control-background-color-hover);
+  border-color: var(--fg-c-search-input-control-background-color-hover);
+}
+
+.fg-search-input .fg-search-input__control--is-focused {
+  cursor: text;
+  transition: none;
+}
+
+.fg-search-input .fg-search-input__control--is-focused,
+.fg-search-input .fg-search-input__control--is-focused:hover {
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: -2px;
+}
+
+.fg-search-input .fg-search-input__control--is-focused .fg-search-input__input {
+  cursor: text;
+}
+
+.fg-search-input .fg-search-input__value-container {
+  cursor: pointer;
+  padding: 0;
+}
+
+.fg-search-input .fg-search-input__input-container {
+  display: flex;
+  grid-area: 1/1/2/4;
+  padding-bottom: 3px;
+  padding-top: 2px;
+}
+
+.fg-search-input .fg-search-input__input-container:after {
+  display: none;
+}
+
+.fg-search-input .fg-search-input__search-icon {
+  color: var(--fg-c-search-input-icon-color-default);
+  grid-area: 1/1;
+  margin-left: 12px;
+}
+
+.fg-search-input .fg-search-input__clear-indicator {
+  padding: 0 8px;
+}
+
+.fg-search-input .fg-search-input__remove-icon {
+  grid-area: 1/3;
+  justify-self: flex-end;
+  margin-right: 18px;
+}
+
+.fg-search-input .fg-search-input__menu {
+  background-color: var(--fg-c-search-input-menu-background-color-default);
+  border-radius: 6px;
+  filter: var(--fg-c-search-input-menu-shadow-color-default);
+  margin-top: 3px;
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  z-index: var(--fg-c-search-input-menu-z-index);
+}
+
+.fg-search-input .fg-search-input__menu-list {
+  padding: 4px;
+}
+
+.fg-search-input .fg-search-input__group:not(:last-child) {
+  border-bottom: 1px solid var(--fg-c-search-input-group-divider-color-default);
+  padding-bottom: 8px;
+}
+
+.fg-search-input .fg-search-input__group-heading {
+  color: var(--fg-c-search-input-group-heading-text-color-default);
+  cursor: default;
+  margin-bottom: 4px;
+  padding: 12px 12px 0;
+}
+
+.fg-search-input .fg-search-input__option {
+  padding: 0;
+}
+
+.fg-search-input .fg-search-input__option--is-selected {
+  background-color: var(--fg-c-search-input-option-background-color-active);
+}
+
+.fg-search-input .fg-search-input__option--is-focused {
+  background-color: var(--fg-c-search-input-option-background-color-focus);
+}
+
+.fg-search-input .fg-search-input__option--highlighted {
+  color: var(--fg-c-search-input-option-text-color-highlighted);
+  text-decoration: underline;
+}
+
+.fg-search-input .fg-search-input__option-link {
+  align-items: center;
+  color: var(--fg-c-search-input-option-text-color-default);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  max-height: 32px;
+  padding: 8px 12px;
+}
+
+.fg-search-input .fg-search-input__option-link--auto-height {
+  max-height: fit-content;
+}
+
+.fg-search-input .fg-search-input__placeholder {
+  color: var(--fg-c-search-input-placeholder-text-color-default);
+  position: absolute;
+}
+
+.fg-search-input .fg-search-input__input-container,
+.fg-search-input .fg-search-input__placeholder {
+  margin-left: 32px;
+  margin-right: 40px;
+}
+
+.fg-search-input .fg-search-input__input {
+  color: var(--fg-c-search-input-control-text-color-default) !important;
+  cursor: pointer;
+  line-height: 1.5 !important;
+}
+
+.fg-search-input .fg-search-input__menu-notice--no-options {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 16px 0 32px;
+  padding: 0;
+}
+
+.fg-search-input .fg-search-input__no-options-message-icon {
+  color: var(--fg-c-search-input-message-icon-color-default);
+  margin-bottom: 16px;
+}
+
+.fg-search-input .fg-search-input__no-options-error-icon {
+  color: var(--fg-c-search-input-error-icon-color-default);
+  margin-bottom: 16px;
+}
+
+.fg-search-input .fg-search-input__no-options-error-text {
+  color: var(--fg-c-search-input-message-text-color-default);
+  margin-bottom: 16px;
+}
+
+.fg-search-input .fg-search-input__no-options-error-button {
+  align-items: center;
+  background-color: var(
+    --fg-c-search-input-input-error-btn-background-color-default
+  );
+  border: 1px solid
+    var(--fg-c-search-input-input-error-btn-border-color-default);
+  border-radius: 3px;
+  box-shadow: var(--fg-c-search-input-input-error-btn-shadow-color-default);
+  color: var(--fg-c-search-input-input-error-btn-text-color-default);
+  cursor: pointer;
+  display: inline-flex;
+  height: 32px;
+  padding: 8px 12px;
+  width: auto;
+}
+
+.fg-search-input .fg-search-input__no-options-error-button:hover {
+  background-color: var(
+    --fg-c-search-input-input-error-btn-background-color-hover
+  );
+  border: 1px solid var(--fg-c-search-input-input-error-btn-border-color-hover);
+  color: var(--fg-c-search-input-input-error-btn-text-color-hover);
+}
+
+.fg-search-input .fg-search-input__no-options-error-button:focus-visible {
+  border: 1px solid var(--fg-c-search-input-input-error-btn-border-color-focus);
+  box-shadow: none;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 2px;
+}
+
+.fg-search-input .fg-search-input__no-options-error-button:active {
+  background-color: var(
+    --fg-c-search-input-input-error-btn-background-color-active
+  );
+  border: 1px solid var(--fg-c-search-input-input-error-btn-text-color-active);
+}

@@ -1,0 +1,30 @@
+.fg-empty-state {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 286px;
+  width: 100%;
+}
+
+.fg-empty-state--bordered {
+  border: 1px solid var(--fg-c-empty-state-border-default);
+}
+
+.fg-empty-state--background {
+  background-color: var(--fg-c-empty-state-background-color-gray);
+}
+
+.fg-empty-state--medium .fg-empty-state__message,
+.fg-empty-state--medium .fg-empty-state__title {
+  margin-bottom: 8px;
+}
+
+.fg-empty-state--large .fg-empty-state__title,
+.fg-empty-state--medium .fg-empty-state__icon {
+  margin-bottom: 16px;
+}
+
+.fg-empty-state--large .fg-empty-state__icon {
+  margin-bottom: 32px;
+}

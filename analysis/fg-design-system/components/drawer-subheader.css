@@ -1,0 +1,10 @@
+.fg-drawer-subheader {
+  margin-top: 16px;
+}
+
+.fg-drawer-subheader__left,
+.fg-drawer-subheader__right {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+}

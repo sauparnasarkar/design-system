@@ -1,0 +1,15 @@
+.fg-drawer-header {
+  align-items: center;
+}
+
+.fg-drawer-header,
+.fg-drawer-subheader {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.fg-drawer-header + .fg-drawer-body,
+.fg-drawer-subheader + .fg-drawer-body {
+  margin-top: 16px;
+}

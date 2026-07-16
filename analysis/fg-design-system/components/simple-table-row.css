@@ -1,0 +1,7 @@
+.fg-simple-table-row {
+  color: var(--fg-static-text-strong);
+}
+
+.fg-simple-table-row--header {
+  color: var(--fg-static-text-standard);
+}

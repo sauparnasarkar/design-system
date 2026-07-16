@@ -1,0 +1,19 @@
+.fg-table-icon {
+  align-items: center;
+  display: inline-flex;
+}
+
+.fg-table-icon > * {
+  align-items: center;
+  color: var(--fg-c-table-icon-color-default);
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.fg-table-icon > :hover {
+  background-color: var(--fg-c-table-icon-background-color-hover);
+  border-radius: 2px;
+  color: var(--fg-c-table-icon-color-hover);
+}

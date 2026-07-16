@@ -1,0 +1,21 @@
+.fg-tile-loader {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.fg-tile-loader svg {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.fg-tile-loader--small {
+  height: 128px;
+  width: 108px;
+}
+
+.fg-tile-loader--large {
+  height: 176px;
+  width: 142px;
+}

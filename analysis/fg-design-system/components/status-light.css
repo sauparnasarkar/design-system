@@ -1,0 +1,20 @@
+.fg-status-light {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  height: min-content;
+  justify-content: center;
+  width: min-content;
+}
+
+.fg-status-light--rejected {
+  color: var(--fg-c-status-light-rejected-color-default);
+}
+
+.fg-status-light--waiting {
+  color: var(--fg-c-status-light-waiting-color-default);
+}
+
+.fg-status-light--approved {
+  color: var(--fg-c-status-light-approved-color-default);
+}

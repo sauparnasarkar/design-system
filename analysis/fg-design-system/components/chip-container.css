@@ -1,0 +1,7 @@
+.fg-chip-container {
+  position: relative;
+}
+
+.fg-chip-container--removable .fg-chip__item {
+  padding-right: 32px;
+}

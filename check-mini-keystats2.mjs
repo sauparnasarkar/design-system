@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+const errors = [];
+page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
+page.on('pageerror', (err) => errors.push('pageerror: ' + err.message));
+page.on('response', (res) => { if (res.status() >= 400) errors.push(res.url()+' -> '+res.status()); });
+await page.goto('http://100.68.197.45:5173/country-profile', { waitUntil: 'domcontentloaded', timeout: 20000 });
+await page.waitForTimeout(3000);
+await page.screenshot({ path: '/private/tmp/claude-501/-Users-sauparnasarkar-ClaudeWorkspace-climate-emissions-analysis-project/abfdca4f-c1cc-42ac-a28d-73ad9149da98/scratchpad/shots/mini-keystats.png', fullPage: true });
+console.log('ERRORS', JSON.stringify(errors, null, 2));
+await browser.close();

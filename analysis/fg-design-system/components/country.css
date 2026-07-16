@@ -1,0 +1,14 @@
+.fg-country {
+  align-items: center;
+  display: inline-flex;
+}
+
+.fg-country__flag {
+  height: 1em !important;
+  margin-right: 4px;
+  width: 1.5em !important;
+}
+
+.fg-country__name {
+  color: var(--fg-c-country-text-color-default);
+}

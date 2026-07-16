@@ -1,0 +1,41 @@
+.fg-file-upload {
+  border: 1px dashed var(--fg-c-file-upload-border-color-default);
+  border-radius: 3px;
+  cursor: pointer;
+  height: auto;
+  width: 100%;
+}
+
+.fg-file-upload:hover {
+  border: 1px dashed var(--fg-c-file-upload-border-color-hover);
+}
+
+.fg-file-upload:focus-visible:not(.fg-file-upload--disabled) {
+  border-radius: 2px;
+  box-shadow: unset;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: -1px;
+}
+
+.fg-file-upload--drag-active {
+  background: var(--fg-c-file-upload-background-color-drag-active);
+  border: 1px dashed var(--fg-c-file-upload-border-color-drag-active);
+}
+
+.fg-file-upload--disabled {
+  background: var(--fg-c-file-upload-background-color-disabled);
+  border: 1px dashed var(--fg-c-file-upload-border-color-disabled);
+  pointer-events: none;
+}
+
+.fg-file-upload--disabled .fg-file-upload-icon {
+  background: var(--fg-c-file-upload-icon-background-color-disabled);
+}
+
+.fg-file-upload--disabled .fg-file-upload-icon__svg {
+  color: var(--fg-c-file-upload-icon-fill-disabled);
+}
+
+.fg-file-upload--loading {
+  pointer-events: none;
+}

@@ -1,0 +1,30 @@
+.fg-table-highlight-cell {
+  background-color: var(
+    --fg-c-table-highlight-cell-odd-background-color-default
+  );
+  left: -1px;
+  padding: 0 8px;
+  position: absolute;
+  right: -1px;
+  top: -1px;
+}
+
+.fg-table-highlight-cell--even {
+  background-color: var(
+    --fg-c-table-highlight-cell-even-background-color-default
+  );
+}
+
+.fg-table-highlight-cell--disabled {
+  background-image: repeating-linear-gradient(
+    300deg,
+    transparent,
+    transparent 6px,
+    var(--fg-c-table-highlight-cell-stripe-color-disabled) 6px,
+    var(--fg-c-table-highlight-cell-stripe-color-disabled) 8px
+  );
+}
+
+.ag-row-hover .fg-table-highlight-cell {
+  background-color: var(--fg-c-table-highlight-cell-background-color-hover);
+}

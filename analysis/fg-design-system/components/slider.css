@@ -1,0 +1,110 @@
+.fg-slider {
+  cursor: pointer;
+  flex-direction: column;
+  height: 20px;
+}
+
+.fg-slider__track {
+  background: var(--fg-interactive-fill-tertiary-default);
+  border-radius: 2px;
+  height: 2px;
+  margin: 8px 0;
+  position: relative;
+}
+
+.fg-slider__track-fill {
+  background: var(--fg-interactive-fill-secondary-default);
+  height: 100%;
+  left: 0;
+  position: absolute;
+}
+
+.fg-slider__thumb {
+  background: var(--fg-static-background-standard);
+  box-shadow: 0 0 0 1px var(--fg-interactive-fill-tertiary-default);
+  cursor: pointer;
+  height: 16px;
+  margin-top: 1px;
+  transition:
+    width 0.1s ease,
+    height 0.1s ease;
+  width: 16px;
+}
+
+.fg-slider__thumb,
+.fg-slider__thumb:after {
+  border-radius: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.fg-slider__thumb:after {
+  background: var(--fg-static-background-inverse-standard);
+  content: "";
+  height: 4px;
+  left: 50%;
+  top: 50%;
+  transition:
+    width 0.1s ease,
+    height 0.1s ease,
+    background 0.05s ease;
+  width: 4px;
+}
+
+.fg-slider__thumb:hover {
+  height: 20px;
+  width: 20px;
+}
+
+.fg-slider__thumb:active:after {
+  background: var(--fg-interactive-fill-secondary-pressed);
+  height: 6px;
+  width: 6px;
+}
+
+.fg-slider__thumb:focus {
+  box-shadow: 0 0 0 2px var(--fg-static-background-standard);
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 2px;
+}
+
+.fg-slider__ticks {
+  height: 20px;
+  position: absolute;
+  top: 100%;
+  width: 100%;
+}
+
+.fg-slider__ticks-mark,
+.fg-slider__ticks-mark:before {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.fg-slider__ticks-mark:before {
+  background: var(--fg-interactive-fill-tertiary-default);
+  content: "";
+  height: 4px;
+  left: 50%;
+  width: 1px;
+}
+
+.fg-slider--disabled {
+  pointer-events: none;
+}
+
+.fg-slider--disabled .fg-slider__track {
+  background: var(--fg-interactive-fill-tertiary-disabled);
+}
+
+.fg-slider--disabled .fg-slider__track-fill {
+  background: var(--fg-interactive-fill-secondary-disabled);
+}
+
+.fg-slider--disabled .fg-slider__thumb {
+  background: var(--fg-static-background-standard);
+}
+
+.fg-slider--disabled .fg-slider__thumb:after {
+  background: var(--fg-interactive-fill-secondary-disabled);
+}

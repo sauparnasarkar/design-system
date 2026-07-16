@@ -1,0 +1,20 @@
+.fg-chart-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: var(--fg-c-chart-tooltip-z-index);
+}
+
+.fg-chart-tooltip--dark > .fg-chart-tooltip-template {
+  background-color: var(--fg-c-chart-tooltip-template-background-color);
+  color: var(--fg-c-chart-tooltip-template-color);
+}
+
+.fg-chart-tooltip--light > .fg-chart-tooltip-template {
+  background-color: var(--fg-c-chart-tooltip-template-light-background-color);
+  color: var(--fg-c-chart-tooltip-template-light-color);
+}
+
+.fg-chart-tooltip__color-indicator {
+  min-height: 8px;
+  min-width: 8px;
+}

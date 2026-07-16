@@ -1,0 +1,51 @@
+.fg-radio-buttons {
+  display: flex;
+  flex-direction: column;
+}
+
+.fg-radio-buttons .fg-radio {
+  margin-bottom: 12px;
+}
+
+.fg-radio-buttons--remove-margin-bottom .fg-radio:last-child {
+  margin-bottom: 0;
+}
+
+.fg-radio-buttons--horizontal {
+  flex-direction: row;
+}
+
+.fg-radio-buttons--horizontal .fg-radio {
+  margin-right: 16px;
+}
+
+.fg-radio-buttons--horizontal .fg-radio:last-child {
+  margin-right: 0;
+}
+
+.fg-radio-buttons--horizontal.fg-radio-buttons--remove-margin-bottom .fg-radio {
+  margin-bottom: 0;
+}
+
+.fg-radio-buttons--error .fg-radio__checkmark {
+  border: 1px solid var(--fg-c-radio-input-background-color-error);
+}
+
+.fg-radio-buttons--error .fg-radio__input:checked + .fg-radio__checkmark {
+  background-color: var(--fg-c-radio-input-background-color-error);
+}
+
+.fg-radio-buttons--error
+  .fg-radio:hover
+  .fg-radio__input:not(.fg-radio__input:disabled)
+  + .fg-radio__checkmark {
+  border: 1px solid var(--fg-c-radio-input-background-color-error-hover);
+}
+
+.fg-radio-buttons--error
+  .fg-radio:hover
+  .fg-radio__input:not(.fg-radio__input:disabled):checked
+  + .fg-radio__checkmark {
+  background-color: var(--fg-c-radio-input-background-color-error-hover);
+  border: none;
+}

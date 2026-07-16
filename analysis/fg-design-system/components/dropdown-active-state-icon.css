@@ -1,0 +1,21 @@
+.fg-dropdown-active-state-icon {
+  align-items: center;
+  border-radius: 3px;
+  color: var(--fg-c-dropdown-active-state-icon-color-default);
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  margin-right: 8px;
+  width: 24px;
+}
+
+.fg-dropdown-active-state-icon--small {
+  height: 22px;
+  width: 22px;
+}
+
+.fg-dropdown-active-state-icon:hover {
+  background-color: var(
+    --fg-c-dropdown-active-state-icon-background-color-hover
+  );
+}

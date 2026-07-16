@@ -1,0 +1,91 @@
+.fg-simple-table {
+  width: fit-content;
+}
+
+.fg-simple-table__caption {
+  caption-side: bottom;
+  padding: 8px 0;
+  text-align: left;
+}
+
+.fg-simple-table--striped-even
+  .fg-simple-table-row:nth-child(n + 1):nth-child(odd):not(
+    .fg-simple-table-row--header
+  ) {
+  background-color: unset;
+}
+
+.fg-simple-table--striped-even
+  .fg-simple-table-row:nth-child(n + 1):nth-child(2n):not(
+    .fg-simple-table-row--header
+  ),
+.fg-simple-table--striped-odd
+  .fg-simple-table-row:nth-child(n + 1):nth-child(odd):not(
+    .fg-simple-table-row--header
+  ) {
+  background-color: var(--fg-interactive-overlay-sentiment-neutral-default);
+}
+
+.fg-simple-table--striped-odd
+  .fg-simple-table-row:nth-child(n + 1):nth-child(2n):not(
+    .fg-simple-table-row--header
+  ) {
+  background-color: unset;
+}
+
+.fg-simple-table--column-borders .fg-simple-table-cell {
+  border-right: 1px solid var(--fg-static-divider-standard);
+}
+
+.fg-simple-table--column-borders .fg-simple-table-cell:last-of-type {
+  border-right-width: 0;
+}
+
+.fg-simple-table--row-borders .fg-simple-table-cell {
+  border-bottom: 1px solid var(--fg-static-divider-standard);
+}
+
+.fg-simple-table--row-borders .fg-simple-table-cell--header {
+  border-bottom: 2px solid var(--fg-static-divider-standard);
+}
+
+.fg-simple-table--has-border {
+  border: 1px solid var(--fg-static-divider-standard);
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.fg-simple-table--has-border.fg-simple-table--row-borders
+  .fg-simple-table-row:last-of-type:not(.fg-simple-table-row--header)
+  .fg-simple-table-cell {
+  border-bottom-width: 0;
+}
+
+.fg-simple-table .fg-simple-table-cell {
+  font-size: 14px;
+  line-height: 16px;
+  padding: 8px;
+}
+
+.fg-simple-table .fg-simple-table-cell--header {
+  padding: 12px 8px;
+}
+
+.fg-simple-table--small .fg-simple-table-cell {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.fg-simple-table--small .fg-simple-table-cell--header {
+  padding: 10px 8px;
+}
+
+.fg-simple-table--large .fg-simple-table-cell {
+  font-size: 16px;
+  line-height: 24px;
+  padding: 8px 12px;
+}
+
+.fg-simple-table--large .fg-simple-table-cell--header {
+  padding: 16px 12px;
+}

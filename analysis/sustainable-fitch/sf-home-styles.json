@@ -1,0 +1,517 @@
+{
+ "cssVars": {
+  "--highlight-bg-color": "Highlight",
+  "--highlight-selected-bg-color": "ButtonText",
+  "--annotation-unfocused-field-background": "url(\"data:image/svg xml;charset=UTF-8,<svg width='1px' height='1px' xmlns='http://www.w3.org/2000/svg'><rect width='100%' height='100%' style='fill:rgba(0, 54, 255, 0.13);'/></svg>\")",
+  "--input-focus-border-color": "CanvasText",
+  "--input-focus-outline": "1px solid Canvas",
+  "--input-unfocused-border-color": "ActiveText",
+  "--input-disabled-border-color": "GrayText",
+  "--input-hover-border-color": "Highlight",
+  "--link-outline": "1.5px solid LinkText",
+  "--xfa-unfocused-field-background": "url(\"data:image/svg xml;charset=UTF-8,<svg width='1px' height='1px' xmlns='http://www.w3.org/2000/svg'><rect width='100%' height='100%' style='fill:rgba(0, 54, 255, 0.13);'/></svg>\")",
+  "--xfa-focus-outline": "2px solid CanvasText",
+  "--scale-factor": "1",
+  "--progressBar-percent": "0%",
+  "--progressBar-end-offset": "0",
+  "--scale-select-width": "140px",
+  "--thumbnail-width": "0",
+  "--thumbnail-height": "0",
+  "--sidebar-transition-duration": "200ms",
+  "--button-hover-color": "rgba(102, 102, 103, 1)",
+  "--doorhanger-hover-bg-color": "rgba(93, 94, 98, 1)",
+  "--toolbar-icon-opacity": "0.7",
+  "--toolbar-icon-bg-color": "rgba(255, 255, 255, 1)",
+  "--toolbar-icon-hover-bg-color": "rgba(255, 255, 255, 1)",
+  "--toolbar-border-color": "rgba(12, 12, 13, 1)",
+  "--toolbar-border-bottom": "none",
+  "--toolbar-box-shadow": "0 1px 0 var(--toolbar-border-color)",
+  "--toggled-btn-color": "rgba(255, 255, 255, 1)",
+  "--toggled-btn-bg-color": "rgba(0, 0, 0, 0.3)",
+  "--doorhanger-hover-color": "rgba(249, 249, 250, 1)",
+  "--doorhanger-border-color-whcm": "1px solid ButtonText",
+  "--doorhanger-triangle-opacity-whcm": "0",
+  "--dialog-button-border": "none",
+  "--dialog-button-hover-bg-color": "rgba(115, 115, 115, 1)",
+  "--dialog-button-hover-color": "ButtonFace",
+  "--dropdown-btn-border": "none",
+  "--field-border-color": "rgba(115, 115, 115, 1)",
+  "--main-color": "rgba(249, 249, 250, 1)",
+  "--separator-color": "rgba(0, 0, 0, 0.3)",
+  "--doorhanger-separator-color": "rgba(92, 92, 97, 1)",
+  "--toolbarSidebar-box-shadow": "inset calc(-1px * var(--dir-factor)) 0 0 rgba(0, 0, 0, 0.25),\r\n    0 1px 0 rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1)",
+  "--toolbarSidebar-border-bottom": "none",
+  "--dir-factor": "-1",
+  "--inline-start": "right",
+  "--inline-end": "left",
+  "--sidebar-width": "200px",
+  "--sidebar-transition-timing-function": "ease",
+  "--doorhanger-icon-opacity": "0.9",
+  "--body-bg-color": "rgba(42, 42, 46, 1)",
+  "--progressBar-color": "rgba(0, 96, 223, 1)",
+  "--progressBar-bg-color": "rgba(40, 40, 43, 1)",
+  "--progressBar-blend-color": "rgba(20, 68, 133, 1)",
+  "--scrollbar-color": "rgba(121, 121, 123, 1)",
+  "--scrollbar-bg-color": "rgba(35, 35, 39, 1)",
+  "--sidebar-narrow-bg-color": "rgba(42, 42, 46, 0.9)",
+  "--sidebar-toolbar-bg-color": "rgba(50, 50, 52, 1)",
+  "--toolbar-bg-color": "rgba(56, 56, 61, 1)",
+  "--toggled-hover-active-btn-color": "rgba(0, 0, 0, 0.4)",
+  "--dropdown-btn-bg-color": "rgba(74, 74, 79, 1)",
+  "--field-color": "rgba(250, 250, 250, 1)",
+  "--field-bg-color": "rgba(64, 64, 68, 1)",
+  "--treeitem-color": "rgba(255, 255, 255, 0.8)",
+  "--treeitem-bg-color": "rgba(255, 255, 255, 0.15)",
+  "--treeitem-hover-color": "rgba(255, 255, 255, 0.9)",
+  "--treeitem-selected-color": "rgba(255, 255, 255, 0.9)",
+  "--treeitem-selected-bg-color": "rgba(255, 255, 255, 0.25)",
+  "--thumbnail-hover-color": "rgba(255, 255, 255, 0.1)",
+  "--thumbnail-selected-color": "rgba(255, 255, 255, 0.2)",
+  "--doorhanger-bg-color": "rgba(74, 74, 79, 1)",
+  "--doorhanger-border-color": "rgba(39, 39, 43, 1)",
+  "--dialog-button-bg-color": "rgba(92, 92, 97, 1)",
+  "--focus-outline": "solid 3px ButtonText",
+  "--hover-outline": "dashed 3px ButtonText",
+  "--freetext-line-height": "1.35",
+  "--freetext-padding": "2px",
+  "--editorFreeText-editing-cursor": "text",
+  "--viewer-container-height": "0",
+  "--pdfViewer-padding-bottom": "9px",
+  "--page-margin": "8px auto -1px",
+  "--page-border": "1px solid CanvasText",
+  "--spreadHorizontalWrapped-margin-LR": "3.5px",
+  "--loading-icon-delay": "400ms",
+  "--background-even": "#bababa52",
+  "--background-hover": "#454444",
+  "--header-background": "#3a3a3a",
+  "--header-font-color": "#f4f4f4"
+ },
+ "body": {
+  "fontFamily": "\"system-ui\", -apple-system, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+  "fontSize": "16px",
+  "lineHeight": "24px",
+  "color": "rgb(74, 74, 74)",
+  "backgroundColor": "rgba(0, 0, 0, 0)"
+ },
+ "colors": [
+  [
+   "rgb(74, 74, 74)",
+   267
+  ],
+  [
+   "rgb(31, 31, 31)",
+   52
+  ],
+  [
+   "rgb(0, 0, 0)",
+   40
+  ],
+  [
+   "rgb(73, 73, 73)",
+   31
+  ],
+  [
+   "rgb(72, 95, 199)",
+   12
+  ],
+  [
+   "rgb(11, 58, 58)",
+   9
+  ],
+  [
+   "rgb(255, 255, 255)",
+   6
+  ],
+  [
+   "rgb(128, 128, 128)",
+   2
+  ],
+  [
+   "rgb(0, 119, 204)",
+   1
+  ],
+  [
+   "rgb(0, 112, 243)",
+   1
+  ],
+  [
+   "rgb(51, 51, 51)",
+   1
+  ],
+  [
+   "rgb(117, 117, 117)",
+   1
+  ],
+  [
+   "rgb(28, 94, 206)",
+   1
+  ]
+ ],
+ "backgrounds": [
+  [
+   "rgb(255, 255, 255)",
+   31
+  ],
+  [
+   "rgb(24, 114, 114)",
+   3
+  ],
+  [
+   "rgb(245, 245, 245)",
+   2
+  ],
+  [
+   "rgb(235, 235, 235)",
+   1
+  ],
+  [
+   "rgba(0, 0, 0, 0.08)",
+   1
+  ]
+ ],
+ "fonts": [
+  [
+   "\"system-ui\" | 16px | 400",
+   295
+  ],
+  [
+   "-apple-system | 14px | 600",
+   55
+  ],
+  [
+   "-apple-system | 14px | 500",
+   18
+  ],
+  [
+   "\"system-ui\" | 13.3333px | 400",
+   11
+  ],
+  [
+   "-apple-system | 12px | 500",
+   10
+  ],
+  [
+   "-apple-system | 16px | 500",
+   10
+  ],
+  [
+   "-apple-system | 18px | 600",
+   9
+  ],
+  [
+   "-apple-system | 32px | 600",
+   7
+  ],
+  [
+   "-apple-system | 16px | 600",
+   6
+  ],
+  [
+   "-apple-system | 40px | 600",
+   3
+  ]
+ ],
+ "radii": [
+  [
+   "3px",
+   20
+  ],
+  [
+   "4px",
+   15
+  ],
+  [
+   "8px",
+   10
+  ],
+  [
+   "2px",
+   1
+  ]
+ ],
+ "shadows": [
+  [
+   "rgba(0, 0, 0, 0.12) 0px 1px 0px 0px",
+   1
+  ]
+ ],
+ "borderColors": [
+  [
+   "rgba(31, 31, 31, 0.16)",
+   15
+  ],
+  [
+   "rgba(0, 0, 0, 0.08)",
+   2
+  ],
+  [
+   "rgb(245, 245, 245)",
+   1
+  ],
+  [
+   "rgba(0, 0, 0, 0.12)",
+   1
+  ]
+ ],
+ "headings": {
+  "h1": null,
+  "h2": {
+   "fontFamily": "-apple-system",
+   "fontSize": "32px",
+   "fontWeight": "600",
+   "lineHeight": "40px",
+   "color": "rgb(74, 74, 74)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "border": "0px none rgb(74, 74, 74)",
+   "borderRadius": "0px",
+   "padding": "0px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "normal",
+   "height": "40px"
+  },
+  "h3": {
+   "fontFamily": "-apple-system",
+   "fontSize": "16px",
+   "fontWeight": "500",
+   "lineHeight": "24px",
+   "color": "rgb(74, 74, 74)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "border": "0px none rgb(74, 74, 74)",
+   "borderRadius": "0px",
+   "padding": "0px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "-0.32px",
+   "height": "72px"
+  },
+  "h4": null,
+  "h5": null,
+  "h6": null
+ },
+ "buttons": [
+  {
+   "text": "",
+   "cls": "fg-sidebar-nav__menu-button",
+   "fontFamily": "\"system-ui\"",
+   "fontSize": "13.3333px",
+   "fontWeight": "400",
+   "lineHeight": "normal",
+   "color": "rgb(0, 0, 0)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "border": "0px none rgb(0, 0, 0)",
+   "borderRadius": "4px",
+   "padding": "1px 6px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "normal",
+   "height": "32px"
+  },
+  {
+   "text": "Customer Support",
+   "cls": "fg-sidebar-nav__sidebar-item-button fg-sidebar-nav__sidebar-item-button--linkles",
+   "fontFamily": "\"system-ui\"",
+   "fontSize": "13.3333px",
+   "fontWeight": "400",
+   "lineHeight": "normal",
+   "color": "rgb(0, 0, 0)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "border": "0px none rgb(0, 0, 0)",
+   "borderRadius": "4px",
+   "padding": "0px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "normal",
+   "height": "32px"
+  },
+  {
+   "text": "",
+   "cls": "fg-link fg-link--button fg-link--default fg-link fg-link--button fg-link--defaul",
+   "fontFamily": "-apple-system",
+   "fontSize": "14px",
+   "fontWeight": "500",
+   "lineHeight": "20px",
+   "color": "rgb(31, 31, 31)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "border": "0px none rgb(31, 31, 31)",
+   "borderRadius": "0px",
+   "padding": "0px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "-0.28px",
+   "height": "32px"
+  },
+  {
+   "text": "",
+   "cls": "fg-button fg-button--m fg-button--ghost",
+   "fontFamily": "-apple-system",
+   "fontSize": "14px",
+   "fontWeight": "600",
+   "lineHeight": "16px",
+   "color": "rgb(31, 31, 31)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "border": "0px none rgba(0, 0, 0, 0)",
+   "borderRadius": "3px",
+   "padding": "8px 12px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "-0.28px",
+   "height": "32px"
+  },
+  {
+   "text": "View All",
+   "cls": "fg-button fg-button--l fg-button--secondary",
+   "fontFamily": "-apple-system",
+   "fontSize": "16px",
+   "fontWeight": "600",
+   "lineHeight": "16px",
+   "color": "rgb(31, 31, 31)",
+   "backgroundColor": "rgb(255, 255, 255)",
+   "border": "1px solid rgba(31, 31, 31, 0.16)",
+   "borderRadius": "3px",
+   "padding": "11px 15px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "-0.32px",
+   "height": "40px"
+  },
+  {
+   "text": "Download",
+   "cls": "fg-button fg-button--m fg-button--secondary fg-button--full-width fg-mg--b4",
+   "fontFamily": "-apple-system",
+   "fontSize": "14px",
+   "fontWeight": "600",
+   "lineHeight": "16px",
+   "color": "rgb(31, 31, 31)",
+   "backgroundColor": "rgb(255, 255, 255)",
+   "border": "1px solid rgba(31, 31, 31, 0.16)",
+   "borderRadius": "3px",
+   "padding": "7px 11px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "-0.28px",
+   "height": "32px"
+  }
+ ],
+ "links": [
+  {
+   "fontFamily": "\"system-ui\"",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "lineHeight": "24px",
+   "color": "rgb(0, 119, 204)",
+   "backgroundColor": "rgb(255, 255, 255)",
+   "border": "0px none rgb(0, 119, 204)",
+   "borderRadius": "0px",
+   "padding": "8px 16px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "normal",
+   "height": "72px"
+  },
+  {
+   "fontFamily": "\"system-ui\"",
+   "fontSize": "16px",
+   "fontWeight": "400",
+   "lineHeight": "24px",
+   "color": "rgb(72, 95, 199)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "border": "0px none rgb(72, 95, 199)",
+   "borderRadius": "4px",
+   "padding": "0px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "normal",
+   "height": "32px"
+  },
+  {
+   "fontFamily": "-apple-system",
+   "fontSize": "14px",
+   "fontWeight": "500",
+   "lineHeight": "20px",
+   "color": "rgb(0, 112, 243)",
+   "backgroundColor": "rgb(255, 255, 255)",
+   "border": "0px none rgb(0, 112, 243)",
+   "borderRadius": "0px",
+   "padding": "8px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "-0.28px",
+   "height": "36px"
+  },
+  {
+   "fontFamily": "-apple-system",
+   "fontSize": "14px",
+   "fontWeight": "500",
+   "lineHeight": "16px",
+   "color": "rgb(117, 117, 117)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "border": "0px none rgb(117, 117, 117)",
+   "borderRadius": "0px",
+   "padding": "0px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "-0.28px",
+   "height": "auto"
+  },
+  {
+   "fontFamily": "-apple-system",
+   "fontSize": "14px",
+   "fontWeight": "500",
+   "lineHeight": "20px",
+   "color": "rgb(28, 94, 206)",
+   "backgroundColor": "rgba(0, 0, 0, 0)",
+   "border": "0px none rgb(28, 94, 206)",
+   "borderRadius": "0px",
+   "padding": "0px",
+   "boxShadow": "none",
+   "textTransform": "none",
+   "letterSpacing": "-0.28px",
+   "height": "20px"
+  }
+ ],
+ "sidebar": {
+  "fontFamily": "\"system-ui\"",
+  "fontSize": "16px",
+  "fontWeight": "400",
+  "lineHeight": "24px",
+  "color": "rgb(74, 74, 74)",
+  "backgroundColor": "rgba(0, 0, 0, 0)",
+  "border": "0px none rgb(74, 74, 74)",
+  "borderRadius": "0px",
+  "padding": "0px",
+  "boxShadow": "none",
+  "textTransform": "none",
+  "letterSpacing": "normal",
+  "height": "900px"
+ },
+ "header": {
+  "fontFamily": "\"system-ui\"",
+  "fontSize": "16px",
+  "fontWeight": "400",
+  "lineHeight": "24px",
+  "color": "rgb(74, 74, 74)",
+  "backgroundColor": "rgb(255, 255, 255)",
+  "border": "0px none rgb(74, 74, 74)",
+  "borderRadius": "0px",
+  "padding": "12px 16px",
+  "boxShadow": "rgba(0, 0, 0, 0.12) 0px 1px 0px 0px",
+  "textTransform": "none",
+  "letterSpacing": "normal",
+  "height": "56px"
+ },
+ "breakpoints": [
+  "5px",
+  "560px",
+  "639px",
+  "690px",
+  "750px",
+  "768px",
+  "820px",
+  "840px",
+  "900px",
+  "960px",
+  "1440px",
+  "1920px"
+ ]
+}

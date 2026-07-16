@@ -1,0 +1,109 @@
+.fg-set-table-filter--nested
+  .fg-set-table-filter__menu-list
+  > .fg-set-table-filter__option {
+  padding-left: 36px;
+}
+
+.fg-set-table-filter--nested
+  .fg-set-table-filter__nested-group-wrapper
+  > .fg-set-table-filter__option {
+  display: flex;
+  gap: 8px;
+}
+
+.fg-set-table-filter--suppress-search-input .fg-set-table-filter__control {
+  display: none;
+}
+
+.fg-set-table-filter__menu {
+  background-color: var(
+    --fg-c-table-set-filter-menu-background-color-default
+  ) !important;
+  box-shadow: var(--fg-c-table-set-filter-menu-shadow-color-default) !important;
+  margin-bottom: 0 !important;
+  position: static !important;
+  width: 100% !important;
+}
+
+.fg-set-table-filter__control {
+  border-bottom: 1px solid
+    var(--fg-c-table-set-filter-menu-divider-color-default);
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+}
+
+.fg-set-table-filter__value-container {
+  border: 1px solid
+    var(--fg-c-table-set-filter-search-input-border-color-default);
+  border-radius: 3px;
+  box-shadow: var(--fg-c-table-set-filter-search-input-shadow-color-default);
+  overflow: visible !important;
+}
+
+.fg-set-table-filter__input {
+  display: flex !important;
+  height: 30px;
+}
+
+.fg-set-table-filter__input:after {
+  display: none;
+}
+
+.fg-set-table-filter__search-input-wrapper {
+  align-items: center;
+  display: flex;
+}
+
+.fg-set-table-filter__search-input-wrapper:focus-within {
+  border-radius: 2px;
+  box-shadow: unset;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: -1px;
+}
+
+.fg-set-table-filter__search-placeholder-icon {
+  margin: 0 4px 0 6px;
+}
+
+.fg-set-table-filter__placeholder {
+  color: var(--fg-c-table-set-filter-placeholder-text-color-default);
+  padding: 4px;
+}
+
+.fg-set-table-filter__placeholder:hover {
+  color: var(--fg-c-table-set-filter-placeholder-text-color-hover);
+}
+
+.fg-set-table-filter__option {
+  padding: 8px;
+}
+
+.fg-set-table-filter__option:hover {
+  background-color: var(--fg-c-table-set-filter-option-background-color-hover);
+  cursor: pointer;
+}
+
+.fg-set-table-filter__option:focus {
+  background-color: var(
+    --fg-c-table-set-filter-option-background-color-focus
+  ) !important;
+  outline: none;
+}
+
+.fg-set-table-filter__group .fg-set-table-filter__option {
+  padding-left: 66px;
+}
+
+.fg-set-table-filter__checkbox {
+  width: 100%;
+}
+
+.fg-set-table-filter__checkbox > label {
+  width: 100%;
+  word-break: break-word;
+}
+
+.fg-set-table-filter__no-options-message {
+  margin: 8px 0;
+  text-align: center;
+}

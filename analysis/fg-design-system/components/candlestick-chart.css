@@ -1,0 +1,14 @@
+.fg-candlestick-chart rect[class^="rangeslider-mask"] {
+  fill: var(--fg-c-candlestick-chart-rangeslider-mask-color-default) !important;
+  fill-opacity: 0.6 !important;
+}
+
+.fg-candlestick-chart rect.rangeslider-slidebox {
+  stroke: var(--fg-c-candlestick-chart-rangeslider-slidebox-color-default);
+  stroke-width: 2;
+  rx: 4;
+}
+
+.fg-candlestick-chart g.boxes path.box {
+  fill-opacity: 1 !important;
+}

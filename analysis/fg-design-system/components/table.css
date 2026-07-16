@@ -1,0 +1,406 @@
+.fg-table {
+  --fg-c-table-row-nested-level-z-index: var(--fg-z-index-base);
+  --fg-c-table-filter-item-input-unchecked-background-color-default: var(
+    --fg-interactive-overlay-secondary-default
+  );
+  --fg-c-table-filter-item-input-unchecked-border-color-default: var(
+    --fg-interactive-outline-secondary-default
+  );
+  --fg-c-table-filter-item-input-unchecked-border-color-hover: var(
+    --fg-interactive-outline-secondary-hover
+  );
+  --fg-c-table-filter-item-input-checked-background-color-default: var(
+    --fg-static-background-inverse-weak
+  );
+  --fg-c-table-filter-item-input-checked-border-color-default: transparent;
+  --fg-c-table-select-border: var(--fg-interactive-outline-secondary-default);
+  --fg-c-table-label-cell-background-color-default: var(
+    --fg-static-background-standard
+  );
+  --fg-c-table-label-cell-text-color-default: var(--fg-static-text-standard);
+  --fg-c-table-label-cell-background-color-hover: var(
+    --fg-interactive-overlay-secondary-hover
+  );
+  --fg-c-table-label-cell-zebra-text-color-default: var(
+    --fg-static-background-weak
+  );
+  --fg-c-table-label-cell-border-bottom-color-default: var(
+    --fg-static-divider-standard
+  );
+  --fg-c-table-cell-text-color-default: var(--fg-static-text-strong);
+  --fg-c-table-cell-light-text-color-default: var(--fg-static-text-weak);
+  --fg-c-table-cell-light-text-color-hover: var(--fg-static-text-weak);
+  --fg-c-table-cell-vertical-border-color-default: var(
+    --fg-static-divider-standard
+  );
+  --fg-c-table-cell-zebra-background-color-default: var(
+    --fg-interactive-overlay-sentiment-neutral-default
+  );
+  --fg-c-table-cell-border-color-focus: var(
+    --fg-interactive-outline-primary-selected-default
+  );
+  --fg-c-table-cell-background-color-default: var(
+    --fg-static-background-standard
+  );
+  --fg-c-table-cell-border-bottom-color-default: var(
+    --fg-static-divider-standard
+  );
+  --fg-c-table-cell-border-color-selected: var(
+    --fg-interactive-outline-primary-selected-default
+  );
+  --fg-c-table-cell-frozen-border-color-default: var(--fg-static-divider-weak);
+  --fg-c-table-cell-range-background-color-default: var(
+    --fg-interactive-fill-tertiary-pressed
+  );
+  --fg-c-table-cell-range-background-color-copied: var(
+    --fg-interactive-overlay-secondary-selected-pressed
+  );
+  --fg-c-table-cell-selected-row-background-color-default: var(
+    --fg-interactive-fill-tertiary-hover
+  );
+  --fg-c-table-cell-filter-hover-border-color-default: var(
+    --fg-interactive-outline-primary-selected-default
+  );
+  --fg-c-table-cell-editable-shadow-color-default: none;
+  --fg-c-table-cell-editable-background-color-default: transparent;
+  --fg-c-table-icon-color-default: var(--fg-static-text-strong);
+  --fg-c-table-icon-background-color-hover: var(
+    --fg-interactive-overlay-secondary-hover
+  );
+  --fg-c-table-icon-color-hover: var(--fg-static-text-strong);
+  --fg-c-table-header-sort-icon-background-color-default: transparent;
+  --fg-c-table-header-sort-icon-color-default: var(--fg-static-text-weak);
+  --fg-c-table-header-sort-icon-color-hover: var(--fg-static-text-standard);
+  --fg-c-table-header-sort-icon-active-color-default: var(
+    --fg-static-text-strong
+  );
+  --fg-c-table-cell-edit-background-color-default: transparent;
+  --fg-c-table-cell-edit-text-color-default: var(--fg-static-text-strong);
+  --fg-c-table-pinned-z-index: var(--fg-z-index-base);
+  --fg-c-table-loading-overlay-z-index: var(--fg-z-index-base);
+}
+
+.fg-table .ag-header-row {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fg-table .ag-floating-filter-full-body > div,
+.fg-table .ag-floating-filter-full-body > nav {
+  width: 100%;
+}
+
+.fg-table .ag-header-row.ag-header-row-column-group {
+  font-weight: 700;
+}
+
+.fg-table .ag-header-row.ag-header-row-column-group .ag-header-group-text {
+  font-size: 13px;
+}
+
+.fg-table .ag-header-cell {
+  border-bottom: 2px solid
+    var(--fg-c-table-label-cell-border-bottom-color-default);
+  color: var(--fg-c-table-label-cell-text-color-default);
+}
+
+.fg-table .ag-header-cell.right .ag-header-cell-label {
+  justify-content: end;
+}
+
+.fg-table .ag-cell {
+  color: var(--fg-c-table-cell-text-color-default);
+  font-weight: 400;
+  padding: 0 8px;
+}
+
+.fg-table .ag-cell.right {
+  text-align: end;
+}
+
+.fg-table .fg-table__row--default-appearance.ag-row {
+  background-color: var(--fg-c-table-cell-background-color-default);
+  border-bottom: 1px solid var(--fg-c-table-cell-border-bottom-color-default);
+}
+
+.fg-table .column-zebra-header {
+  background-color: var(--fg-c-table-label-cell-zebra-text-color-default);
+}
+
+.fg-table .column-zebra-cell {
+  background-color: var(--fg-c-table-cell-zebra-background-color-default);
+}
+
+.fg-table .ag-floating-filter {
+  padding: 0;
+}
+
+.fg-table .ag-header-cell .fg-table-header {
+  padding: 12px 8px;
+}
+
+.fg-table .ag-header-cell {
+  padding: 0;
+}
+
+.fg-table .ag-ltr .ag-cell-focus:not(.ag-cell-range-selected):focus-within {
+  background-color: var(--fg-c-table-cell-background-color-default);
+  border-color: var(--fg-c-table-cell-border-color-focus);
+}
+
+.fg-table .ag-ltr .ag-header-active:focus-visible:after {
+  border-color: var(--fg-c-table-cell-border-color-focus);
+}
+
+.fg-table .ag-wrapper.ag-picker-field-wrapper {
+  border: 1px solid var(--fg-c-table-select-border);
+}
+
+.fg-table .ag-pinned-left-cols-container,
+.fg-table .ag-pinned-left-header {
+  border-right: 1px solid var(--fg-c-table-cell-frozen-border-color-default);
+  box-shadow: 4px 0 0 0 rgba(0, 0, 0, 0.04);
+  z-index: var(--fg-c-table-pinned-z-index);
+}
+
+.fg-table .ag-pinned-right-cols-container,
+.fg-table .ag-pinned-right-header {
+  border-left: 1px solid var(--fg-c-table-cell-frozen-border-color-default);
+  box-shadow: -4px 0 0 0 rgba(0, 0, 0, 0.04);
+  z-index: var(--fg-c-table-pinned-z-index);
+}
+
+.fg-table .ag-header-group-cell {
+  justify-content: center;
+}
+
+.fg-table .ag-header-group-cell .ag-header-cell-resize {
+  height: 70%;
+}
+
+.fg-table .vertical-border-header .ag-header-cell-resize:after {
+  height: 100%;
+}
+
+.fg-table .ag-cell-inline-editing {
+  background-color: var(--fg-c-table-cell-editable-background-color-default);
+  border-radius: 0;
+  box-shadow: var(--fg-c-table-cell-editable-shadow-color-default);
+  height: 100%;
+}
+
+.fg-table .ag-cell-focus.light {
+  color: var(--fg-c-table-cell-light-text-color-default);
+}
+
+.fg-table .ag-input-field-input.ag-number-field-input {
+  background-color: var(--fg-c-table-cell-edit-background-color-default);
+  color: var(--fg-c-table-cell-edit-text-color-default);
+}
+
+.fg-table .ag-cell.light {
+  color: var(--fg-c-table-cell-light-text-color-default);
+}
+
+.fg-table .ag-cell.light:hover {
+  color: var(--fg-c-table-cell-light-text-color-hover);
+}
+
+.fg-table .fg-table__header--nested-select .ag-ltr .ag-header-select-all {
+  margin: 0 4px 0 36px;
+}
+
+.fg-table .ag-ltr .ag-header-select-all {
+  margin: 0 4px 0 9px;
+}
+
+.fg-table .ag-checkbox-input-wrapper {
+  background-color: var(
+    --fg-c-table-filter-item-input-unchecked-background-color-default
+  );
+  border: 1px solid
+    var(--fg-c-table-filter-item-input-unchecked-border-color-default);
+  border-radius: 2px;
+  height: 16px;
+  width: 16px;
+}
+
+.fg-table .ag-checkbox-input-wrapper:not(.ag-indeterminate):after {
+  content: " ";
+}
+
+.fg-table .ag-checkbox-input-wrapper.ag-checked {
+  background-color: var(
+    --fg-c-table-filter-item-input-checked-background-color-default
+  );
+  border-color: var(
+    --fg-c-table-filter-item-input-checked-border-color-default
+  );
+}
+
+.fg-table .ag-checkbox-input-wrapper.ag-checked:after {
+  background-image: url(../assets/checkmark.svg);
+  background-position: 50%;
+  background-repeat: no-repeat;
+  content: " ";
+  height: 100%;
+  width: 100%;
+}
+
+.fg-table .ag-checkbox-input-wrapper.ag-indeterminate {
+  border: none;
+}
+
+.fg-table .ag-checkbox-input-wrapper.ag-indeterminate:after {
+  color: var(--fg-c-table-filter-item-input-checked-background-color-default);
+}
+
+.fg-table .ag-checkbox-input-wrapper:active,
+.fg-table .ag-checkbox-input-wrapper:focus-within {
+  box-shadow: none;
+}
+
+.fg-table
+  .ag-checkbox-input-wrapper:hover:not(
+    .fg-table .ag-checkbox-input-wrapper.ag-indeterminate
+  ):not(.fg-table .ag-checkbox-input-wrapper.ag-checked) {
+  border-color: var(
+    --fg-c-table-filter-item-input-unchecked-border-color-hover
+  );
+}
+
+.fg-table .ag-checkbox-input-wrapper input:hover {
+  cursor: pointer;
+}
+
+.fg-table .ag-icon-tree-closed:before,
+.fg-table .ag-icon-tree-open:before {
+  display: block;
+  height: 16px;
+  line-height: 10px;
+  width: 16px;
+}
+
+.fg-table .ag-icon-tree-closed:before {
+  content: url(../assets/icons/Expanded.svg);
+  display: inline-block;
+  transform: rotate(90deg);
+}
+
+.fg-table .ag-icon-tree-open:before {
+  content: url(../assets/icons/Collapsed.svg);
+}
+
+.fg-table .ag-ltr .vertical-border-cell {
+  border-right: 1px solid var(--fg-c-table-cell-vertical-border-color-default);
+}
+
+.fg-table .ag-overlay {
+  z-index: var(--fg-c-table-loading-overlay-z-index);
+}
+
+.fg-table .ag-cell-range-selected {
+  box-shadow: 0 1px var(--fg-c-table-cell-border-bottom-color-default);
+}
+
+.fg-table
+  .ag-cell.ag-cell-range-selected:not(
+    .ag-cell-range-single-cell
+  ).ag-cell-range-top {
+  border-top-color: var(--fg-c-table-cell-border-color-selected);
+}
+
+.fg-table
+  .ag-cell.ag-cell-range-selected:not(
+    .ag-cell-range-single-cell
+  ).ag-cell-range-right {
+  border-right-color: var(--fg-c-table-cell-border-color-selected);
+}
+
+.fg-table
+  .ag-cell.ag-cell-range-selected:not(
+    .ag-cell-range-single-cell
+  ).ag-cell-range-left {
+  border-left-color: var(--fg-c-table-cell-border-color-selected);
+}
+
+.fg-table
+  .ag-cell.ag-cell-range-selected:not(
+    .ag-cell-range-single-cell
+  ).ag-cell-range-bottom {
+  border-bottom-color: var(--fg-c-table-cell-border-color-selected);
+}
+
+.fg-table .ag-cell-range-selected-1.ag-cell-range-single-cell {
+  background-color: var(--fg-c-table-label-cell-background-color-default);
+  border-color: var(--fg-c-table-cell-border-color-selected);
+}
+
+.fg-table
+  .ag-body-viewport:not(.ag-has-focus)
+  .ag-cell.ag-cell-range-selected:not(.ag-cell-range-single-cell) {
+  background-color: var(--fg-c-table-cell-range-background-color-default);
+}
+
+.fg-table
+  .ag-body-viewport:not(.ag-has-focus)
+  .ag-cell.ag-cell-range-selected:not(
+    .ag-cell-range-single-cell
+  ).ag-cell-range-left.ag-cell-range-top {
+  background-color: var(--fg-c-table-label-cell-background-color-default);
+  border-left-color: var(--fg-c-table-cell-border-color-selected);
+  border-top-color: var(--fg-c-table-cell-border-color-selected);
+}
+
+.fg-table
+  .ag-body-viewport:not(.ag-has-focus)
+  .ag-cell-range-selected-1:not(
+    .ag-cell-inline-editing
+  ).ag-cell-focus.ag-cell-range-single-cell {
+  background-color: var(--fg-c-table-label-cell-background-color-default);
+}
+
+.fg-table .ag-cell.ag-cell-range-selected:not(.ag-cell-range-single-cell) {
+  background-color: var(--fg-c-table-cell-range-background-color-default);
+}
+
+.fg-table
+  .ag-cell.ag-cell-range-selected:not(
+    .ag-cell-range-single-cell
+  ).ag-cell-range-left.ag-cell-range-top {
+  background-color: var(--fg-c-table-label-cell-background-color-default);
+  border-left-color: var(--fg-c-table-cell-border-color-selected);
+  border-top-color: var(--fg-c-table-cell-border-color-selected);
+}
+
+.fg-table .ag-row-level-1 {
+  z-index: var(--fg-c-table-row-nested-level-z-index);
+}
+
+.fg-table .ag-floating-filter:after {
+  border-color: var(--fg-c-table-cell-filter-hover-border-color-default);
+}
+
+.fg-table .multi-line-text {
+  --reduceLineHeightBy: 14px;
+  line-height: calc(
+    var(--ag-internal-calculated-line-height) - var(--reduceLineHeightBy)
+  );
+  padding-bottom: calc(var(--reduceLineHeightBy) / 2);
+  padding-top: calc(var(--reduceLineHeightBy) / 2);
+}
+
+.fg-table {
+  --fg-c-table-highlight-cell-odd-background-color-default: var(
+    --fg-interactive-overlay-sentiment-positive-default
+  );
+  --fg-c-table-highlight-cell-even-background-color-default: var(
+    --fg-interactive-overlay-sentiment-positive-hover
+  );
+  --fg-c-table-highlight-cell-background-color-hover: var(
+    --fg-interactive-overlay-sentiment-positive-pressed
+  );
+  --fg-c-table-highlight-cell-stripe-color-disabled: var(
+    --fg-static-divider-weak
+  );
+}

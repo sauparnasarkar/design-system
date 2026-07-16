@@ -1,0 +1,8 @@
+.fg-body1 {
+  font-family: var(--fg-web-body-1-font-family);
+  font-size: var(--fg-web-body-1-font-size);
+  font-weight: var(--fg-web-body-1-font-weight);
+  letter-spacing: var(--fg-web-body-1-letter-spacing);
+  line-height: var(--fg-web-body-1-line-height);
+  text-decoration: var(--fg-web-body-1-text-decoration);
+}

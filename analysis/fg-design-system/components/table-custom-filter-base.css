@@ -1,0 +1,29 @@
+.fg-table-custom-filter-base__tippy {
+  margin-top: 8px;
+}
+
+.fg-table-custom-filter-base__tippy .tippy-content {
+  padding: 0 4px;
+}
+
+.fg-table-custom-filter-base__content {
+  padding: 8px;
+}
+
+.fg-table-custom-filter-base__menu-list-divider {
+  background-color: var(
+    --fg-c-table-custom-filter-base-menu-divider-color-default
+  );
+  height: 1px;
+  margin: 8px 0;
+}
+
+.fg-table-custom-filter-base__menu-list-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.fg-table-custom-filter-base--hidden-input
+  .fg-table-custom-filter-base__control {
+  display: none;
+}

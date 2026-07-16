@@ -1,0 +1,270 @@
+.fg-dropdown {
+  position: relative;
+}
+
+.fg-dropdown__no-portal-input .fg-dropdown__popover {
+  margin-top: 6px;
+  position: absolute !important;
+  width: 100%;
+}
+
+.fg-dropdown__option {
+  align-items: center;
+  background-color: var(--fg-c-dropdown-option-background-color-default);
+  border-radius: 3px;
+  color: var(--fg-c-dropdown-option-text-color-default);
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  min-height: 32px;
+  padding: 4px 8px;
+}
+
+.fg-dropdown__option--medium {
+  padding: 8px;
+}
+
+.fg-dropdown__option--large {
+  padding: 12px 8px;
+}
+
+.fg-dropdown__option-label {
+  flex: auto;
+}
+
+.fg-dropdown__option[data-current-selected],
+.fg-dropdown__option[data-current-selected][data-current-nav] {
+  background-color: var(--fg-c-dropdown-option-background-color-active);
+}
+
+.fg-dropdown__option:hover,
+.fg-dropdown__option:hover[data-current-selected][data-current-nav],
+.fg-dropdown__option[data-current-nav] {
+  background-color: var(--fg-c-dropdown-option-background-color-hover);
+}
+
+.fg-dropdown__option--disabled,
+.fg-dropdown__option--disabled:hover {
+  background-color: var(--fg-c-dropdown-option-background-color-disabled);
+  color: var(--fg-c-dropdown-option-text-color-disabled);
+  cursor: default;
+}
+
+.fg-dropdown__main-label {
+  align-items: center;
+  display: flex;
+}
+
+.fg-dropdown__radio {
+  margin-right: 8px;
+}
+
+.fg-dropdown__additional-label {
+  color: var(--fg-c-dropdown-option-subtext-color-default);
+  flex: none;
+  flex-grow: 0;
+  margin: 0;
+}
+
+.fg-dropdown__popover {
+  background-color: var(--fg-c-dropdown-popover-background-color-default);
+  border-radius: 4px;
+  filter: var(--fg-c-dropdown-popover-shadow-color-default);
+  position: fixed !important;
+  z-index: var(--fg-c-dropdown-popover-z-index);
+}
+
+.fg-dropdown__button {
+  align-items: center;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  outline: none;
+}
+
+.fg-dropdown__button-selected-label,
+.fg-dropdown__button-selected-label * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fg-dropdown__button--default {
+  background-color: var(--fg-c-dropdown-button-background-color-default);
+  border: 1px solid var(--fg-c-dropdown-button-border-color-default);
+  box-shadow: var(--fg-c-dropdown-button-shadow-color-default);
+}
+
+.fg-dropdown__button--default .fg-dropdown__button-selected-label {
+  color: var(--fg-c-dropdown-button-text-color-default);
+  flex: 1 1 0;
+}
+
+.fg-dropdown__button--default .fg-dropdown__button-icon {
+  color: var(--fg-c-dropdown-button-icon-color-default);
+}
+
+.fg-dropdown__button--default .fg-dropdown__button-icon--expanded {
+  transform: rotate(180deg);
+}
+
+.fg-dropdown__button--default:hover:not(.fg-dropdown__button--disabled) {
+  background-color: var(--fg-c-dropdown-button-background-color-hover);
+  border: 1px solid var(--fg-c-dropdown-button-border-color-hover);
+}
+
+.fg-dropdown__button--default:hover:not(.fg-dropdown__button--disabled)
+  .fg-dropdown__button-selected-label {
+  color: var(--fg-c-dropdown-button-text-color-hover);
+}
+
+.fg-dropdown__button--default:hover:not(.fg-dropdown__button--disabled)
+  .fg-dropdown__button-icon {
+  color: var(--fg-c-dropdown-button-icon-color-hover);
+}
+
+.fg-dropdown__button--default:focus {
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: -2px;
+}
+
+.fg-dropdown__button--borderless {
+  background-color: var(
+    --fg-c-dropdown-button-borderless-background-color-default
+  );
+  border: 1px solid var(--fg-c-dropdown-button-borderless-border-color-default);
+}
+
+.fg-dropdown__button--borderless .fg-dropdown__button-selected-label {
+  color: var(--fg-c-dropdown-button-borderless-text-color-default);
+  width: 100%;
+}
+
+.fg-dropdown__button--borderless .fg-dropdown__button-icon {
+  color: var(--fg-c-dropdown-button-borderless-icon-color-default);
+  overflow: visible;
+}
+
+.fg-dropdown__button--borderless .fg-dropdown__button-icon--expanded {
+  transform: rotate(180deg);
+}
+
+.fg-dropdown__button--borderless:hover:not(.fg-dropdown__button--disabled)
+  .fg-dropdown__button-selected-label {
+  color: var(--fg-c-dropdown-button-borderless-text-color-hover);
+}
+
+.fg-dropdown__button--borderless:hover:not(.fg-dropdown__button--disabled)
+  .fg-dropdown__button-icon {
+  color: var(--fg-c-dropdown-button-borderless-icon-color-hover);
+}
+
+.fg-dropdown__button--disabled {
+  background-color: var(--fg-c-dropdown-button-background-color-disabled);
+  border: 1px solid var(--fg-c-dropdown-button-border-color-disabled);
+  box-shadow: var(--fg-c-dropdown-button-shadow-color-disabled);
+  cursor: default;
+}
+
+.fg-dropdown__button--disabled .fg-dropdown__button-selected-label,
+.fg-dropdown__button--disabled .fg-dropdown__placeholder {
+  color: var(--fg-c-dropdown-button-text-color-disabled);
+}
+
+.fg-dropdown__button--disabled .fg-dropdown__button-icon {
+  color: var(--fg-c-dropdown-button-icon-color-disabled);
+}
+
+.fg-dropdown__button--disabled.fg-dropdown__button--borderless,
+.fg-dropdown__button--disabled.fg-dropdown__button--borderless:hover {
+  background-color: var(
+    --fg-c-dropdown-button-borderless-background-color-disabled
+  );
+  border-color: var(--fg-c-dropdown-button-borderless-border-color-disabled);
+  box-shadow: none;
+}
+
+.fg-dropdown__button-icon {
+  margin-left: 4px;
+}
+
+.fg-dropdown__button--small {
+  min-height: 24px;
+  padding: 3px 8px;
+}
+
+.fg-dropdown__button--medium {
+  padding: 7px 12px;
+}
+
+.fg-dropdown__button--large {
+  padding: 11px 12px;
+}
+
+.fg-dropdown__button--error {
+  border: 1px solid var(--fg-c-dropdown-button-border-color-error);
+  box-shadow: var(--fg-c-dropdown-button-shadow-color-error);
+}
+
+.fg-dropdown__button--disable-padding {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.fg-dropdown__placeholder {
+  color: var(--fg-c-dropdown-button-placeholder-color-default);
+}
+
+.fg-dropdown__listbox-list {
+  border-radius: 4px;
+  box-sizing: border-box;
+  outline: none;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.fg-dropdown--active-state .fg-dropdown__button {
+  background-color: var(
+    --fg-c-dropdown-button-active-state-background-color-default
+  );
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.fg-dropdown--active-state
+  .fg-dropdown__button:hover:not(.fg-dropdown__button--disabled) {
+  background-color: var(
+    --fg-c-dropdown-button-active-state-background-color-hover
+  );
+  border-color: transparent;
+}
+
+.fg-dropdown--active-state
+  .fg-dropdown__button:hover:not(.fg-dropdown__button--disabled)
+  .fg-dropdown__button-selected-label {
+  color: var(--fg-c-dropdown-button-active-state-text-color-hover);
+}
+
+.fg-dropdown--active-state .fg-dropdown__button:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 2px;
+}
+
+.fg-dropdown--active-state .fg-dropdown__button-selected-label {
+  color: var(--fg-c-dropdown-button-active-state-text-color-hover);
+}
+
+.fg-dropdown--active-state .fg-dropdown__clear-button {
+  background-color: transparent;
+  color: var(--fg-c-dropdown-button-active-state-icon-color-default);
+  cursor: pointer;
+  height: 16px;
+  padding: 0;
+}
+
+.fg-dropdown--active-state .fg-dropdown__clear-button:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 2px;
+}

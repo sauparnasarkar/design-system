@@ -1,0 +1,71 @@
+.fg-logo {
+  align-items: center;
+  display: flex;
+}
+
+.fg-logo__asset {
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.fg-logo__asset--bohua {
+  background-image: url(../assets/logos/fitch-bohua.png);
+  background-position: 0;
+}
+
+.fg-logo__asset--connect {
+  background-image: url(../assets/logos/fitch-connect.svg);
+  background-position: 0;
+}
+
+.fg-logo__asset--group {
+  background-image: url(../assets/logos/fitch-group.svg);
+  background-position: 0;
+}
+
+.fg-logo__asset--learning {
+  background-image: url(../assets/logos/fitch-learning.svg);
+  background-position: 0;
+}
+
+.fg-logo__asset--ratings {
+  background-image: url(../assets/logos/fitch-ratings.svg);
+  background-position: bottom;
+}
+
+.fg-logo__asset--solutions {
+  background-image: url(../assets/logos/fitch-solutions.svg);
+  background-position: 0;
+}
+
+.fg-logo__asset--sustainable {
+  background-image: url(../assets/logos/sustainable-fitch.svg);
+  background-position: 0;
+}
+
+.fg-logo__asset--bmi {
+  background-image: url(../assets/logos/bmi.svg);
+  background-position: 0;
+}
+
+.fg-logo__asset--credit-sights {
+  background-image: url(../assets/logos/credit-sights.png);
+  background-position: 0;
+}
+
+.fg-logo__asset--corporate-banker-hub {
+  background-image: url(../assets/logos/corporate-banker-hub.svg);
+  background-position: 0;
+}
+
+.fg-logo__divider {
+  background-color: var(--fg-c-header-logo-divider-background-color-default);
+  height: 20px;
+  margin: 0 12px;
+  width: 1px;
+}
+
+.fg-logo__app-name {
+  color: var(--fg-c-header-logo-app-name-color-default);
+  white-space: nowrap;
+}

@@ -1,0 +1,27 @@
+.fg-d--b {
+  display: block;
+}
+
+.fg-d--f {
+  display: flex;
+}
+
+.fg-d--g {
+  display: grid;
+}
+
+.fg-d--if {
+  display: inline-flex;
+}
+
+.fg-d--ib {
+  display: inline-block;
+}
+
+.fg-d--n {
+  display: none;
+}
+
+.fg-d--t {
+  display: table;
+}

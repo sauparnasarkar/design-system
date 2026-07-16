@@ -1,0 +1,99 @@
+.fg-section {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.fg-section--fluid {
+  flex: 1;
+}
+
+.fg-section--bg-image {
+  background-position: 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.fg-section--bg-image-overlay {
+  background-blend-mode: multiply;
+}
+
+.fg-section--row {
+  flex-direction: row;
+}
+
+.fg-section--padding-xs {
+  padding: 8px;
+}
+
+.fg-section--margin-xs {
+  margin: 8px;
+}
+
+.fg-section--gap-xs {
+  gap: 8px;
+}
+
+.fg-section--padding-sm {
+  padding: 16px;
+}
+
+.fg-section--margin-sm {
+  margin: 16px;
+}
+
+.fg-section--gap-sm {
+  gap: 16px;
+}
+
+.fg-section--padding-md {
+  padding: 32px;
+}
+
+.fg-section--margin-md {
+  margin: 32px;
+}
+
+.fg-section--gap-md {
+  gap: 32px;
+}
+
+.fg-section--padding-lg {
+  padding: 64px;
+}
+
+.fg-section--margin-lg {
+  margin: 64px;
+}
+
+.fg-section--gap-lg {
+  gap: 64px;
+}
+
+.fg-section--padding-xl {
+  padding: 128px;
+}
+
+.fg-section--margin-xl {
+  margin: 128px;
+}
+
+.fg-section--gap-xl {
+  gap: 128px;
+}
+
+.fg-section--horizontal-align-center {
+  align-items: center;
+}
+
+.fg-section--horizontal-align-end {
+  align-items: end;
+}
+
+.fg-section--vertical-align-center {
+  justify-content: center;
+}
+
+.fg-section--vertical-align-end {
+  justify-content: end;
+}

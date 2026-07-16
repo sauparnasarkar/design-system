@@ -1,0 +1,39 @@
+.fg-jump-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.fg-jump-links--vertical {
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fg-jump-links__item {
+  display: flex;
+  position: relative;
+}
+
+.fg-jump-links__item--active .fg-jump-links__anchor,
+.fg-jump-links__item--active .fg-jump-links__anchor:active,
+.fg-jump-links__item--active .fg-jump-links__anchor:visited {
+  color: var(--fg-c-jump-links-color-active);
+}
+
+.fg-jump-links__anchor {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.1s ease;
+  white-space: nowrap;
+}
+
+.fg-jump-links__anchor,
+.fg-jump-links__anchor:active,
+.fg-jump-links__anchor:visited {
+  color: var(--fg-c-jump-links-color-default);
+}
+
+.fg-jump-links__anchor:hover {
+  color: var(--fg-c-jump-links-color-hover);
+  text-decoration: none;
+}

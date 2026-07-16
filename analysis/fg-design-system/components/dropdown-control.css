@@ -1,0 +1,28 @@
+.fg-dropdown-control input {
+  height: var(--fg-c-dropdown-input-min-touchable-size);
+  min-width: var(--fg-c-dropdown-input-min-touchable-size) !important;
+}
+
+.fg-dropdown-control--active {
+  background-color: var(
+    --fg-c-dropdown-control--active-background-color-default
+  ) !important;
+  border-color: transparent !important;
+  filter: none;
+}
+
+.fg-dropdown-control--active.fg-dropdown-control--is-focused,
+.fg-dropdown-control--active:hover {
+  background-color: var(
+    --fg-c-dropdown-control--active-background-color-hover
+  ) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.fg-dropdown-control--active.fg-dropdown-control--is-focused {
+  border-radius: 3px;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline: 2px solid var(--fg-interactive-outline-focus) !important;
+  outline-offset: 2px;
+}

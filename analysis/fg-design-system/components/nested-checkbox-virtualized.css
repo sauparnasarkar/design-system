@@ -1,0 +1,65 @@
+.fg-nested-checkbox-virtualized__wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+.fg-nested-checkbox-virtualized__item {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.fg-nested-checkbox-virtualized__item--expandable-left {
+  gap: 8px;
+}
+
+.fg-nested-checkbox-virtualized__item__text {
+  color: var(--fg-c-nested-checkbox-virtualized-item-text-color-default);
+  user-select: none;
+}
+
+.fg-nested-checkbox-virtualized__item__end,
+.fg-nested-checkbox-virtualized__item__start {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.fg-nested-checkbox-virtualized__item__right-element {
+  align-items: center;
+  display: flex;
+}
+
+.fg-nested-checkbox-virtualized__item__end--hover-only
+  > .fg-nested-checkbox-virtualized__item__right-element {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.fg-nested-checkbox-virtualized__item:hover
+  .fg-nested-checkbox-virtualized__item__end--hover-only
+  > .fg-nested-checkbox-virtualized__item__right-element {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fg-nested-checkbox-virtualized--truncated .fg-checkbox {
+  margin-left: -4px;
+  overflow: hidden;
+  padding: 4px 0 4px 4px;
+}
+
+.fg-nested-checkbox-virtualized--truncated .fg-checkbox__label,
+.fg-nested-checkbox-virtualized--truncated
+  .fg-nested-checkbox-virtualized__item__text {
+  text-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fg-nested-checkbox-virtualized--truncated
+  .fg-nested-checkbox-virtualized__item__start {
+  min-width: 50px;
+  width: 100%;
+}

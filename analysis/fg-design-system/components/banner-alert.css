@@ -1,0 +1,82 @@
+.fg-banner-alert {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 18px 8px;
+  position: relative;
+}
+
+.fg-banner-alert--success {
+  background-color: var(--fg-c-banner-alert-success-background-color-default);
+  color: var(--fg-c-banner-alert-success-color-default);
+}
+
+.fg-banner-alert--success-border {
+  box-shadow: 0 0 0 1px var(--fg-c-banner-alert-success-color-default);
+}
+
+.fg-banner-alert--warning {
+  background-color: var(--fg-c-banner-alert-warning-background-color-default);
+  color: var(--fg-c-banner-alert-warning-color-default);
+}
+
+.fg-banner-alert--warning-border {
+  box-shadow: 0 0 0 1px var(--fg-c-banner-alert-warning-color-default);
+}
+
+.fg-banner-alert--error {
+  background-color: var(--fg-c-banner-alert-error-background-color-default);
+  color: var(--fg-c-banner-alert-error-color-default);
+}
+
+.fg-banner-alert--error-border {
+  box-shadow: 0 0 0 1px var(--fg-c-banner-alert-error-color-default);
+}
+
+.fg-banner-alert--neutral {
+  background-color: var(--fg-c-banner-alert-neutral-background-color-default);
+  color: var(--fg-c-banner-alert-neutral-color-default);
+}
+
+.fg-banner-alert--neutral-border {
+  box-shadow: 0 0 0 1px var(--fg-c-banner-alert-neutral-color-default);
+}
+
+.fg-banner-alert--info {
+  background-color: var(--fg-c-banner-alert-info-background-color-default);
+  color: var(--fg-c-banner-alert-info-color-default);
+}
+
+.fg-banner-alert--info-border {
+  box-shadow: 0 0 0 1px var(--fg-c-banner-alert-info-color-default);
+}
+
+.fg-banner-alert--removable {
+  padding-right: 36px;
+}
+
+.fg-banner-alert__close-button {
+  color: var(--fg-c-banner-alert-close-button-color-default);
+  position: absolute;
+  right: 4px;
+}
+
+.fg-banner-alert,
+.fg-body3-long,
+.fg-card__content,
+.fg-contact-item__footer-text,
+.fg-contact-item__sub-header,
+.fg-inline-alert__link,
+.fg-link,
+.fg-modal__content,
+.fg-news__description,
+.fg-textarea--m,
+.fg-toast__text {
+  font-family: var(--fg-web-body-3-long-font-family);
+  font-size: var(--fg-web-body-3-long-font-size);
+  font-weight: var(--fg-web-body-3-long-font-weight);
+  letter-spacing: var(--fg-web-body-3-long-letter-spacing);
+  line-height: var(--fg-web-body-3-long-line-height);
+  text-decoration: var(--fg-web-body-3-long-text-decoration);
+}

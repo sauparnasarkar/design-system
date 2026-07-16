@@ -1,0 +1,44 @@
+.fg-progress {
+  background-color: var(--fg-c-progress-background-color-default);
+  border-radius: 2px;
+  height: 4px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.fg-progress--large {
+  height: 8px;
+}
+
+.fg-progress--large,
+.fg-progress--large .fg-progress__bar {
+  border-radius: 4px;
+}
+
+.fg-progress--secondary .fg-progress__bar {
+  background-color: var(--fg-c-progress-bar-color-secondary);
+}
+
+.fg-progress--tertiary .fg-progress__bar {
+  background-color: var(--fg-c-progress-bar-color-tertiary);
+}
+
+.fg-progress--success .fg-progress__bar {
+  background-color: var(--fg-c-progress-bar-color-success);
+}
+
+.fg-progress--square,
+.fg-progress--square .fg-progress__bar {
+  border-radius: 0;
+}
+
+.fg-progress--hide-animation .fg-progress__bar {
+  transition: none;
+}
+
+.fg-progress__bar {
+  background-color: var(--fg-c-progress-bar-color-primary);
+  border-radius: 2px;
+  height: 100%;
+  transition: width 0.3s ease-in-out;
+}

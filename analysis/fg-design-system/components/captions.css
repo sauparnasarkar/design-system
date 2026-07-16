@@ -1,0 +1,9 @@
+.fg-captions,
+.fg-search-input .fg-search-input__group-heading {
+  font-family: var(--fg-web-caption-font-family);
+  font-size: var(--fg-web-caption-font-size);
+  font-weight: var(--fg-web-caption-font-weight);
+  letter-spacing: var(--fg-web-caption-letter-spacing);
+  line-height: var(--fg-web-caption-line-height);
+  text-decoration: var(--fg-web-caption-text-decoration);
+}

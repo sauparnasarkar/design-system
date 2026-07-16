@@ -1,0 +1,11 @@
+.fg-chart-plotly .annotation,
+.fg-chart-plotly .colorbar,
+.fg-chart-plotly .xtick,
+.fg-chart-plotly .y2tick,
+.fg-chart-plotly .ytick {
+  font-weight: 500;
+}
+
+.fg-chart-plotly .legendtext {
+  font-weight: 400;
+}

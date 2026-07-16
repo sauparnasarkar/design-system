@@ -1,0 +1,26 @@
+.fg-table-header__sort-wrapper {
+  margin-left: 4px;
+}
+
+.fg-table-header__icon {
+  align-items: center;
+  background-color: var(--fg-c-table-header-sort-icon-background-color-default);
+  color: var(--fg-c-table-header-sort-icon-active-color-default);
+  display: flex;
+  height: 16px;
+  justify-content: center;
+  padding: 0;
+  width: 16px;
+}
+
+.fg-table-header__icon + .fg-table-header__sort-wrapper {
+  margin-left: 2px;
+}
+
+.fg-table-header__icon--none {
+  color: var(--fg-c-table-header-sort-icon-color-default);
+}
+
+.fg-table-header__icon--none:hover {
+  color: var(--fg-c-table-header-sort-icon-color-hover);
+}

@@ -1,0 +1,10 @@
+.fg-body2,
+.fg-radio__label--large,
+.fg-search-input .fg-search-input__menu-notice--no-options {
+  font-family: var(--fg-web-body-2-font-family);
+  font-size: var(--fg-web-body-2-font-size);
+  font-weight: var(--fg-web-body-2-font-weight);
+  letter-spacing: var(--fg-web-body-2-letter-spacing);
+  line-height: var(--fg-web-body-2-line-height);
+  text-decoration: var(--fg-web-body-2-text-decoration);
+}

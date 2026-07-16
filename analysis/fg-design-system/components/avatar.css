@@ -1,0 +1,44 @@
+.fg-avatar {
+  align-items: center;
+  background-color: var(--fg-c-avatar-background-color-default);
+  border-radius: 50%;
+  color: var(--fg-c-avatar-text-color);
+  display: flex;
+  flex-shrink: 0;
+  font-family: var(--fg-font-families-primary);
+  font-size: 14px;
+  font-weight: 600;
+  height: 40px;
+  justify-content: center;
+  overflow: hidden;
+  width: 40px;
+}
+
+.fg-avatar--small {
+  height: 32px;
+  width: 32px;
+}
+
+.fg-avatar--large {
+  font-size: 20px;
+  height: 64px;
+  width: 64px;
+}
+
+.fg-avatar--xlarge {
+  font-size: 24px;
+  height: 96px;
+  width: 96px;
+}
+
+.fg-avatar--gray {
+  background-color: var(--fg-c-avatar-background-color-gray);
+}
+
+.fg-avatar--bordered {
+  border: 1px solid var(--fg-c-avatar-border-color);
+}
+
+.fg-avatar--square {
+  border-radius: 3px;
+}

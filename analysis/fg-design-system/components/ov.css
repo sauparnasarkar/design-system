@@ -1,0 +1,27 @@
+.fg-ov--h {
+  overflow: hidden;
+}
+
+.fg-ov--xa {
+  overflow-x: auto;
+}
+
+.fg-ov--xh {
+  overflow-x: hidden;
+}
+
+.fg-ov--xs {
+  overflow-x: scroll;
+}
+
+.fg-ov--ya {
+  overflow-y: auto;
+}
+
+.fg-ov--ys {
+  overflow-y: scroll;
+}
+
+.fg-ov--yh {
+  overflow-y: hidden;
+}

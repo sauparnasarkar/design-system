@@ -1,0 +1,76 @@
+.fg-contact-item {
+  align-items: center;
+  display: flex;
+  flex-basis: 0;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.fg-contact-item__photo-placeholder {
+  align-items: center;
+  aspect-ratio: 1/1;
+  background-color: var(
+    --fg-c-contact-item-photo-placeholder-background-color-default
+  );
+  color: var(--fg-c-contact-item-photo-placeholder-color-default);
+  display: flex;
+  height: auto;
+  justify-content: center;
+  max-width: 100%;
+  width: 112px;
+}
+
+.fg-contact-item__photo,
+.fg-contact-item__photo-placeholder {
+  border-radius: 3px;
+  margin-bottom: 16px;
+}
+
+.fg-contact-item__headline {
+  color: var(--fg-c-contact-item-headline-color-default);
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.fg-contact-item__sub-header {
+  color: var(--fg-c-contact-item-subheader-color-default);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.fg-contact-item__footer {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+}
+
+.fg-contact-item__footer-separator {
+  background-color: var(--fg-c-contact-item-separator-color-default);
+  height: 16px;
+  width: 1px;
+}
+
+.fg-contact-item__footer-text {
+  color: var(--fg-c-contact-item-footer-text-color-default);
+}
+
+.fg-contact-item__footer-icon {
+  background: none;
+  color: var(--fg-c-contact-item-footer-icon-color-default);
+  cursor: pointer;
+  display: flex;
+  outline: none;
+  padding: 0;
+}
+
+.fg-contact-item__footer-icon:hover {
+  color: var(--fg-c-contact-item-footer-icon-color-hover);
+}
+
+.fg-contact-item__footer-icon:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 2px;
+}

@@ -1,0 +1,32 @@
+.fg-chart-tooltip-content {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  height: 100%;
+  justify-content: space-evenly;
+  max-height: 150px;
+  max-width: 250px;
+  overflow-y: auto;
+  white-space: normal;
+  width: 100%;
+}
+
+.fg-chart-tooltip-content__label,
+.fg-chart-tooltip-content__value {
+  min-width: 0;
+}
+
+.fg-chart-tooltip-content__value {
+  color: var(--fg-c-chart-tooltip-default-content-color);
+  flex: 1 0 auto;
+}
+
+.fg-chart-tooltip-content__divider {
+  border-right: 1px solid var(--fg-c-chart-tooltip-default-content-color);
+  height: 12px;
+}
+
+.fg-chart-tooltip-content__label {
+  flex: 1 1 auto;
+  overflow-wrap: break-word;
+}

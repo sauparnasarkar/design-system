@@ -1,0 +1,15 @@
+.fg-as--c {
+  align-self: center;
+}
+
+.fg-as--fe {
+  align-self: flex-end;
+}
+
+.fg-as--fs {
+  align-self: flex-start;
+}
+
+.fg-as--s {
+  align-self: stretch;
+}

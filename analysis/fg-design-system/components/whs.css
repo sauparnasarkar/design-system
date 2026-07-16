@@ -1,0 +1,11 @@
+.fg-whs--n {
+  white-space: normal;
+}
+
+.fg-whs--nw {
+  white-space: nowrap;
+}
+
+.fg-whs--pw {
+  white-space: pre-wrap;
+}

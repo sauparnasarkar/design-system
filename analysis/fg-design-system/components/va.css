@@ -1,0 +1,15 @@
+.fg-va--b {
+  vertical-align: bottom;
+}
+
+.fg-va--m {
+  vertical-align: middle;
+}
+
+.fg-va--sup {
+  vertical-align: super;
+}
+
+.fg-va--t {
+  vertical-align: top;
+}

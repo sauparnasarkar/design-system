@@ -1,0 +1,15 @@
+.fg-pos--a {
+  position: absolute;
+}
+
+.fg-pos--f {
+  position: fixed;
+}
+
+.fg-pos--r {
+  position: relative;
+}
+
+.fg-pos--s {
+  position: sticky;
+}

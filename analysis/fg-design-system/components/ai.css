@@ -1,0 +1,19 @@
+.fg-ai--b {
+  align-items: baseline;
+}
+
+.fg-ai--c {
+  align-items: center;
+}
+
+.fg-ai--fe {
+  align-items: flex-end;
+}
+
+.fg-ai--fs {
+  align-items: flex-start;
+}
+
+.fg-ai--s {
+  align-items: stretch;
+}

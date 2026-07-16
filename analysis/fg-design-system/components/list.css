@@ -1,0 +1,85 @@
+.fg-list {
+  background-color: var(--fg-c-list-background-color-transparent);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+}
+
+.fg-list--small .fg-list__item,
+.fg-list--small .fg-list__item-button {
+  padding: 8px 16px;
+}
+
+.fg-list--medium .fg-list__item,
+.fg-list--medium .fg-list__item-button {
+  padding: 16px;
+}
+
+.fg-list--large .fg-list__item,
+.fg-list--large .fg-list__item-button {
+  padding: 20px 16px;
+}
+
+.fg-list--with-border {
+  border: 1px solid var(--fg-c-list-border-color-default);
+}
+
+.fg-list--with-background {
+  background-color: var(--fg-c-list-background-color-default);
+}
+
+.fg-list--items-with-divider > .fg-list__item:not(:last-child) {
+  border-bottom: 1px solid var(--fg-c-list-border-color-default);
+}
+
+.fg-list__item {
+  align-items: center;
+  background-color: var(--fg-c-list-item-background-color-transparent);
+  color: var(--fg-c-list-item-text-color-default);
+  display: flex;
+  justify-content: flex-start;
+  text-align: left;
+  width: 100%;
+}
+
+.fg-list__item-prefix {
+  padding-right: 16px;
+}
+
+.fg-list__item-suffix {
+  margin-left: auto;
+  padding-left: 16px;
+}
+
+.fg-list__item--interactive:hover {
+  background-color: var(--fg-c-list-item-button-background-color-hover);
+}
+
+.fg-list__item--interactive:active {
+  background-color: var(--fg-c-list-item-button-background-color-active);
+}
+
+.fg-list__item-button {
+  align-items: center;
+  background-color: var(--fg-c-list-item-background-color-transparent);
+  color: var(--fg-c-list-item-text-color-default);
+  cursor: pointer;
+  display: flex;
+  justify-content: flex-start;
+  text-align: left;
+  width: 100%;
+}
+
+.fg-list__item-button:hover {
+  background-color: var(--fg-c-list-item-button-background-color-hover);
+}
+
+.fg-list__item-button:active {
+  background-color: var(--fg-c-list-item-button-background-color-active);
+}
+
+.fg-list__item-button:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 2px;
+}

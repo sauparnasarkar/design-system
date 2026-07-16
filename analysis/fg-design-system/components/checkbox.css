@@ -1,0 +1,124 @@
+.fg-checkbox__container .fg-checkbox__input,
+.fg-select-box-checkbox-input__input {
+  appearance: none;
+  background: var(--fg-c-checkbox-input-background-color-default);
+  border: 1px solid var(--fg-c-checkbox-input-border-color-default);
+  border-radius: 2px;
+  cursor: pointer;
+  height: 16px;
+  outline: none;
+  width: 16px;
+}
+
+.fg-checkbox__container .fg-checkbox__input:after,
+.fg-select-box-checkbox-input__input:after {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='8' height='6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.293.293 3 3.586 1.707 2.293A1 1 0 0 0 .293 3.707l2 2a1 1 0 0 0 1.414 0l4-4A1 1 0 0 0 6.293.293Z' fill='%23fff'/%3E%3C/svg%3E");
+  background-position: 50%;
+  background-repeat: no-repeat;
+  content: "";
+  display: none;
+  height: 100%;
+  width: 100%;
+}
+
+.fg-checkbox__label,
+.fg-select-box-checkbox-label {
+  color: var(--fg-c-checkbox-label-color-default);
+  cursor: inherit;
+  padding-left: 8px;
+  user-select: none;
+}
+
+.fg-checkbox--disabled .fg-checkbox__label,
+.fg-select-box-checkbox-label--disabled {
+  color: var(--fg-c-checkbox-label-color-disabled);
+  cursor: default;
+}
+
+.fg-checkbox {
+  align-items: center;
+  display: flex;
+  width: fit-content;
+}
+
+.fg-checkbox:hover .fg-checkbox__input {
+  border-color: var(--fg-c-checkbox-border-color-hover);
+}
+
+.fg-checkbox:hover .fg-checkbox__input:checked,
+.fg-checkbox:hover .fg-checkbox__input:indeterminate {
+  background-color: var(--fg-c-checkbox-background-color-hover-checked);
+}
+
+.fg-checkbox:hover .fg-checkbox__input:disabled:checked {
+  background-color: var(--fg-c-checkbox-input-background-color-disabled);
+  border-color: var(--fg-interactive-fill-tertiary-pressed);
+}
+
+.fg-checkbox__container {
+  display: inline-flex;
+  font-size: 0;
+  height: 16px;
+  user-select: none;
+  width: 16px;
+}
+
+.fg-checkbox__container .fg-checkbox__input:checked {
+  background-color: var(--fg-c-checkbox-input-background-color-checked);
+  border-color: transparent;
+}
+
+.fg-checkbox__container .fg-checkbox__input:checked:after {
+  display: block;
+}
+
+.fg-checkbox__container .fg-checkbox__input:disabled {
+  background-color: var(--fg-c-checkbox-input-background-color-disabled);
+  border-color: var(--fg-interactive-fill-tertiary-pressed);
+  cursor: default;
+}
+
+.fg-checkbox__container .fg-checkbox__input:disabled:checked:after {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='8' height='6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.293.293 3 3.586 1.707 2.293A1 1 0 0 0 .293 3.707l2 2a1 1 0 0 0 1.414 0l4-4A1 1 0 0 0 6.293.293Z' fill='%231f1f1f29'/%3E%3C/svg%3E");
+}
+
+.fg-checkbox__container .fg-checkbox__input:indeterminate {
+  background-color: var(--fg-c-checkbox-input-background-color-checked);
+  border-color: transparent;
+}
+
+.fg-checkbox__container .fg-checkbox__input:indeterminate:disabled {
+  background-color: var(--fg-c-checkbox-input-background-color-disabled);
+}
+
+.fg-checkbox__container .fg-checkbox__input:indeterminate:after {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='12' height='12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 7H3a1 1 0 0 1 0-2h6a1 1 0 0 1 0 2Z' fill='%23fff'/%3E%3C/svg%3E");
+  display: block;
+}
+
+.fg-checkbox__container .fg-checkbox__input:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 2px;
+}
+
+.fg-checkbox--error:hover .fg-checkbox__input {
+  border: 1px solid var(--fg-c-checkbox-error-border-color-hover);
+}
+
+.fg-checkbox--error:hover .fg-checkbox__input:checked,
+.fg-checkbox--error:hover .fg-checkbox__input:indeterminate {
+  background-color: var(
+    --fg-c-checkbox-input-error-background-color-hover-checked
+  );
+}
+
+.fg-checkbox--error .fg-checkbox__input {
+  border: 1px solid var(--fg-c-checkbox-input-error-background-color-checked);
+}
+
+.fg-checkbox--error .fg-checkbox__input:checked,
+.fg-checkbox--error .fg-checkbox__input:indeterminate {
+  background-color: var(--fg-c-checkbox-input-error-background-color-checked);
+  border-color: transparent;
+}

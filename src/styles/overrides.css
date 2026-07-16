@@ -1,0 +1,10 @@
+/*
+ * Cross-theme component fixes layered on top of the vendored sy CSS.
+ */
+
+/* The vendor CSS only styles hover/active/disabled tab backgrounds and the
+   reset doesn't clear button backgrounds, so default-state tabs show the UA
+   `buttonface` gray (invisible on light surfaces, glaring on dark ones). */
+.sy-tab {
+  background-color: transparent;
+}

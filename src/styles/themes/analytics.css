@@ -1,0 +1,225 @@
+/*
+ * Syena Analytics theme
+ * Dark data-visualization look derived from the SciChart.js React showcase
+ * ("Navy" demo theme): deep navy canvas #121e35, panel surface #1e2f52,
+ * subtle blue gridlines, and a vivid series palette (sky/orange/teal/pink/
+ * purple). Series colors are snapped into the dark-mode lightness band and
+ * validated (lightness, chroma, CVD separation, contrast) against #1e2f52.
+ *
+ * This is a full dark override of the semantic token layer (static-*,
+ * interactive-*), so every component that consumes semantic tokens flips.
+ * AG Grid needs its own --ag-* block at the bottom because ag-theme-syena
+ * hardcodes light values rather than reading semantic tokens.
+ */
+[data-theme="analytics"] {
+  /* Brand ramp — navy → cyan, dark-mode ordered (low steps surface-tinted;
+     SyChart reads 100/200 as gridline/zeroline) */
+  --sy-color-brand-50: #0e1a2e;
+  --sy-color-brand-100: #263a5e;
+  --sy-color-brand-200: #31476e;
+  --sy-color-brand-300: #3a5c8a;
+  --sy-color-brand-400: #2d7fa3;
+  --sy-color-brand-500: #2d9cbd;
+  --sy-color-brand-600: #50c7e0;
+  --sy-color-brand-700: #7fd6ea;
+  --sy-color-brand-800: #a9e3f1;
+  --sy-color-brand-900: #d0f0f8;
+  --sy-color-brand-1000: #eaf9fd;
+
+  /* Surfaces (SciChart Navy): page canvas / cards+inputs / elevated */
+  --sy-static-background-weak: #121e35;
+  --sy-static-background-standard: #1e2f52;
+  --sy-static-background-strong: #28406c;
+  --sy-static-surface-weak: #121e35;
+  --sy-static-surface-standard: #1e2f52;
+  --sy-static-surface-strong: #28406c;
+  --sy-static-layer-standard: #324c7c; /* menus, popovers, toasts */
+
+  /* Inverse surfaces flip to light (chips, tooltips, "dark" accents) */
+  --sy-static-background-inverse-weak: #e8eefb;
+  --sy-static-background-inverse-standard: #d7e0f0;
+  --sy-static-background-inverse-strong: #b4c6e4;
+
+  /* Ink */
+  --sy-static-text-strong: #ffffff;
+  --sy-static-text-standard: #d7e0f0;
+  --sy-static-text-weak: #8fa2c4;
+  --sy-static-text-inverse-strong: #121e35;
+  --sy-static-text-inverse-standard: #2c3e63;
+  --sy-static-text-inverse-weak: #4a5f85;
+
+  /* Hairlines & dividers (inverse = on the light inverse surfaces) */
+  --sy-static-divider-weak: #263757;
+  --sy-static-divider-standard: #2c3e63;
+  --sy-static-divider-strong: #3d5580;
+  --sy-static-divider-inverse-weak: #14233c3d;
+  --sy-static-divider-inverse-standard: #14233c52;
+  --sy-static-divider-inverse-strong: #14233c7a;
+
+  /* Sentiment tints (tags, alerts, TrendCell fills): dark washes… */
+  --sy-static-background-sentiment-info: #1e3a5e;
+  --sy-static-background-sentiment-negative: #4a2230;
+  --sy-static-background-sentiment-neutral: #2c3a55;
+  --sy-static-background-sentiment-notice: #453516;
+  --sy-static-background-sentiment-positive: #16443a;
+  /* …with light ink on top */
+  --sy-static-text-sentiment-info: #7fb3f5;
+  --sy-static-text-sentiment-negative: #f2637e;
+  --sy-static-text-sentiment-neutral: #9db0cf;
+  --sy-static-text-sentiment-notice: #e5b955;
+  --sy-static-text-sentiment-positive: #3ecf95;
+  --sy-static-text-sentiment-standard-info: #50c7e0;
+  --sy-static-text-sentiment-standard-negative: #f2637e;
+  --sy-static-text-sentiment-standard-neutral: #8fa2c4;
+  --sy-static-text-sentiment-standard-notice: #e5b955;
+  --sy-static-text-sentiment-standard-positive: #3ecf95;
+  --sy-static-outline-sentiment-info: #6ba7f0;
+  --sy-static-outline-sentiment-negative: #e4677d;
+  --sy-static-outline-sentiment-neutral: #8fa2c4;
+  --sy-static-outline-sentiment-notice: #d9a83c;
+  --sy-static-outline-sentiment-positive: #3bbd8e;
+  --sy-interactive-fill-sentiment-info: #6ba7f047;
+  --sy-interactive-fill-sentiment-negative: #e4677d47;
+  --sy-interactive-fill-sentiment-neutral: #8fa2c447;
+  --sy-interactive-fill-sentiment-notice: #d9a83c47;
+  --sy-interactive-fill-sentiment-positive: #3bbd8e47;
+
+  /* Primary interactive — SciChart cyan */
+  --sy-interactive-fill-primary-default: #2d9cbd;
+  --sy-interactive-fill-primary-hover: #2789a6;
+  --sy-interactive-fill-primary-pressed: #1f7590;
+  --sy-interactive-fill-primary-disabled: #2d9cbd26;
+  --sy-interactive-fill-primary-onprimary: #ffffff;
+  --sy-interactive-fill-primary-onprimarydisabled: #7fa8b8;
+
+  /* Secondary (solid) buttons flip to light-on-dark */
+  --sy-interactive-fill-secondary-default: #e8eefb;
+  --sy-interactive-fill-secondary-hover: #d7e0f0;
+  --sy-interactive-fill-secondary-pressed: #b4c6e4;
+  --sy-interactive-fill-secondary-disabled: #ffffff1f;
+  --sy-interactive-fill-secondary-onsecondary: #121e35;
+  --sy-interactive-fill-secondary-onsecondarydisabled: #6b7f9e;
+
+  /* Tertiary/ghost fills: white-alpha instead of black-alpha */
+  --sy-interactive-fill-tertiary-default: #ffffff14;
+  --sy-interactive-fill-tertiary-hover: #ffffff1f;
+  --sy-interactive-fill-tertiary-pressed: #ffffff29;
+  --sy-interactive-fill-tertiary-disabled: #ffffff0a;
+  --sy-interactive-fill-tertiary-ontertiary: #ffffff;
+  --sy-interactive-fill-tertiary-ontertiarydisabled: #8fa2c4;
+
+  /* Links */
+  --sy-interactive-fill-link-default: #6ba7f0;
+  --sy-interactive-fill-link-hover: #8ebdf3;
+  --sy-interactive-fill-link-pressed: #a9cdf6;
+  --sy-interactive-fill-link-disabled: #8fa2c47a;
+
+  /* Outlines: white-alpha ladder; "selected" is solid light (tab underline,
+     selected segmented-control border) */
+  --sy-interactive-outline-primary-default: #ffffff3d;
+  --sy-interactive-outline-primary-hover: #ffffff52;
+  --sy-interactive-outline-primary-pressed: #ffffff6b;
+  --sy-interactive-outline-primary-disabled: #ffffff1f;
+  --sy-interactive-outline-primary-selected-default: #ffffff;
+  --sy-interactive-outline-primary-selected-hover: #e8eefb;
+  --sy-interactive-outline-primary-selected-pressed: #d7e0f0;
+  --sy-interactive-outline-secondary-default: #3a4f7a;
+  --sy-interactive-outline-secondary-hover: #4a6295;
+  --sy-interactive-outline-secondary-pressed: #5a74ab;
+  --sy-interactive-outline-secondary-disabled: #2c3e63;
+  --sy-interactive-outline-secondary-selected-default: #ffffff;
+  --sy-interactive-outline-secondary-selected-hover: #e8eefb;
+  --sy-interactive-outline-secondary-selected-pressed: #d7e0f0;
+  --sy-interactive-outline-focus: #50c7e0;
+
+  /* Hover/selection overlays: white-alpha; solid "selected" chips go navy */
+  --sy-interactive-overlay-primary-default: #ffffff00;
+  --sy-interactive-overlay-primary-hover: #ffffff14;
+  --sy-interactive-overlay-primary-pressed: #ffffff1f;
+  --sy-interactive-overlay-primary-selected-default: #31476e;
+  --sy-interactive-overlay-primary-selected-hover: #3a5580;
+  --sy-interactive-overlay-primary-selected-pressed: #446093;
+  --sy-interactive-overlay-secondary-default: #ffffff00;
+  --sy-interactive-overlay-secondary-hover: #ffffff14;
+  --sy-interactive-overlay-secondary-pressed: #ffffff1f;
+  --sy-interactive-overlay-secondary-selected-default: #31476e;
+  --sy-interactive-overlay-secondary-selected-hover: #3a5580;
+  --sy-interactive-overlay-secondary-selected-pressed: #446093;
+
+  --sy-button-primary-default-background: #2d9cbd;
+  --sy-button-primary-default-border: #2d9cbd;
+  --sy-button-primary-default-label: #ffffff;
+  --sy-button-primary-hover-background: #2789a6;
+  --sy-button-primary-hover-border: #2789a6;
+  --sy-button-primary-hover-label: #ffffff;
+  --sy-button-primary-focused-background: #2d9cbd;
+  --sy-button-primary-focused-border: #50c7e03d;
+  --sy-button-primary-focused-label: #ffffff;
+  --sy-button-primary-pressed-background: #1f7590;
+  --sy-button-primary-pressed-border: #1f7590;
+  --sy-button-primary-pressed-label: #ffffff;
+
+  /* Series palette — SciChart-derived, validated on the #1e2f52 surface */
+  --sy-chart-categorical-default-01: #2d9cbd;
+  --sy-chart-categorical-default-02: #e06c1a;
+  --sy-chart-categorical-default-03: #22a084;
+  --sy-chart-categorical-default-04: #ec0f6c;
+  --sy-chart-categorical-default-05: #b054c4;
+  --sy-chart-categorical-default-06: #bd8a1d;
+  --sy-chart-categorical-default-07: #9d7fe0;
+  --sy-chart-categorical-default-08: #699e20;
+  --sy-chart-categorical-default-09: #dc5959;
+}
+
+/* The vendor reset/base CSS hardcodes `strong{color:#363636}` and
+   `table th{color:#363636}` (light-mode ink, not semantic tokens) — nearly
+   invisible on this theme's dark surfaces, so override both here. */
+[data-theme="analytics"] strong {
+  color: var(--sy-static-text-strong);
+}
+[data-theme="analytics"] table th {
+  color: var(--sy-static-text-standard);
+}
+
+/* SidebarNav's icon wrapper and menu-toggle button have no color rule of
+   their own in the vendor CSS (--sy-c-sidebar-menu-sidebar-item-icon-color-
+   default is defined but never actually wired to a selector, and the toggle
+   button uses color:inherit) — both fall back to the reset's
+   `body{color:#4a4a4a}`, nearly invisible against this theme's dark
+   sidebar. Set color on the sidebar container itself so anything inside
+   that doesn't set its own color inherits the theme's ink instead. */
+[data-theme="analytics"] .sy-sidebar-nav__sidebar {
+  color: var(--sy-static-text-strong);
+}
+
+/* AG Grid (ag-theme-syena hardcodes light values, so override --ag-* here) */
+[data-theme="analytics"] .ag-theme-syena {
+  --ag-alpine-active-color: #50c7e0;
+  --ag-background-color: #1e2f52;
+  --ag-foreground-color: #e8eefb;
+  --ag-secondary-foreground-color: #d7e0f0;
+  --ag-data-color: #e8eefb;
+  --ag-header-background-color: #121e35;
+  --ag-header-foreground-color: #8fa2c4;
+  --ag-odd-row-background-color: #1e2f52;
+  --ag-border-color: #2c3e63;
+  --ag-secondary-border-color: #263757;
+  --ag-row-border-color: #263757;
+  --ag-row-hover-color: #50c7e014;
+  --ag-column-hover-color: #50c7e014;
+  --ag-selected-row-background-color: #50c7e02e;
+  --ag-range-selection-background-color: #50c7e033;
+  --ag-control-panel-background-color: #16233f;
+  --ag-subheader-background-color: #1e2f52;
+  --ag-panel-background-color: #324c7c;
+  --ag-menu-background-color: #324c7c;
+  --ag-tooltip-background-color: #324c7c;
+  --ag-disabled-foreground-color: #e8eefb80;
+  --ag-chip-background-color: #ffffff12;
+  --ag-checkbox-unchecked-color: #8fa2c4;
+  --ag-input-border-color: #3a4f7a;
+  --ag-input-focus-border-color: #50c7e066;
+  --ag-input-disabled-border-color: #2c3e63;
+  --ag-input-disabled-background-color: #16233f;
+  --ag-card-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.4);
+}

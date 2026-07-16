@@ -1,0 +1,5 @@
+.fg-footer {
+  background-color: var(--fg-c-footer-background-color-default);
+  border-top: 1px solid var(--fg-c-footer-divider-color-default);
+  padding: 20px 0;
+}

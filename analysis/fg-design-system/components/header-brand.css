@@ -1,0 +1,6 @@
+.fg-header-brand {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  white-space: nowrap;
+}

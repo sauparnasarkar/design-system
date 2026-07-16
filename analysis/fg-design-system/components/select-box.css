@@ -1,0 +1,11 @@
+.fg-select-box__inner-content {
+  display: flex;
+  padding: 16px 24px;
+  position: relative;
+}
+
+.fg-select-box__top-right-checkbox {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}

@@ -1,0 +1,15 @@
+.fg-date-range-dropdown__list li:last-child {
+  margin-top: 9px;
+  position: relative;
+}
+
+.fg-date-range-dropdown__list li:last-child:before {
+  background-color: var(--fg-c-date-range-divider-color-default);
+  content: "";
+  height: 1px;
+  left: 0;
+  margin: 4px 0;
+  position: absolute;
+  top: -9px;
+  width: 100%;
+}

@@ -1,0 +1,8 @@
+.fg-display1 {
+  font-family: var(--fg-web-display-1-font-family);
+  font-size: var(--fg-web-display-1-font-size);
+  font-weight: var(--fg-web-display-1-font-weight);
+  letter-spacing: var(--fg-web-display-1-letter-spacing);
+  line-height: var(--fg-web-display-1-line-height);
+  text-decoration: var(--fg-web-display-1-text-decoration);
+}

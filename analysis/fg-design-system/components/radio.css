@@ -1,0 +1,145 @@
+.fg-radio__checkmark,
+.fg-select-box-radio-input__input {
+  background-color: var(--fg-c-radio-input-background-color-default);
+  border: 1px solid var(--fg-c-radio-input-border-color-default);
+  border-radius: 50%;
+  height: 16px;
+  width: 16px;
+}
+
+.fg-radio__checkmark:after,
+.fg-select-box-radio-input__input:after {
+  background: var(--fg-c-radio-input-background-inner-color-default);
+  border-radius: 50%;
+  content: "";
+  display: none;
+  height: 6px;
+  left: 5px;
+  position: absolute;
+  top: 5px;
+  width: 6px;
+}
+
+.fg-radio__checkmark:disabled,
+.fg-select-box-radio-input__input:disabled {
+  cursor: default;
+}
+
+.fg-radio:hover
+  .fg-radio__input:not(.fg-radio__input:disabled)
+  + .fg-radio__checkmark,
+.fg-select-box-radio-input:hover
+  .fg-select-box-radio-input__input:not(:disabled) {
+  border: 1px solid var(--fg-c-radio-input-border-color-disabled-hover);
+}
+
+.fg-radio:hover
+  .fg-radio__input:not(.fg-radio__input:disabled):checked
+  + .fg-radio__checkmark,
+.fg-select-box-radio-input__native-input:checked
+  + .fg-select-box-radio-input:hover
+  .fg-select-box-radio-input__input
+  .fg-select-box-radio-input:not(:disabled) {
+  background-color: var(--fg-c-radio-input-border-color-hover);
+  border: none;
+}
+
+.fg-radio {
+  align-items: center;
+  display: flex;
+  width: fit-content;
+}
+
+.fg-radio__input {
+  appearance: none;
+  position: absolute;
+}
+
+.fg-radio__input:focus-visible + .fg-radio__checkmark {
+  border-radius: 50%;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 2px;
+}
+
+.fg-radio__input:checked + .fg-radio__checkmark {
+  background-color: var(--fg-c-radio-input-background-color-checked);
+  border: none;
+}
+
+.fg-radio__input:checked + .fg-radio__checkmark:after {
+  display: block;
+}
+
+.fg-radio__input:checked + .fg-radio__checkmark:disabled + .fg-radio__checkmark,
+.fg-radio__input:disabled + .fg-radio__checkmark {
+  background-color: var(--fg-c-radio-input-background-color-disabled);
+  border: 1px solid var(--fg-c-radio-input-border-color-default);
+  cursor: default;
+}
+
+.fg-radio__input:disabled + .fg-radio__checkmark:after {
+  background-color: var(--fg-c-radio-input-border-color-default);
+  margin-left: -1px;
+  margin-top: -1px;
+}
+
+.fg-radio:hover
+  .fg-radio__input:not(.fg-radio__input:disabled)
+  + .fg-radio__checkmark {
+  cursor: pointer;
+}
+
+.fg-radio__checkmark {
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+.fg-radio--error .fg-radio__input:checked + .fg-radio__checkmark {
+  background-color: var(--fg-c-radio-input-background-color-error);
+}
+
+.fg-radio--error:hover
+  .fg-radio__input:not(.fg-radio__input:disabled):checked
+  + .fg-radio__checkmark {
+  background-color: var(--fg-c-radio-input-background-color-error-hover);
+}
+
+.fg-radio__container {
+  display: inline-block;
+  height: 16px;
+  position: relative;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  width: 16px;
+}
+
+.fg-radio--large .fg-radio__checkmark,
+.fg-radio--large .fg-radio__container {
+  height: 20px;
+  width: 20px;
+}
+
+.fg-radio--large .fg-radio__checkmark:after {
+  height: 7.5px;
+  left: 6.25px;
+  top: 6.25px;
+  width: 7.5px;
+}
+
+.fg-radio__label {
+  color: var(--fg-c-radio-text-color-default);
+  padding-left: 12px;
+  user-select: none;
+}
+
+.fg-radio__label--disabled {
+  color: var(--fg-c-radio-text-color-disabled);
+  cursor: default;
+}
+
+.fg-radio__label:only-child {
+  padding-left: 0;
+}

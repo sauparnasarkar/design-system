@@ -1,0 +1,9 @@
+.fg-label1,
+.fg-simple-table--large .fg-simple-table-cell--header {
+  font-family: var(--fg-web-label-1-font-family);
+  font-size: var(--fg-web-label-1-font-size);
+  font-weight: var(--fg-web-label-1-font-weight);
+  letter-spacing: var(--fg-web-label-1-letter-spacing);
+  line-height: var(--fg-web-label-1-line-height);
+  text-decoration: var(--fg-web-label-1-text-decoration);
+}

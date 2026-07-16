@@ -1,0 +1,23 @@
+.fg-modal-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+
+.fg-modal-head--with-border {
+  border-bottom: 1px solid var(--fg-c-modal-header-border-color-default);
+}
+
+.fg-modal-head__close-icon {
+  background-color: var(--fg-c-modal-close-icon-background-color-default);
+  color: var(--fg-c-modal-close-icon-color-default);
+  cursor: pointer;
+  height: 16px;
+  padding: 0;
+  width: 16px;
+}
+
+.fg-modal-head__close-icon:hover {
+  color: var(--fg-c-modal-close-icon-color-hover);
+}

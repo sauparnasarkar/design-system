@@ -1,0 +1,14 @@
+.fg-table-loader {
+  display: flex;
+  flex-direction: column;
+}
+
+.fg-table-loader--grey {
+  background-color: var(--fg-c-loaders-table-dark-background-color-default);
+}
+
+.fg-table-loader__inner-wrapper-table {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+}

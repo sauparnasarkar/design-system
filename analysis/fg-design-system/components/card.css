@@ -1,0 +1,49 @@
+.fg-card {
+  background-color: var(--fg-c-card-background-color-default);
+  border-radius: 3px;
+}
+
+.fg-card--with-border {
+  border: 1px solid var(--fg-c-card-border-color-default);
+}
+
+.fg-card--with-shadow {
+  filter: var(--fg-c-card-shadow-color-default);
+}
+
+.fg-card__content--loader-wrapper {
+  border: 1px solid var(--fg-c-card-loader-border-color-default);
+  padding: 16px;
+}
+
+.fg-card__content--mixed {
+  padding: 16px 24px;
+}
+
+.fg-card__content--medium {
+  padding: 16px;
+}
+
+.fg-card__content--large {
+  padding: 24px;
+}
+
+.fg-card__content--inner-card {
+  padding: 0;
+}
+
+.fg-card--has-footer .fg-card-header + .fg-card__content--mixed {
+  padding: 8px 16px 12px;
+}
+
+.fg-card--has-footer .fg-card-header + .fg-card__content--medium {
+  padding: 8px 16px;
+}
+
+.fg-card--has-footer .fg-card-header + .fg-card__content--large {
+  padding: 8px 24px 12px;
+}
+
+.fg-card--full-height {
+  height: 100%;
+}

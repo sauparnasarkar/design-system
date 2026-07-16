@@ -1,0 +1,43 @@
+.fg-tc--weak {
+  color: var(--fg-static-text-weak);
+}
+
+.fg-tc--standard {
+  color: var(--fg-static-text-standard);
+}
+
+.fg-tc--strong {
+  color: var(--fg-static-text-strong);
+}
+
+.fg-tc--positive {
+  color: var(--fg-static-text-sentiment-positive);
+}
+
+.fg-tc--notice {
+  color: var(--fg-static-text-sentiment-notice);
+}
+
+.fg-tc--neutral {
+  color: var(--fg-static-text-sentiment-neutral);
+}
+
+.fg-tc--negative {
+  color: var(--fg-static-text-sentiment-negative);
+}
+
+.fg-tc--info {
+  color: var(--fg-static-text-sentiment-info);
+}
+
+.fg-tc--inverse-weak {
+  color: var(--fg-static-text-inverse-weak);
+}
+
+.fg-tc--inverse-standard {
+  color: var(--fg-static-text-inverse-standard);
+}
+
+.fg-tc--inverse-strong {
+  color: var(--fg-static-text-inverse-strong);
+}

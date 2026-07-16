@@ -1,0 +1,19 @@
+.fg-cur--d {
+  cursor: default;
+}
+
+.fg-cur--m {
+  cursor: move;
+}
+
+.fg-cur--na {
+  cursor: not-allowed;
+}
+
+.fg-cur--nd {
+  cursor: no-drop;
+}
+
+.fg-cur--p {
+  cursor: pointer;
+}

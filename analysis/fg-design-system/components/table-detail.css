@@ -1,0 +1,4 @@
+.fg-table-detail {
+  background-color: var(--fg-c-table-detail-background-color-default);
+  padding: 16px;
+}

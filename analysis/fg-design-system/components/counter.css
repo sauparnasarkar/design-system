@@ -1,0 +1,32 @@
+.fg-counter {
+  align-items: center;
+  border-radius: 3px;
+  display: flex;
+  gap: 4px;
+  height: min-content;
+  justify-content: center;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 2px 4px;
+  width: min-content;
+}
+
+.fg-counter--default {
+  background-color: var(--fg-c-counter-background-color-default);
+  color: var(--fg-c-counter-color-default);
+}
+
+.fg-counter--new-items {
+  background-color: var(--fg-c-counter-new-background-color-default);
+  color: var(--fg-c-counter-new-color-default);
+}
+
+.fg-counter--important {
+  background-color: var(--fg-c-counter-important-background-color-default);
+  color: var(--fg-c-counter-important-color-default);
+}
+
+.fg-counter--active {
+  background-color: var(--fg-c-counter-active-background-color-default);
+  color: var(--fg-c-counter-active-color-default);
+}

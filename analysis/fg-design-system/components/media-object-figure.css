@@ -1,0 +1,25 @@
+.fg-media-object-figure {
+  font-size: 0;
+  position: relative;
+}
+
+.fg-media-object-figure__tag {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+}
+
+.fg-media-object-figure__overlay {
+  background-color: var(
+    --fg-c-media-object-figure-background-overlay-color-default
+  );
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.fg-media-object-figure--full-width {
+  width: 100%;
+}

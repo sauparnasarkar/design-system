@@ -1,0 +1,83 @@
+.fg-tile {
+  background-color: var(--fg-c-tile-background-color-default);
+  border-radius: var(--fg-c-tile-border-radius);
+  display: inline-flex;
+  overflow: hidden;
+  padding: 16px;
+  position: relative;
+  width: 100%;
+}
+
+.fg-tile--none {
+  padding: 0;
+}
+
+.fg-tile--small {
+  padding: 8px;
+}
+
+.fg-tile--medium {
+  padding: 12px;
+}
+
+.fg-tile--full-height {
+  height: 100%;
+}
+
+.fg-tile--secondary {
+  background-color: var(--fg-c-tile-secondary-background-color);
+}
+
+.fg-tile--interactive {
+  color: var(--fg-c-tile-interactive-color-default);
+  cursor: pointer;
+}
+
+.fg-tile--interactive:hover {
+  background-color: var(--fg-c-tile-background-color-hover);
+}
+
+.fg-tile--interactive:active {
+  background-color: var(--fg-c-tile-background-color-pressed);
+}
+
+.fg-tile--interactive:focus-visible {
+  border-radius: 8px;
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 2px;
+}
+
+.fg-tile--interactive.fg-tile--disabled {
+  background-color: unset;
+  border: 1px solid var(--fg-c-tile-border-color-disabled);
+  pointer-events: none;
+}
+
+.fg-tile--reveal {
+  gap: 16px;
+  position: relative;
+}
+
+.fg-tile--reveal:focus .fg-tile__panel,
+.fg-tile--reveal:focus-within .fg-tile__panel,
+.fg-tile--reveal:hover .fg-tile__panel {
+  transform: translateY(0);
+}
+
+.fg-tile__panel {
+  background: var(--fg-c-tile-panel-background-color);
+  border: 1px solid var(--fg-c-tile-panel-border-color);
+  border-radius: var(--fg-c-tile-border-radius);
+  bottom: 0;
+  height: 100%;
+  left: 0;
+  padding: 16px;
+  position: absolute;
+  transform: translateY(100%);
+  transition: transform 0.25s ease;
+  width: 100%;
+}
+
+.fg-tile__panel:focus {
+  outline: 2px solid var(--focus-color);
+}

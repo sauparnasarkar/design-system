@@ -1,0 +1,13 @@
+.fg-range-table-filter {
+  width: 200px;
+}
+
+.fg-range-table-filter__select > .fg-dropdown__button {
+  padding: 8px;
+}
+
+.fg-range-table-filter__group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

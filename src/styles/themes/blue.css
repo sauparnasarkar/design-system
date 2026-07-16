@@ -1,0 +1,40 @@
+/*
+ * Syena Blue theme
+ * Royal blue accent theme (#4169e1 family): brand ramp + primary interactive/button tokens.
+ */
+[data-theme="blue"] {
+  --sy-color-brand-50: #e9eefc;
+  --sy-color-brand-100: #d3ddf9;
+  --sy-color-brand-200: #b0c2f4;
+  --sy-color-brand-300: #8da6ee;
+  --sy-color-brand-400: #6a88e8;
+  --sy-color-brand-500: #4169e1;
+  --sy-color-brand-600: #3355c0;
+  --sy-color-brand-700: #27439f;
+  --sy-color-brand-800: #1c327e;
+  --sy-color-brand-900: #12235e;
+  --sy-color-brand-1000: #0a163f;
+
+  --sy-interactive-fill-primary-default: #4169e1;
+  --sy-interactive-fill-primary-hover: #3355c0;
+  --sy-interactive-fill-primary-pressed: #27439f;
+  --sy-interactive-fill-primary-disabled: #4169e10f;
+  --sy-interactive-fill-primary-onprimary: #ffffff;
+  --sy-interactive-fill-primary-onprimarydisabled: #b0c2f4;
+
+  --sy-button-primary-default-background: #12235e;
+  --sy-button-primary-default-border: #12235e;
+  --sy-button-primary-default-label: #ffffff;
+  --sy-button-primary-hover-background: #27439f;
+  --sy-button-primary-hover-border: #27439f;
+  --sy-button-primary-hover-label: #ffffff;
+  --sy-button-primary-focused-background: #12235e;
+  --sy-button-primary-focused-border: #4169e13d;
+  --sy-button-primary-focused-label: #ffffff;
+  --sy-button-primary-pressed-background: #3355c0;
+  --sy-button-primary-pressed-border: #3355c0;
+  --sy-button-primary-pressed-label: #ffffff;
+
+  --sy-static-text-sentiment-info: #27439f;
+  --sy-static-text-sentiment-standard-info: #4169e1;
+}

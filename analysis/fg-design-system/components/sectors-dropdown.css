@@ -1,0 +1,9 @@
+.fg-sectors-dropdown__icon {
+  align-self: flex-start;
+  color: var(--fg-c-dropdown-button-nested-icon-color-default);
+  margin-left: 16px;
+}
+
+.fg-sectors-dropdown__label {
+  margin-left: 4px;
+}

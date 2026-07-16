@@ -1,0 +1,45 @@
+.fg-contact-module__arrows {
+  display: flex;
+  gap: 4px;
+}
+
+.fg-contact-module__arrows--hidden {
+  display: none;
+}
+
+.fg-contact-module .slick-track {
+  display: flex;
+}
+
+.fg-contact-module .slick-slide:before {
+  background-color: var(--fg-c-contact-module-divider-color-default);
+  content: "";
+  height: 100%;
+  position: absolute;
+  width: 1px;
+}
+
+.fg-contact-module .slick-slide.fg-contact-module__first-active-slide:before {
+  content: none;
+}
+
+.fg-contact-module .slick-slide > div {
+  margin: 0 24px;
+}
+
+.fg-contact-module__message-button {
+  background: transparent;
+  color: var(--fg-c-contact-module-message-button-color-default);
+  cursor: pointer;
+  margin-left: 24px;
+  padding: 0;
+}
+
+.fg-contact-module__message-wrapper {
+  align-items: center;
+  border: 1px solid var(--fg-c-contact-module-message-border-color-default);
+  display: flex;
+  justify-content: center;
+  min-height: 224px;
+  padding: 86px 0;
+}

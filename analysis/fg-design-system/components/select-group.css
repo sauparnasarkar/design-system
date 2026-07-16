@@ -1,0 +1,42 @@
+.fg-select-group {
+  border: 1px solid var(--fg-c-select-group-border-color-default);
+  border-radius: 4px;
+  display: flex;
+  filter: var(--fg-c-select-group-shadow-color-default);
+}
+
+.fg-select-group__items {
+  align-items: center;
+  display: flex;
+  flex: 1;
+}
+
+.fg-select-group__item {
+  flex: 1;
+  position: relative;
+}
+
+.fg-select-group__item:not(:last-child):after {
+  background-color: var(--fg-c-select-group-divider-color-default);
+  content: "";
+  height: calc(100% - 8px);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+}
+
+.fg-select-group__item:focus-within {
+  outline: 2px solid var(--fg-interactive-outline-focus);
+  outline-offset: 0;
+}
+
+.fg-select-group__item:focus-within:first-child {
+  border-bottom-left-radius: 2px;
+  border-top-left-radius: 2px;
+}
+
+.fg-select-group__action {
+  padding: 4px;
+}

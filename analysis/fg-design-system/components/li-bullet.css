@@ -1,0 +1,4 @@
+.fg-li-bullet:not(:last-child):after {
+  content: "•";
+  margin: 0 3px;
+}

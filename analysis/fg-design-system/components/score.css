@@ -1,0 +1,136 @@
+.fg-score {
+  display: flex;
+  min-width: 180px;
+  position: relative;
+  width: 100%;
+}
+
+.fg-score__partition {
+  border-right: 1px solid var(--fg-c-score-partition-border-color-default);
+  height: 100%;
+  padding: 0 2px;
+}
+
+.fg-score__partition:first-of-type {
+  padding-left: 0;
+}
+
+.fg-score__partition:last-of-type {
+  border-right: none;
+  padding-right: 0;
+}
+
+.fg-score__box-container {
+  display: flex;
+  height: 100%;
+  width: fit-content;
+}
+
+.fg-score__number {
+  text-align: center;
+}
+
+.fg-score__box {
+  background: var(--fg-c-score-box-background-color-default);
+  height: 48px;
+  width: 30px;
+}
+
+.fg-score--small .fg-score__box {
+  height: 36px;
+  width: 33px;
+}
+
+.fg-score--medium .fg-score__box {
+  width: 44px;
+}
+
+.fg-score--large .fg-score__box {
+  width: 55px;
+}
+
+.fg-score--vertical {
+  flex-direction: column-reverse;
+  min-width: inherit;
+  width: fit-content;
+}
+
+.fg-score--vertical .fg-score__partition {
+  align-items: center;
+  border-bottom: 1px solid var(--fg-c-score-partition-border-color-default);
+  border-right: none;
+  display: flex;
+  flex-direction: row-reverse;
+  padding: 2px 0;
+}
+
+.fg-score--vertical .fg-score__partition:first-of-type {
+  border-bottom: none;
+}
+
+.fg-score--vertical .fg-score__box-container {
+  flex-direction: column-reverse;
+}
+
+.fg-score--vertical .fg-score__number {
+  padding: 0 8px;
+}
+
+.fg-score--small.fg-score--vertical .fg-score__box {
+  height: 12px;
+  width: 28px;
+}
+
+.fg-score--medium.fg-score--vertical .fg-score__box {
+  height: 20px;
+  width: 52px;
+}
+
+.fg-score--large.fg-score--vertical .fg-score__box {
+  height: 32px;
+  width: 76px;
+}
+
+.fg-score--auto:not(.fg-score--vertical) .fg-score__box {
+  flex: 1;
+  width: auto;
+}
+
+.fg-score--auto:not(.fg-score--vertical) .fg-score__box-container,
+.fg-score--auto:not(.fg-score--vertical) .fg-score__partition {
+  flex: 1;
+  width: 100%;
+}
+
+.fg-score--auto-height.fg-score--vertical,
+.fg-score--auto.fg-score--vertical {
+  height: 100%;
+}
+
+.fg-score--auto-height.fg-score--vertical .fg-score__box,
+.fg-score--auto.fg-score--vertical .fg-score__box {
+  flex: 1;
+  min-height: 12px;
+  width: 52px;
+}
+
+.fg-score--auto-height:not(.fg-score--vertical) {
+  height: 100%;
+}
+
+.fg-score--auto-height:not(.fg-score--vertical) .fg-score__partition {
+  display: flex;
+  flex-direction: column;
+}
+
+.fg-score--auto-height:not(.fg-score--vertical) .fg-score__box-container {
+  flex: 1;
+}
+
+.fg-score--auto-height:not(.fg-score--vertical) .fg-score__box {
+  height: 100%;
+}
+
+.fg-score--empty .fg-score__number {
+  color: var(--fg-c-score-text-color-default);
+}

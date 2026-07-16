@@ -1,0 +1,11 @@
+.fg-td--n {
+  text-decoration: none;
+}
+
+.fg-td--l {
+  text-decoration: line-through;
+}
+
+.fg-td--u {
+  text-decoration: underline;
+}

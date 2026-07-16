@@ -1,0 +1,123 @@
+.fg-modal {
+  background-color: var(--fg-c-modal-background-color-default);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  max-height: calc(100vh - 32px);
+  max-width: 562px;
+  outline: none;
+  position: relative;
+  width: 100%;
+}
+
+.fg-modal--small {
+  max-width: 360px;
+}
+
+.fg-modal__overlay {
+  align-items: center;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: var(--fg-c-modal-z-index);
+}
+
+.fg-modal__overlay--top {
+  align-items: flex-start;
+}
+
+.fg-modal__dialog-header-wrapper {
+  align-items: center;
+  border-bottom: 1px solid var(--fg-c-modal-header-border-color-default);
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+
+.fg-modal__heading-wrapper-component,
+.fg-modal__heading-wrapper-text {
+  align-items: center;
+  color: var(--fg-c-modal-header-text-color-default);
+  display: flex;
+}
+
+.fg-modal__close-icon {
+  background-color: var(--fg-c-modal-close-icon-background-color-default);
+  color: var(--fg-c-modal-close-icon-color-default);
+  cursor: pointer;
+  height: 16px;
+  padding: 0;
+  width: 16px;
+}
+
+.fg-modal__close-icon:hover {
+  color: var(--fg-c-modal-close-icon-color-hover);
+}
+
+.fg-modal__sticky-content-header {
+  padding: 24px 24px 0;
+}
+
+.fg-modal__content {
+  color: var(--fg-c-modal-text-color-default);
+  flex: 1;
+  flex-basis: auto;
+  overflow: auto;
+  padding: 24px;
+  word-break: break-word;
+}
+
+.fg-modal__actions,
+.fg-modal__dot-nav {
+  background-color: var(--fg-c-modal-dots-background-color-default);
+  border-radius: 0 0 3px 3px;
+  padding: 16px 24px;
+}
+
+.fg-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fg-modal__actions > [class*="fg-"] {
+  margin-right: 16px;
+}
+
+.fg-modal__actions > [class*="fg-"]:last-child {
+  margin-right: 0;
+}
+
+.fg-modal__dot-nav {
+  display: flex;
+  justify-content: center;
+  min-height: 64px;
+}
+
+.fg-modal__dot-nav-next,
+.fg-modal__dot-nav-prev {
+  align-items: center;
+  background-color: var(--fg-c-modal-arrows-background-color-default);
+  border-radius: 32px;
+  cursor: pointer;
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  margin-top: -16px;
+  position: absolute;
+  top: 50%;
+  width: 32px;
+}
+
+.fg-modal__dot-nav-next {
+  right: -48px;
+}
+
+.fg-modal__dot-nav-prev {
+  left: -48px;
+}
+
+.fg-modal__body--open {
+  overflow: hidden;
+}

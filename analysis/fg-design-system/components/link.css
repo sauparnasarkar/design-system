@@ -1,0 +1,68 @@
+.fg-link {
+  display: inline-block;
+  text-underline-offset: 2px;
+}
+
+.fg-link--default {
+  color: var(--fg-c-link-grey-default);
+}
+
+.fg-link--default:hover:not(.fg-link--default:disabled) {
+  color: var(--fg-c-link-grey-hover);
+  text-decoration: underline;
+}
+
+.fg-link--default:active:not(.fg-link--default:disabled) {
+  color: var(--fg-c-link-grey-active);
+}
+
+.fg-link--default:visited.fg-link--has-visited {
+  color: var(--fg-c-link-grey-visited);
+}
+
+.fg-link--default:focus-visible {
+  border-radius: 2px;
+  text-decoration: underline;
+}
+
+.fg-link--default:disabled {
+  color: var(--fg-c-link-grey-disabled);
+  cursor: unset;
+}
+
+.fg-link--blue {
+  color: var(--fg-c-link-blue-default);
+}
+
+.fg-link--blue:hover:not(.fg-link--blue:disabled) {
+  color: var(--fg-c-link-blue-hover);
+  text-decoration: underline;
+}
+
+.fg-link--blue:active:not(.fg-link--blue:disabled) {
+  color: var(--fg-c-link-blue-active);
+}
+
+.fg-link--blue:visited.fg-link--has-visited {
+  color: var(--fg-c-link-blue-visited);
+}
+
+.fg-link--blue:focus-visible {
+  border-radius: 2px;
+  text-decoration: underline;
+}
+
+.fg-link--blue:disabled {
+  color: var(--fg-c-link-blue-disabled);
+  cursor: unset;
+}
+
+.fg-link.fg-link--inline {
+  text-decoration: underline;
+}
+
+.fg-link--button {
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}

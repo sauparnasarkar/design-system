@@ -1,0 +1,11 @@
+.fg-card-footer--size-medium {
+  padding: 8px 16px 16px;
+}
+
+.fg-card-footer--size-mixed {
+  padding: 12px 24px 16px;
+}
+
+.fg-card-footer--size-large {
+  padding: 12px 24px 24px;
+}

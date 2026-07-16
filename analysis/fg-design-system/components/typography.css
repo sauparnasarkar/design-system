@@ -1,0 +1,83 @@
+.fg-typography {
+  color: inherit;
+}
+
+.fg-typography--color-weak {
+  color: var(--fg-static-text-weak);
+}
+
+.fg-typography--color-standard {
+  color: var(--fg-static-text-standard);
+}
+
+.fg-typography--color-strong {
+  color: var(--fg-static-text-strong);
+}
+
+.fg-typography--color-positive {
+  color: var(--fg-static-text-sentiment-positive);
+}
+
+.fg-typography--color-notice {
+  color: var(--fg-static-text-sentiment-notice);
+}
+
+.fg-typography--color-neutral {
+  color: var(--fg-static-text-sentiment-neutral);
+}
+
+.fg-typography--color-negative {
+  color: var(--fg-static-text-sentiment-negative);
+}
+
+.fg-typography--color-info {
+  color: var(--fg-static-text-sentiment-info);
+}
+
+.fg-typography--color-inverse-weak {
+  color: var(--fg-static-text-inverse-weak);
+}
+
+.fg-typography--color-inverse-standard {
+  color: var(--fg-static-text-inverse-standard);
+}
+
+.fg-typography--color-inverse-strong {
+  color: var(--fg-static-text-inverse-strong);
+}
+
+.fg-typography--align-inherit {
+  text-align: inherit;
+}
+
+.fg-typography--align-center {
+  text-align: center;
+}
+
+.fg-typography--align-justify {
+  text-align: justify;
+}
+
+.fg-typography--align-left {
+  text-align: left;
+}
+
+.fg-typography--align-right {
+  text-align: right;
+}
+
+.fg-typography--weight-heavy {
+  font-weight: 800 !important;
+}
+
+.fg-typography--weight-bold {
+  font-weight: 600 !important;
+}
+
+.fg-typography--weight-semi {
+  font-weight: 500 !important;
+}
+
+.fg-typography--weight-regular {
+  font-weight: 400 !important;
+}

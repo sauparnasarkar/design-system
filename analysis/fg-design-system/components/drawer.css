@@ -1,0 +1,48 @@
+.fg-drawer {
+  background-color: var(--fg-c-drawer-background-color);
+  bottom: 0;
+  height: 100vh;
+  padding: 16px 0;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: 0;
+  transform: translateX(var(--fg-c-drawer-width));
+  transition:
+    transform var(--fg-c-drawer-animation-duration) ease-in-out,
+    visibility 0s linear var(--fg-c-drawer-animation-duration);
+  visibility: hidden;
+  width: var(--fg-c-drawer-width);
+}
+
+.fg-drawer__content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.fg-drawer--open {
+  filter: var(--fg-c-drawer-shadow-default);
+  pointer-events: auto;
+  transform: translateX(0);
+  transition: transform var(--fg-c-drawer-animation-duration) ease-in-out;
+  visibility: visible;
+}
+
+.fg-drawer--open.fg-drawer--embedded {
+  margin-right: 0;
+}
+
+.fg-drawer--suppress-animation {
+  transition: none;
+}
+
+.fg-drawer--embedded {
+  flex-shrink: 0;
+  height: 100%;
+  margin-right: calc(var(--fg-c-drawer-width) * -1);
+  position: relative;
+  transform: none;
+  transition: margin-right var(--fg-c-drawer-animation-duration) ease-in-out;
+  width: var(--fg-c-drawer-width);
+}

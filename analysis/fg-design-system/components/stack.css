@@ -1,0 +1,28 @@
+.fg-stack {
+  --fg-c-stack-divider-color-default: var(--fg-static-divider-standard);
+  display: flex;
+  gap: 16px;
+}
+
+.fg-stack__divider {
+  align-self: stretch;
+  background-color: var(--fg-c-stack-divider-color-default);
+  width: 1px;
+}
+
+.fg-stack--row-reverse {
+  flex-direction: row-reverse;
+}
+
+.fg-stack--column {
+  flex-direction: column;
+}
+
+.fg-stack--column-reverse {
+  flex-direction: column-reverse;
+}
+
+.fg-stack[class*="fg-stack--column"] > .fg-stack__divider {
+  height: 1px;
+  width: auto;
+}

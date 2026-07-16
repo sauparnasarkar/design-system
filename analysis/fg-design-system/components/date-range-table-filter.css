@@ -1,0 +1,38 @@
+.fg-date-range-table-filter__content-row-label,
+.fg-date-range-table-filter__error-message {
+  font-family: var(--fg-web-label-3-font-family);
+  font-size: var(--fg-web-label-3-font-size);
+  font-weight: var(--fg-web-label-3-font-weight);
+  letter-spacing: var(--fg-web-label-3-letter-spacing);
+  line-height: var(--fg-web-label-3-line-height);
+  text-decoration: var(--fg-web-label-3-text-decoration);
+}
+
+.fg-date-range-table-filter {
+  width: 264px;
+}
+
+.fg-date-range-table-filter__select > .fg-dropdown__button {
+  padding: 8px;
+}
+
+.fg-date-range-table-filter__content-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.fg-date-range-table-filter__content-row-label {
+  margin-bottom: 8px;
+  margin-top: 4px;
+}
+
+.fg-date-range-table-filter__lists-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.fg-date-range-table-filter__error-message {
+  color: var(--fg-c-table-date-range-error-message-text-color-default);
+  text-align: center;
+}

@@ -1,0 +1,20 @@
+.fg-page-header {
+  background-color: var(--fg-c-page-header-background-color);
+  padding: 16px 0;
+  position: relative;
+  z-index: var(--fg-c-page-header-z-index);
+}
+
+.fg-page-header--border-bottom {
+  border-bottom: 1px solid var(--fg-c-page-header-border-bottom-color);
+}
+
+.fg-page-header--sticky {
+  position: sticky;
+  top: 0;
+}
+
+.fg-page-header--shadow {
+  box-shadow: 0 4px 5px -2px var(--fg-c-page-header-box-shadow-color);
+  transition: box-shadow 0.2s ease;
+}

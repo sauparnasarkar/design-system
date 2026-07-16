@@ -1,0 +1,19 @@
+.fg-header-cell--highlight {
+  background-color: var(
+    --fg-c-table-highlight-cell-odd-background-color-default
+  );
+}
+
+.fg-header-cell--highlight-even {
+  background-color: var(
+    --fg-c-table-highlight-cell-even-background-color-default
+  );
+}
+
+.ag-header-group-cell.fg-header-cell--highlight.ag-header-group-cell-with-group:hover,
+.ag-header-row.ag-header-row-column
+  .ag-header-cell.fg-header-cell--highlight-even.ag-header-active:hover,
+.ag-header-row.ag-header-row-column
+  .ag-header-cell.fg-header-cell--highlight.ag-header-active:hover {
+  background-color: var(--fg-c-table-highlight-cell-background-color-hover);
+}

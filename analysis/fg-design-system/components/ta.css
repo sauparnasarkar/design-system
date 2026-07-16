@@ -1,0 +1,17 @@
+.fg-ta--c {
+  text-align: center;
+}
+
+.fg-ta--l {
+  text-align: left;
+}
+
+.fg-ta--r {
+  text-align: right;
+}
+
+@media (min-width: 640px) {
+  .fg-ta--r\@xs {
+    text-align: right;
+  }
+}

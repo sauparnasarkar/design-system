@@ -1,0 +1,19 @@
+.fg-jc--c {
+  justify-content: center;
+}
+
+.fg-jc--fe {
+  justify-content: flex-end;
+}
+
+.fg-jc--sa {
+  justify-content: space-around;
+}
+
+.fg-jc--sb {
+  justify-content: space-between;
+}
+
+.fg-jc--se {
+  justify-content: space-evenly;
+}
