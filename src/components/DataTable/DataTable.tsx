@@ -45,8 +45,49 @@ export function DataTable<Row>({
     }),
     [floatingFilters],
   );
+
+  // AG Grid's own horizontal scrollbar is opacity:0/visibility:hidden until an
+  // active scroll or hover (its "Apple-style" scrollbar CSS) — on touch devices
+  // that means there's no visible cue a table scrolls at all until a visitor
+  // stumbles onto it. Show an explicit hint whenever content actually overflows,
+  // and drop it the moment the visitor scrolls (they've found it; stop nagging).
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
+  const [isScrollable, setIsScrollable] = React.useState(false);
+
+  React.useEffect(() => {
+    let scrollEl: HTMLElement | null = null;
+    let ro: ResizeObserver | undefined;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const onScroll = () => {
+      if (scrollEl && scrollEl.scrollLeft > 4) setIsScrollable(false);
+    };
+
+    const attach = () => {
+      scrollEl = wrapperRef.current?.querySelector<HTMLElement>('.ag-body-horizontal-scroll-viewport') ?? null;
+      if (!scrollEl) {
+        // AG Grid builds this element asynchronously after mount — it may not
+        // exist on the very first effect run.
+        retryTimer = setTimeout(attach, 150);
+        return;
+      }
+      const check = () => setIsScrollable(scrollEl!.scrollWidth > scrollEl!.clientWidth + 1);
+      check();
+      ro = new ResizeObserver(check);
+      ro.observe(scrollEl);
+      scrollEl.addEventListener('scroll', onScroll, { passive: true });
+    };
+    attach();
+
+    return () => {
+      if (retryTimer) clearTimeout(retryTimer);
+      ro?.disconnect();
+      scrollEl?.removeEventListener('scroll', onScroll);
+    };
+  }, [rows, columns]);
+
   return (
-    <div className={cx('sy-table', 'ag-theme-syena', className)} style={{ height, width: '100%' }}>
+    <div ref={wrapperRef} className={cx('sy-table', 'ag-theme-syena', className)} style={{ position: 'relative', height, width: '100%' }}>
       <AgGridReact<Row>
         theme="legacy"
         columnDefs={columns}
@@ -63,6 +104,31 @@ export function DataTable<Row>({
         suppressContentVisibilityAuto
         {...gridOptions}
       />
+      {isScrollable && (
+        <div
+          aria-hidden="true"
+          className="sy-table__scroll-hint"
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '3px 9px',
+            borderRadius: 12,
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.01em',
+            color: '#fff',
+            background: 'rgba(0, 0, 0, 0.55)',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        >
+          Scroll for more →
+        </div>
+      )}
     </div>
   );
 }
