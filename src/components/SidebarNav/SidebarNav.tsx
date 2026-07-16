@@ -55,6 +55,9 @@ export function SidebarNav({
   const isMobile = useIsMobile();
   const [internalOpen, setInternalOpen] = React.useState(() => !isMobile);
   const open = openProp ?? internalOpen;
+  const navRef = React.useRef<HTMLElement>(null);
+  const openButtonRef = React.useRef<HTMLButtonElement>(null);
+  const closeButtonRef = React.useRef<HTMLButtonElement>(null);
 
   const setOpenState = (next: boolean) => {
     setInternalOpen(next);
@@ -68,6 +71,49 @@ export function SidebarNav({
     if (openProp !== undefined) return;
     setInternalOpen(!isMobile);
   }, [isMobile, openProp]);
+
+  // The off-canvas drawer behaves like a modal overlay while open — without
+  // this, keyboard/screen-reader users have no way to close it (the backdrop
+  // only responds to a mouse click) and focus is left sitting on whatever
+  // triggered it, behind the drawer.
+  React.useEffect(() => {
+    if (!isMobile) return;
+    if (open) {
+      closeButtonRef.current?.focus();
+    } else {
+      openButtonRef.current?.focus();
+    }
+  }, [isMobile, open]);
+
+  React.useEffect(() => {
+    if (!isMobile || !open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenState(false);
+        return;
+      }
+      if (e.key !== 'Tab' || !navRef.current) return;
+      // Basic focus trap: while the drawer is open, Tab should cycle within
+      // it rather than escaping into the (visually hidden, off-canvas) page
+      // content behind it.
+      const focusable = navRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile, open]);
 
   const renderItem = (item: SidebarNavItem) => (
     <li key={item.id} className="sy-sidebar-nav__sidebar-item" role="none">
@@ -102,6 +148,7 @@ export function SidebarNav({
       {isMobile && !open && (
         <button
           type="button"
+          ref={openButtonRef}
           aria-label="Open menu"
           onClick={() => setOpenState(true)}
           style={{
@@ -137,7 +184,10 @@ export function SidebarNav({
         />
       )}
       <nav
+        ref={navRef}
         aria-label="Sidebar Navigation"
+        role={isMobile && open ? 'dialog' : undefined}
+        aria-modal={isMobile && open ? true : undefined}
         className={cx('sy-sidebar-nav', className)}
         style={
           isMobile
@@ -161,6 +211,7 @@ export function SidebarNav({
         >
           <button
             type="button"
+            ref={closeButtonRef}
             aria-label={isMobile ? 'Close menu' : 'Toggle Menu'}
             onClick={() => setOpenState(!open)}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'none', border: 0, cursor: 'pointer', color: 'inherit' }}
