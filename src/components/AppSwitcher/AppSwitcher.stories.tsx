@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 import { AppSwitcher } from './AppSwitcher';
 import syenaMark from '../../assets/logos/syena-mark.png';
 
@@ -21,4 +22,16 @@ type Story = StoryObj<typeof AppSwitcher>;
 
 export const Playground: Story = {
   render: (args) => <AppSwitcher {...args} onClose={() => {}} />,
+  play: async ({ canvasElement, args }) => {
+    // Regression guard for design-system#1: AppSwitcher used to hardcode the old
+    // LogoProduct enum into AppSwitcherApp; it must now render each app's own
+    // per-app markSrc/wordmark/name via the generic Logo props, not a shared default.
+    const tiles = canvasElement.querySelectorAll('.__s9cmpx-app-launcher-tile');
+    await expect(tiles).toHaveLength(args.apps!.length);
+    for (const app of args.apps!) {
+      await expect(canvasElement).toHaveTextContent(app.name);
+    }
+    const images = canvasElement.querySelectorAll('.__s9cmpx-app-launcher-tile img');
+    await expect(images).toHaveLength(args.apps!.length);
+  },
 };

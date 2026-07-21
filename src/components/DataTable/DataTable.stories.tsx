@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 import { DataTable } from './DataTable';
 import { Tag } from '../Tag/Tag';
 
@@ -46,7 +47,16 @@ const meta: Meta<typeof DataTable<EntityRow>> = {
 export default meta;
 type Story = StoryObj<typeof DataTable<EntityRow>>;
 
-export const Playground: Story = {};
+export const Playground: Story = {
+  play: async ({ canvasElement }) => {
+    // Regression guard for the white-label rename (design-system#1): DataTable's
+    // className and the AG Grid theme's CSS selector must stay in lockstep, or the
+    // grid silently loses all AG Grid theming.
+    const agThemeEl = canvasElement.querySelector('.ag-theme-s9cmpx');
+    await expect(agThemeEl).not.toBeNull();
+    await expect(canvasElement.querySelector('.__s9cmpx-table')).not.toBeNull();
+  },
+};
 
 export const WithFloatingFilters: Story = {
   args: { floatingFilters: true, height: 460 },

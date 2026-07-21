@@ -182,3 +182,70 @@ small defects). Nothing queued — pick items from there to turn into tasks.
 - Note: .sy-chart-tooltip is position:absolute with a translate offset by
   design (hover element) — its story renders off-origin; pre-existing.
 - Verified in analytics + default themes; screenshots in analysis/verification/.
+
+## White-label rework: rename sy-/Syena → __s9cmpx-, remove hardcoded branding (2026-07-21)
+- Same class of rename as the Fitch→Syena rebrand above, one step further:
+  this design system may end up as the basis for a future external-facing
+  white-label platform, not just Syena's own products, so hardcoded Syena
+  identity needed to come out while there's still only one real consumer
+  (climate-dashboard-react) to coordinate with. PR:
+  sauparnasarkar/design-system#1.
+- Triggered by a concrete, confirmed leak: the real Syena logo PNG was
+  publicly fetchable on the deployed consumer site even though nothing there
+  renders `<Logo>`. Root cause: no `"sideEffects": false` in package.json, so
+  Rollup couldn't prove the unused `Logo` module (which imported the asset at
+  module scope) was droppable. Fixed by adding `sideEffects: false` (verified
+  safe — no module-scope side effects beyond CSS/asset imports).
+- `sy-`/`Syena`/`syena` renamed to `__s9cmpx-` everywhere it's a class name,
+  CSS custom property, or BEM block — ~90 hand-authored files plus the 3
+  vendor CSS files (`sy-design-system.min.css`, `syena-default-theme.css`,
+  `sy-design-system-reset.min.css` — filenames unchanged, contents renamed).
+  `ag-theme-syena` → `ag-theme-s9cmpx`, renamed in lockstep across
+  `DataTable.tsx`, `analytics.css`, and the vendor CSS blob (a mismatch breaks
+  DataTable's AG Grid styling entirely). This is a rename, not a hashing
+  scheme — the theming contract (consumers overriding tokens by name) is
+  unaffected.
+- `Footer.copyright` and `Chatbot.title` are now required props with no
+  Syena-specific default — a forgotten override is a type error, not a
+  silent brand leak.
+- `Logo` reworked from a hardcoded Syena eagle-mark + wordmark component into
+  a generic `markSrc`/`wordmark`/`accent` lockup. This cascaded into
+  `AppSwitcher`, which had hardcoded the old `LogoProduct` enum into its own
+  public `AppSwitcherApp` type — reworked to the same generic props.
+- climate-dashboard-react needed a matching update: it referenced several
+  `sy-*` classes/tokens directly in its own JSX (not only through component
+  props), so those needed the same rename or styling would have silently
+  broken. See sauparnasarkar/climate-emissions-analysis-project#69.
+
+## Testing wired up (2026-07-21)
+- `vitest`, `@vitest/browser-playwright`, `@vitest/coverage-v8`, and
+  `@storybook/addon-vitest` were already installed (and `.storybook/main.ts`
+  already registered the addon, `vite.config.ts` already had the full
+  `storybookTest` project config) but never actually invoked — no `"test"`
+  script existed and it had never been run.
+- Running it surfaced a real dependency bug, not a config mistake: several
+  CJS-only transitive deps of `@testing-library/dom` (`aria-query`,
+  `lz-string`, `dom-accessibility-api`, `pretty-format`, `@adobe/css-tools`,
+  `css.escape`, `picocolors`, `redent`, `@babel/code-frame`) weren't being
+  correctly ESM-interop'd by Vitest's browser-mode dep optimizer. Fixed by
+  listing them all in `vite.config.ts`'s `optimizeDeps.include`.
+- Added `"test": "vitest run"` / `"test:watch": "vitest"` to package.json.
+  Result: all ~60 existing `*.stories.tsx` files now run as real tests
+  (mount + a11y check) with zero new test files needed for that baseline.
+- Added explicit `play`-function assertions to `DataTable`, `Logo`, `Footer`,
+  `Chatbot`, `AppSwitcher` — the components touched by the white-label rework
+  above — proving the exact things previously only verified by hand (AG Grid
+  theme class pairing, consumer-supplied branding actually rendering).
+- Added a second Vitest project (`unit`, Node environment, not browser) for
+  `src/__tests__/no-vendor-strings.test.ts` — a static guard that fails if a
+  literal `Syena`/`syena` string reappears in non-story component source or
+  CSS, directly encoding the regression class from the leak above.
+- Verified these aren't hollow: deliberately broke the `ag-theme-s9cmpx`
+  class pairing and reintroduced a literal `"Syena"` string, confirmed each
+  test failed with a clear message, then reverted both.
+- Current state: `npm test` → 69 files, 120 tests, all passing;
+  `npm run build-storybook` still succeeds.
+- Not done (see ENHANCEMENTS.md item 1): the originally-proposed play
+  functions for the interactive components (Select, MultiSelect,
+  NestedMultiSelect, Tabs, Modal, Drawer, TableFilter, Pagination, Slider),
+  and turning a11y from `todo` to enforced.

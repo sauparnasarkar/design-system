@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 import { Footer } from './Footer';
 
 const meta: Meta<typeof Footer> = {
@@ -14,4 +15,10 @@ const meta: Meta<typeof Footer> = {
 export default meta;
 type Story = StoryObj<typeof Footer>;
 
-export const Playground: Story = {};
+export const Playground: Story = {
+  play: async ({ canvasElement, args }) => {
+    // copyright has no built-in default (design-system#1) — must render whatever the
+    // consumer passes in, not any hardcoded Syena-specific fallback.
+    await expect(canvasElement).toHaveTextContent(String(args.copyright));
+  },
+};
