@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 import { Logo } from './Logo';
 import syenaMark from '../../assets/logos/syena-mark.png';
 
@@ -20,7 +21,17 @@ const meta: Meta<typeof Logo> = {
 export default meta;
 type Story = StoryObj<typeof Logo>;
 
-export const Playground: Story = {};
+export const Playground: Story = {
+  play: async ({ canvasElement, args }) => {
+    // Regression guard for the white-label rework (design-system#1): Logo must render
+    // whatever markSrc/wordmark the consumer passes in, not any hardcoded default.
+    // The <img> itself is decorative (alt=""), so query it directly rather than by role
+    // — the accessible "img" role belongs to the outer <span role="img"> wrapper.
+    const img = canvasElement.querySelector('img');
+    await expect(img).toHaveAttribute('src', String(args.markSrc));
+    await expect(canvasElement).toHaveTextContent(String(args.wordmark));
+  },
+};
 
 const ACCENTS: Array<{ label: string; accent?: string; accentColor?: string }> = [
   { label: 'default' },

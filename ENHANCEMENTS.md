@@ -5,6 +5,14 @@
 > SyChart). Older entries below use the pre-rebrand `fg-`/Fitch names for
 > historical accuracy — map fg-→sy- when acting on them. The namespace fork
 > also completes the first step of item 16 (de-vendor).
+>
+> **2026-07-21 white-label rename note:** the `sy-` prefix above is itself now
+> historical — class names/CSS custom properties were renamed again, this
+> time to `__s9cmpx-`, to remove hardcoded Syena identity ahead of using this
+> system as the basis for a future white-label platform (`ag-theme-syena` →
+> `ag-theme-s9cmpx`). Entries below using `sy-`/`--sy-*` predate that rename
+> — map sy-→__s9cmpx- when acting on them. See "White-label rework" in
+> `PLAN.md`.
 
 Status: proposals only — nothing here is queued. Say the word and any item
 becomes a task. Current state for context: 59 components, 3 themes, vendored
@@ -12,12 +20,21 @@ fg CSS v7.32.2, Storybook 10, all typechecked and visually verified.
 
 ## Tier 1 — highest value next
 
-1. **Interaction & a11y test pass** — `@storybook/addon-vitest` and
-   `addon-a11y` are already installed but unused. Add `play` functions to the
+1. **Interaction & a11y test pass** — **PARTIALLY BUILT 2026-07-21.**
+   `@storybook/addon-vitest` and `addon-a11y` were installed but unused (no
+   `vitest.config`, no `"test"` script, zero test files) — now wired up:
+   `npm test` runs every `*.stories.tsx` as a real test (mount + automatic
+   a11y/axe-core check) plus a Node-environment unit-test project, 69 files /
+   120 tests passing. Explicit `play`-function assertions were added to
+   `DataTable`, `Logo`, `Footer`, `Chatbot`, `AppSwitcher` (the components
+   touched by the white-label rework) and a static guard test against
+   reintroducing hardcoded `Syena` strings. Details: "Testing wired up" in
+   `PLAN.md`.
+   **Still open**: the originally-proposed `play` functions for the
    interactive components (Select, MultiSelect, NestedMultiSelect, Tabs,
-   Modal, Drawer, TableFilter, Pagination, Slider), turn a11y from `todo` to
-   enforced, and fix violations (several menus need arrow-key navigation;
-   Modal/Drawer need focus traps).
+   Modal, Drawer, TableFilter, Pagination, Slider), and turning a11y from
+   `todo` to enforced + fixing violations (several menus need arrow-key
+   navigation; Modal/Drawer need focus traps).
 2. **Visual regression CI (Chromatic)** — `@chromatic-com/storybook` is
    already in the addons. Init a git repo, wire `build-storybook` + Chromatic
    in GitHub Actions, snapshot all stories in all 3 themes. This locks in the

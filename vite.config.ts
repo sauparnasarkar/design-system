@@ -12,6 +12,23 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [react()],
+  // aria-query is pure CJS with no `exports` field; Vitest's browser-mode dep
+  // optimizer doesn't reliably detect its named exports (used by
+  // @testing-library/dom, which addon-vitest's setup pulls in) without being
+  // forced through pre-bundling explicitly.
+  optimizeDeps: {
+    include: [
+      'aria-query',
+      'lz-string',
+      'dom-accessibility-api',
+      'pretty-format',
+      '@adobe/css-tools',
+      'css.escape',
+      'picocolors',
+      'redent',
+      '@babel/code-frame',
+    ],
+  },
   test: {
     projects: [{
       extends: true,
@@ -31,6 +48,16 @@ export default defineConfig({
             browser: 'chromium'
           }]
         }
+      }
+    }, {
+      // Plain Node-environment unit tests (e.g. static source-content guards) that
+      // don't need a browser — kept separate from the storybook project above so
+      // they run fast and don't pull in browser-only setup.
+      extends: true,
+      test: {
+        name: 'unit',
+        environment: 'node',
+        include: ['src/**/*.test.ts'],
       }
     }]
   }

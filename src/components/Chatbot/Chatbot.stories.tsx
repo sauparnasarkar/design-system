@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 import { Chatbot, type ChatMessage } from './Chatbot';
 
 const MESSAGES: ChatMessage[] = [
@@ -58,5 +59,10 @@ export const Playground: Story = {
         />
       </div>
     );
+  },
+  play: async ({ canvasElement, args }) => {
+    // title has no built-in default (design-system#1) — must render whatever the
+    // consumer passes in, not any hardcoded "Syena AI".
+    await expect(canvasElement).toHaveTextContent(String(args.title));
   },
 };
