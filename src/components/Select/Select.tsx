@@ -20,6 +20,8 @@ export interface SelectProps {
   error?: boolean;
   disabled?: boolean;
   label?: React.ReactNode;
+  /** Accessible name to use when no visible `label` is rendered (e.g. compact controls in a card header) */
+  ariaLabel?: string;
   className?: string;
 }
 
@@ -33,6 +35,7 @@ export function Select({
   error = false,
   disabled = false,
   label,
+  ariaLabel,
   className,
 }: SelectProps) {
   const [open, setOpen] = React.useState(false);
@@ -95,11 +98,13 @@ export function Select({
       >
         <button
           type="button"
+          role="combobox"
           className={cx('__s9cmpx-select__control', open && '__s9cmpx-select__control--is-focused', disabled && '__s9cmpx-select__control--is-disabled')}
           style={{ width: '100%' }}
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-labelledby={label ? labelId : undefined}
+          aria-label={label ? undefined : ariaLabel}
           aria-controls={open ? listboxId : undefined}
           aria-activedescendant={open ? optionId(highlighted) : undefined}
           disabled={disabled}

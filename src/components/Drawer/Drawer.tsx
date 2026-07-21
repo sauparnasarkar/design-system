@@ -1,5 +1,6 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
+import { useFocusTrap } from '../../lib/useFocusTrap';
 import { Icon } from '../Icon/Icon';
 
 export interface DrawerProps {
@@ -38,9 +39,16 @@ export function Drawer({
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  // `embedded` is a permanently-visible, docked-inline rendering (position: static,
+  // forced visible regardless of `open`) — not a true modal overlay, so none of the
+  // modal-dialog behaviors (focus trap, inert-when-closed, aria-modal) apply to it.
+  const dialogRef = useFocusTrap<HTMLDivElement>(open && !embedded);
+  const titleId = React.useId();
+
   const widthValue = typeof width === 'number' ? `${width}px` : width;
   return (
     <div
+      ref={dialogRef}
       className={cx('__s9cmpx-drawer', open && '__s9cmpx-drawer--open', embedded && '__s9cmpx-drawer--embedded', className)}
       style={
         {
@@ -49,12 +57,19 @@ export function Drawer({
         } as React.CSSProperties
       }
       role="dialog"
-      aria-hidden={!open}
+      aria-modal={embedded ? undefined : true}
+      aria-labelledby={title ? titleId : undefined}
+      aria-hidden={embedded ? undefined : !open}
+      // Slides off-screen via CSS transform rather than unmounting (for the transition),
+      // so its buttons/inputs would otherwise stay in the tab order while invisible —
+      // `inert` removes them from focus/AT entirely while closed, same as unmounting would.
+      inert={embedded ? undefined : !open}
+      tabIndex={-1}
     >
       <div className="__s9cmpx-drawer__content">
         {(title || onClose) && (
           <div className="__s9cmpx-drawer-header">
-            <h2 className="__s9cmpx-headline6" style={{ margin: 0 }}>{title}</h2>
+            <h2 id={titleId} className="__s9cmpx-headline6" style={{ margin: 0 }}>{title}</h2>
             {onClose && (
               <button
                 type="button"

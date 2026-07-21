@@ -8,7 +8,7 @@ const meta: Meta<typeof Header> = {
   component: Header,
   parameters: { layout: 'fullscreen' },
   args: {
-    logo: <Logo markSrc={syenaMark} wordmark="Syena" accent="Green" accentColor="var(--__s9cmpx-color-teal-600, #187272)" />,
+    logo: <Logo markSrc={syenaMark} wordmark="Syena" accent="Green" accentColor="#0f5c5c" />,
     searchPlaceholder: 'Search Entities, Reports and Instruments...',
     showNotifications: true,
     showAppSwitcher: true,

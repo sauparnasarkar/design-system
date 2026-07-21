@@ -41,7 +41,10 @@ export function NestedMultiSelect({
   const [open, setOpen] = React.useState(false);
   const [internal, setInternal] = React.useState<string[]>([]);
   const [expanded, setExpanded] = React.useState<Set<string>>(new Set());
+  const [highlighted, setHighlighted] = React.useState(0);
   const rootRef = React.useRef<HTMLDivElement>(null);
+  const listboxId = React.useId();
+  const labelId = React.useId();
   const selected = value ?? internal;
 
   React.useEffect(() => {
@@ -53,10 +56,39 @@ export function NestedMultiSelect({
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
 
+  React.useEffect(() => {
+    if (open) setHighlighted(0);
+  }, [open]);
+
   const commit = (next: string[]) => {
     setInternal(next);
     onChange?.(next);
   };
+
+  // Flattened visible rows (groups + their children, only when expanded) — this is what
+  // arrow-key navigation moves through and what aria-activedescendant points into. Focus
+  // stays on the outer combobox the whole time (same "virtual focus" pattern Select and
+  // MultiSelect already use); individual rows are never given real DOM focus.
+  type Row = { key: string; kind: 'group'; group: NestedOptionGroup } | { key: string; kind: 'child'; group: NestedOptionGroup; child: NestedOptionGroup['children'][number] };
+  const visibleRows = React.useMemo(() => {
+    const rows: Row[] = [];
+    for (const g of groups) {
+      rows.push({ key: `group:${g.value}`, kind: 'group', group: g });
+      if (expanded.has(g.value)) {
+        for (const c of g.children) {
+          rows.push({ key: `child:${c.value}`, kind: 'child', group: g, child: c });
+        }
+      }
+    }
+    return rows;
+  }, [groups, expanded]);
+  const rowIndex = React.useMemo(() => {
+    const map = new Map<string, number>();
+    visibleRows.forEach((r, i) => map.set(r.key, i));
+    return map;
+  }, [visibleRows]);
+  const optionId = (i: number) => `${listboxId}-option-${i}`;
+  const clampedHighlighted = Math.min(highlighted, Math.max(visibleRows.length - 1, 0));
 
   const toggleChild = (v: string) =>
     commit(selected.includes(v) ? selected.filter((x) => x !== v) : [...selected, v]);
@@ -83,9 +115,65 @@ export function NestedMultiSelect({
     return v;
   };
 
+  const moveHighlight = (delta: number) => {
+    if (visibleRows.length === 0) return;
+    setHighlighted((h) => (Math.min(h, visibleRows.length - 1) + delta + visibleRows.length) % visibleRows.length);
+  };
+
+  const activateHighlighted = () => {
+    const row = visibleRows[clampedHighlighted];
+    if (!row) return;
+    if (row.kind === 'group') toggleGroup(row.group);
+    else if (!row.child.disabled) toggleChild(row.child.value);
+  };
+
+  const onTreeKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+    if (e.key === 'Escape') {
+      setOpen(false);
+      return;
+    }
+    if (!open) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setOpen(true);
+      }
+      return;
+    }
+    const row = visibleRows[clampedHighlighted];
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveHighlight(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveHighlight(-1);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (row?.kind === 'group') {
+        if (!expanded.has(row.group.value)) {
+          toggleExpand(row.group.value);
+        } else if (row.group.children.length > 0) {
+          const firstChildIndex = rowIndex.get(`child:${row.group.children[0].value}`);
+          if (firstChildIndex !== undefined) setHighlighted(firstChildIndex);
+        }
+      }
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (row?.kind === 'child') {
+        const parentIndex = rowIndex.get(`group:${row.group.value}`);
+        if (parentIndex !== undefined) setHighlighted(parentIndex);
+      } else if (row?.kind === 'group' && expanded.has(row.group.value)) {
+        toggleExpand(row.group.value);
+      }
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      activateHighlighted();
+    }
+  };
+
   return (
     <div ref={rootRef} className={className} style={{ position: 'relative', minWidth: 300, height: 'fit-content', alignSelf: 'flex-start' }}>
-      {label && <span className="__s9cmpx-label3" style={{ display: 'block', marginBottom: 4 }}>{label}</span>}
+      {label && <span id={labelId} className="__s9cmpx-label3" style={{ display: 'block', marginBottom: 4 }}>{label}</span>}
       <div
         className={cx(
           '__s9cmpx-dropdown-nested-multi-select',
@@ -97,17 +185,13 @@ export function NestedMultiSelect({
           role="combobox"
           aria-expanded={open}
           aria-haspopup="tree"
+          aria-labelledby={label ? labelId : undefined}
+          aria-controls={open ? listboxId : undefined}
+          aria-activedescendant={open && visibleRows.length > 0 ? optionId(clampedHighlighted) : undefined}
           tabIndex={disabled ? -1 : 0}
           className={cx('__s9cmpx-dropdown-nested-multi-select__control', open && '__s9cmpx-dropdown-nested-multi-select__control--is-focused')}
           onClick={() => !disabled && setOpen((o) => !o)}
-          onKeyDown={(e) => {
-            if (disabled) return;
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              setOpen((o) => !o);
-            }
-            if (e.key === 'Escape') setOpen(false);
-          }}
+          onKeyDown={onTreeKeyDown}
           style={{ display: 'flex', alignItems: 'center', minHeight: 32, padding: '2px 8px', borderRadius: 3, cursor: disabled ? 'default' : 'pointer' }}
         >
           <div className="__s9cmpx-dropdown-nested-multi-select__input-container" style={{ display: 'flex', flexWrap: 'wrap', gap: 4, flex: 1, alignItems: 'center' }}>
@@ -129,15 +213,28 @@ export function NestedMultiSelect({
         </div>
         {open && (
           <div className={cx('__s9cmpx-dropdown-nested-multi-select__menu', '__s9cmpx-dropdown-nested-multi-select__menu--open')} style={{ position: 'absolute', zIndex: 20, left: 0, right: 0, marginTop: 4 }}>
-            <ul className="__s9cmpx-dropdown-nested-multi-select__menu-list" role="tree" style={{ listStyle: 'none', margin: 0, padding: 4, maxHeight: 300, overflowY: 'auto' }}>
+            <ul id={listboxId} className="__s9cmpx-dropdown-nested-multi-select__menu-list" role="tree" style={{ listStyle: 'none', margin: 0, padding: 4, maxHeight: 300, overflowY: 'auto' }}>
               {groups.map((g) => {
                 const enabled = g.children.filter((c) => !c.disabled).map((c) => c.value);
                 const selCount = enabled.filter((v) => selected.includes(v)).length;
                 const all = selCount > 0 && selCount === enabled.length;
                 const some = selCount > 0 && !all;
                 const isExpanded = expanded.has(g.value);
+                const groupRowIndex = rowIndex.get(`group:${g.value}`);
                 return (
-                  <li key={g.value} role="treeitem" aria-expanded={isExpanded} className={cx('__s9cmpx-nested-checkbox', '__s9cmpx-nested-checkbox--expandable-right', isExpanded && '__s9cmpx-nested-checkbox--expanded')}>
+                  <li
+                    key={g.value}
+                    id={groupRowIndex !== undefined ? optionId(groupRowIndex) : undefined}
+                    role="treeitem"
+                    aria-expanded={isExpanded}
+                    className={cx(
+                      '__s9cmpx-nested-checkbox',
+                      '__s9cmpx-nested-checkbox--expandable-right',
+                      isExpanded && '__s9cmpx-nested-checkbox--expanded',
+                      groupRowIndex === clampedHighlighted && '__s9cmpx-nested-checkbox--is-focused',
+                    )}
+                    onMouseEnter={() => groupRowIndex !== undefined && setHighlighted(groupRowIndex)}
+                  >
                     <div className="__s9cmpx-nested-checkbox__parent-wrapper" style={{ display: 'flex', alignItems: 'center', borderRadius: 3 }}>
                       <label
                         className="__s9cmpx-dropdown-nested-multi-select__checkbox __s9cmpx-dropdown-nested-multi-select__checkbox--parent __s9cmpx-checkbox"
@@ -177,8 +274,16 @@ export function NestedMultiSelect({
                       <ul role="group" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                         {g.children.map((c) => {
                           const checked = selected.includes(c.value);
+                          const childRowIndex = rowIndex.get(`child:${c.value}`);
                           return (
-                            <li key={c.value} role="treeitem" aria-selected={checked} className="__s9cmpx-nested-checkbox__option-wrapper">
+                            <li
+                              key={c.value}
+                              id={childRowIndex !== undefined ? optionId(childRowIndex) : undefined}
+                              role="treeitem"
+                              aria-selected={checked}
+                              className={cx('__s9cmpx-nested-checkbox__option-wrapper', childRowIndex === clampedHighlighted && '__s9cmpx-nested-checkbox--is-focused')}
+                              onMouseEnter={() => childRowIndex !== undefined && setHighlighted(childRowIndex)}
+                            >
                               <label
                                 className={cx('__s9cmpx-dropdown-nested-multi-select__checkbox', '__s9cmpx-dropdown-nested-multi-select__checkbox--child', '__s9cmpx-checkbox')}
                                 style={{ display: 'flex', alignItems: 'center', padding: '6px 8px 6px 32px', cursor: c.disabled ? 'default' : 'pointer', opacity: c.disabled ? 0.5 : 1 }}

@@ -25,11 +25,12 @@ export function Progress({
   ...rest
 }: ProgressProps) {
   const clamped = Math.max(0, Math.min(100, value));
+  const labelId = React.useId();
   return (
     <div className={className} {...rest}>
       {label && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span className="__s9cmpx-label3">{label}</span>
+          <span id={labelId} className="__s9cmpx-label3">{label}</span>
           <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{clamped}%</span>
         </div>
       )}
@@ -38,6 +39,7 @@ export function Progress({
         aria-valuenow={clamped}
         aria-valuemin={0}
         aria-valuemax={100}
+        aria-labelledby={label ? labelId : undefined}
         className={cx(
           '__s9cmpx-progress',
           variant !== 'primary' && `__s9cmpx-progress--${variant}`,

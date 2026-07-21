@@ -39,7 +39,10 @@ export function ChartTooltip({ title, rows, variant = 'dark', className, ...rest
           <hr className="__s9cmpx-chart-tooltip-content__divider" style={{ border: 0, borderTop: `1px solid ${dark ? 'var(--__s9cmpx-static-divider-inverse-weak, rgba(255,255,255,0.2))' : 'var(--__s9cmpx-static-divider-weak, rgba(31,31,31,0.12))'}`, margin: '6px 0' }} />
         </>
       )}
-      <div className="__s9cmpx-chart-tooltip-content" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* Vendor CSS gives this a max-height + overflow-y: auto (scrollable once
+          content exceeds 150px) — tabIndex makes it reachable/scrollable via
+          keyboard, since it has no focusable descendants of its own. */}
+      <div tabIndex={0} className="__s9cmpx-chart-tooltip-content" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {rows.map((r, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {r.color && (

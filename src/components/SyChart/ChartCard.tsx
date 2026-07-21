@@ -11,10 +11,12 @@ export interface ChartCardProps {
   asOf?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  /** Heading level for the title, to keep page-level heading order valid in context; defaults to h5 */
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
 }
 
 /** Chart panel chrome as used on the sector pages: Card header with controls + download, chart body, "Data as of" caption. */
-export function ChartCard({ title, actions, onDownload, asOf, children, className }: ChartCardProps) {
+export function ChartCard({ title, actions, onDownload, asOf, children, className, headingLevel }: ChartCardProps) {
   return (
     <Card
       className={className}
@@ -22,6 +24,7 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
       header={
         <CardHeader
           title={title}
+          headingLevel={headingLevel}
           actions={
             <>
               {actions}

@@ -12,6 +12,8 @@ export interface CardHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   actions?: React.ReactNode;
   size?: CardHeaderSize;
   hasTabs?: boolean;
+  /** Heading level for the title element, to keep page-level heading order valid in context; defaults to h5 (this component's traditional level when used standalone) */
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
 }
 
 export function CardHeader({
@@ -20,9 +22,11 @@ export function CardHeader({
   actions,
   size = 'default',
   hasTabs = false,
+  headingLevel = 5,
   className,
   ...rest
 }: CardHeaderProps) {
+  const HeadingTag = `h${headingLevel}` as const;
   return (
     <div
       className={cx(
@@ -36,7 +40,7 @@ export function CardHeader({
       <div className="__s9cmpx-card-header__wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
         <div className="__s9cmpx-card-header__left-side">
           <div className="__s9cmpx-card-header__title-wrapper">
-            <h5 className="__s9cmpx-card-header__title __s9cmpx-headline6">{title}</h5>
+            <HeadingTag className="__s9cmpx-card-header__title __s9cmpx-headline6">{title}</HeadingTag>
             {supportText && (
               <span className="__s9cmpx-card-header__support-text __s9cmpx-body4" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>
                 {supportText}

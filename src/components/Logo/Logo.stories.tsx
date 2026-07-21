@@ -35,9 +35,9 @@ export const Playground: Story = {
 
 const ACCENTS: Array<{ label: string; accent?: string; accentColor?: string }> = [
   { label: 'default' },
-  { label: 'green', accent: 'Green', accentColor: 'var(--__s9cmpx-color-teal-600, #187272)' },
+  { label: 'green', accent: 'Green', accentColor: '#0f5c5c' },
   { label: 'blue', accent: 'Blue', accentColor: 'var(--__s9cmpx-color-blue-600, #1c5ece)' },
-  { label: 'analytics', accent: 'Analytics', accentColor: '#1d84a3' },
+  { label: 'analytics', accent: 'Analytics', accentColor: '#166a83' },
 ];
 
 export const AllAccents: Story = {

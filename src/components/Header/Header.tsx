@@ -71,7 +71,12 @@ export function Header({
               ['--__s9cmpx-static-text-strong' as string]: 'var(--__s9cmpx-static-text-inverse-strong)',
             } as React.CSSProperties}
           >
-            <SearchInput variant="full" placeholder={searchPlaceholder} aria-label="Search Bar" />
+            <SearchInput
+              variant="full"
+              placeholder={searchPlaceholder}
+              aria-label="Search Bar"
+              className="__s9cmpx-search-input--on-inverse"
+            />
           </div>
         )}
         {centerActions}

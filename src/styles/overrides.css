@@ -8,3 +8,24 @@
 .__s9cmpx-tab {
   background-color: transparent;
 }
+
+/* Header's search box sits on a dark ("inverse") backdrop it provides itself
+   and remaps the text-color tokens for (see Header.tsx) — but SearchInput's
+   own root element unconditionally redefines
+   --__s9cmpx-c-search-input-control-background-color-default to the light
+   --static-background-weak fill, which sits *closer* in the cascade than
+   Header's wrapping div and so wins, opaquely covering the intended dark
+   backdrop (confirmed via a live computed-style check: white search text was
+   landing on that light fill, not the dark background, ~1:1 contrast).
+   Header opts in via this class since it can't reach SearchInput's own root
+   element's inline styles from outside.
+
+   Vendor's own token-definition selector is `[class*=__s9cmpx-search-input]`,
+   which (via substring match) also matches the inner `__control` div itself
+   (its class literally contains "__s9cmpx-search-input"), redefining the
+   variable there too and overriding what's inherited from the root — so this
+   rule must target the control div directly, not just the root, to win. */
+.__s9cmpx-search-input--on-inverse,
+.__s9cmpx-search-input--on-inverse .__s9cmpx-search-input__control {
+  --__s9cmpx-c-search-input-control-background-color-default: transparent;
+}

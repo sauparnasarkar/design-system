@@ -57,10 +57,10 @@ export const Overview: StoryObj = {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16, marginBottom: 16 }}>
-        <ChartCard title="Current Warming Index">
+        <ChartCard title="Current Warming Index" headingLevel={2}>
           <Gauge value={1.28} min={0} max={2} suffix="°C" height={230} />
         </ChartCard>
-        <ChartCard title="CO₂ Emissions Over Time (MtCO₂)" onDownload={() => {}} asOf="Jul 13, 2026">
+        <ChartCard title="CO₂ Emissions Over Time (MtCO₂)" onDownload={() => {}} asOf="Jul 13, 2026" headingLevel={2}>
           <SyChart
             height={260}
             series={[
@@ -74,7 +74,7 @@ export const Overview: StoryObj = {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <ChartCard title="ETS(A,Ad,N) Forecast — China" onDownload={() => {}}>
+        <ChartCard title="ETS(A,Ad,N) Forecast — China" onDownload={() => {}} headingLevel={2}>
           <SyChart
             height={260}
             series={[
@@ -92,7 +92,7 @@ export const Overview: StoryObj = {
             xTitle="Year"
           />
         </ChartCard>
-        <ChartCard title="Emissions Scenarios (2025–2040)" onDownload={() => {}}>
+        <ChartCard title="Emissions Scenarios (2025–2040)" onDownload={() => {}} headingLevel={2}>
           <SyChart
             height={260}
             referenceY={{ value: 2500, label: '1990 level' }}

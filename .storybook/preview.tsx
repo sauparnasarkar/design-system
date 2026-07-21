@@ -34,9 +34,9 @@ const preview: Preview = {
       <div
         data-theme={context.globals.theme}
         style={{
-          fontFamily: 'var(--sy-font-families-primary)',
-          color: 'var(--sy-static-text-standard)',
-          background: 'var(--sy-static-background-weak)',
+          fontFamily: 'var(--__s9cmpx-font-families-primary)',
+          color: 'var(--__s9cmpx-static-text-standard)',
+          background: 'var(--__s9cmpx-static-background-weak)',
           minHeight: '100vh',
           padding: 16,
           boxSizing: 'border-box',
@@ -54,7 +54,7 @@ const preview: Preview = {
       },
     },
     a11y: {
-      test: 'todo',
+      test: 'error',
     },
   },
 };
