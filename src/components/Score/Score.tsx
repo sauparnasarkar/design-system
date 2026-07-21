@@ -11,6 +11,8 @@ export interface ScoreProps {
   vertical?: boolean;
   /** Show the segment number under each box */
   showNumbers?: boolean;
+  /** Accessible name for the meter (e.g. "ESG Entity Score") — no visible label is rendered by this component itself; pass a more specific value when the surrounding context doesn't already convey what's being scored. */
+  label?: string;
   className?: string;
 }
 
@@ -25,6 +27,7 @@ export function Score({
   size = 'medium',
   vertical = false,
   showNumbers = true,
+  label = 'ESG Score',
   className,
 }: ScoreProps) {
   const clamped = Math.max(0, Math.min(value, max));
@@ -34,6 +37,7 @@ export function Score({
     <div
       className={cx('__s9cmpx-score', `__s9cmpx-score--${size}`, vertical && '__s9cmpx-score--vertical', clamped === 0 && '__s9cmpx-score--empty', className)}
       role="meter"
+      aria-label={label}
       aria-valuenow={clamped}
       aria-valuemin={0}
       aria-valuemax={max}

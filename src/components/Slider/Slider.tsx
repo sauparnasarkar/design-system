@@ -32,6 +32,7 @@ export function Slider({
   const current = value ?? internal;
   const pct = max > min ? ((current - min) / (max - min)) * 100 : 0;
   const trackRef = React.useRef<HTMLDivElement>(null);
+  const labelId = React.useId();
 
   const setFromClientX = (clientX: number) => {
     const rect = trackRef.current?.getBoundingClientRect();
@@ -71,7 +72,7 @@ export function Slider({
     <div className={className} style={{ minWidth: 220 }}>
       {(label || showValue) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          {label && <span className="__s9cmpx-label3">{label}</span>}
+          {label && <span id={labelId} className="__s9cmpx-label3">{label}</span>}
           {showValue && <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{current}</span>}
         </div>
       )}
@@ -108,6 +109,7 @@ export function Slider({
             aria-valuemin={min}
             aria-valuemax={max}
             aria-valuenow={current}
+            aria-labelledby={label ? labelId : undefined}
             aria-disabled={disabled}
             className="__s9cmpx-slider__thumb"
             style={{ left: `${pct}%`, top: '50%' }}

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { Drawer } from './Drawer';
 import { Button } from '../Button/Button';
 import { Tag } from '../Tag/Tag';
@@ -47,4 +48,30 @@ function DrawerDemo(args: React.ComponentProps<typeof Drawer>) {
 
 export const Playground: Story = {
   render: (args) => <DrawerDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // While closed, aria-hidden + inert correctly remove it from the accessibility
+    // tree entirely — getByRole('dialog') would not find it, by design.
+    await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
+
+    const trigger = canvas.getByRole('button', { name: 'Open drawer' });
+    await userEvent.click(trigger);
+
+    const dialog = await canvas.findByRole('dialog');
+    await expect(dialog).toHaveAccessibleName('Notifications');
+
+    const closeButton = canvas.getByRole('button', { name: 'Close' });
+    await waitFor(() => expect(closeButton).toHaveFocus());
+
+    // Tab wraps from the last focusable element (footer button) back to the first.
+    const footerButton = canvas.getByRole('button', { name: 'Mark all as read' });
+    await userEvent.tab({ shift: true });
+    await expect(footerButton).toHaveFocus();
+    await userEvent.tab();
+    await expect(closeButton).toHaveFocus();
+
+    await userEvent.keyboard('{Escape}');
+    await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
 };

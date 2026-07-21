@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { Modal } from './Modal';
 import { Button } from '../Button/Button';
 
@@ -41,6 +42,33 @@ function ModalDemo(args: React.ComponentProps<typeof Modal>) {
 
 export const Playground: Story = {
   render: (args) => <ModalDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const trigger = canvas.getByRole('button', { name: 'Open modal' });
+    await userEvent.click(trigger);
+
+    const dialog = await canvas.findByRole('dialog');
+    await expect(dialog).toHaveAccessibleName('Download Report');
+
+    // Focus trap: focus moves into the dialog on open (its first focusable
+    // descendant, the close button) rather than staying on the trigger.
+    const closeButton = canvas.getByRole('button', { name: 'Close' });
+    await waitFor(() => expect(closeButton).toHaveFocus());
+
+    // Shift+Tab from the first focusable element wraps to the last.
+    const downloadButton = canvas.getByRole('button', { name: 'Download' });
+    await userEvent.tab({ shift: true });
+    await expect(downloadButton).toHaveFocus();
+
+    // Tab from the last wraps back to the first.
+    await userEvent.tab();
+    await expect(closeButton).toHaveFocus();
+
+    // Escape closes it and restores focus to the element that opened it.
+    await userEvent.keyboard('{Escape}');
+    await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
 };
 
 export const Small: Story = {

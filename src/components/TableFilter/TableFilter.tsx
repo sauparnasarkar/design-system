@@ -35,7 +35,12 @@ export function TableFilter({
   const [applied, setApplied] = React.useState<string[]>([]);
   const [draft, setDraft] = React.useState<string[]>([]);
   const [query, setQuery] = React.useState('');
+  const [highlighted, setHighlighted] = React.useState(0);
   const rootRef = React.useRef<HTMLDivElement>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const listboxId = React.useId();
+  const labelId = React.useId();
+  const optionId = (i: number) => `${listboxId}-option-${i}`;
   const current = value ?? applied;
 
   React.useEffect(() => {
@@ -46,6 +51,18 @@ export function TableFilter({
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
+
+  // Land on the first visible option whenever the menu opens, so arrow-key
+  // navigation and aria-activedescendant have a sane starting point, and again
+  // whenever the search query narrows the list (so it never points off-list).
+  React.useEffect(() => {
+    if (!open) return;
+    setHighlighted(0);
+  }, [open, query]);
+
+  React.useEffect(() => {
+    if (open && !suppressSearch) searchInputRef.current?.focus();
+  }, [open, suppressSearch]);
 
   const openMenu = () => {
     setDraft(current);
@@ -62,14 +79,52 @@ export function TableFilter({
   const visible = options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()));
   const filtered = current.length > 0;
 
+  const moveHighlight = (delta: number) => {
+    if (visible.length === 0) return;
+    setHighlighted((h) => (h + delta + visible.length) % visible.length);
+  };
+
+  const toggleHighlighted = () => {
+    const opt = visible[highlighted];
+    if (!opt) return;
+    setDraft((d) => (d.includes(opt.value) ? d.filter((x) => x !== opt.value) : [...d, opt.value]));
+  };
+
+  const onMenuKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveHighlight(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveHighlight(-1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      toggleHighlighted();
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
   return (
     <div ref={rootRef} className={cx('__s9cmpx-table-custom-filter-base', className)} style={{ position: 'relative', display: 'inline-block', height: 'fit-content', alignSelf: 'flex-start' }}>
       <button
         type="button"
+        role="combobox"
         className={cx('__s9cmpx-table-custom-filter-base-trigger-element', '__s9cmpx-label3')}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-controls={open ? listboxId : undefined}
+        aria-activedescendant={open ? optionId(highlighted) : undefined}
+        aria-labelledby={labelId}
         onClick={() => (open ? setOpen(false) : openMenu())}
+        onKeyDown={(e) => {
+          if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+            e.preventDefault();
+            openMenu();
+            return;
+          }
+          if (open) onMenuKeyDown(e);
+        }}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -83,12 +138,12 @@ export function TableFilter({
         }}
       >
         {filtered ? (
-          <span className="__s9cmpx-table-custom-filter-base-trigger-element__selected-value" style={{ fontWeight: 600 }}>
+          <span id={labelId} className="__s9cmpx-table-custom-filter-base-trigger-element__selected-value" style={{ fontWeight: 600 }}>
             {label}: {current.length} selected
           </span>
         ) : (
           <span className="__s9cmpx-table-custom-filter-base-trigger-element__placeholder" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>
-            <span className="__s9cmpx-table-custom-filter-base-trigger-element__placeholder-text">{label}</span>
+            <span id={labelId} className="__s9cmpx-table-custom-filter-base-trigger-element__placeholder-text">{label}</span>
           </span>
         )}
         <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -114,29 +169,37 @@ export function TableFilter({
                 <Icon name="search" size={14} />
               </span>
               <input
+                ref={searchInputRef}
                 className="__s9cmpx-set-table-filter__input __s9cmpx-body3-short"
                 placeholder="Search…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                role="combobox"
+                aria-expanded={open}
+                aria-controls={listboxId}
+                aria-activedescendant={optionId(highlighted)}
+                onKeyDown={onMenuKeyDown}
                 style={{ border: 0, outline: 'none', flex: 1, background: 'transparent', color: 'inherit' }}
               />
             </div>
           )}
-          <ul className="__s9cmpx-set-table-filter__menu-list" role="listbox" aria-multiselectable="true" style={{ listStyle: 'none', margin: 0, padding: 4, maxHeight: 220, overflowY: 'auto' }}>
+          <ul id={listboxId} className="__s9cmpx-set-table-filter__menu-list" role="listbox" aria-multiselectable="true" style={{ listStyle: 'none', margin: 0, padding: 4, maxHeight: 220, overflowY: 'auto' }}>
             {visible.length === 0 && (
               <li className="__s9cmpx-set-table-filter__no-options-message" style={{ padding: 8, color: 'var(--__s9cmpx-static-text-weak)' }}>
                 No matches
               </li>
             )}
-            {visible.map((o) => {
+            {visible.map((o, i) => {
               const checked = draft.includes(o.value);
               return (
                 <li
                   key={o.value}
+                  id={optionId(i)}
                   role="option"
                   aria-selected={checked}
-                  className="__s9cmpx-set-table-filter__option"
+                  className={cx('__s9cmpx-set-table-filter__option', i === highlighted && '__s9cmpx-set-table-filter__option--is-focused')}
                   onClick={() => setDraft((d) => (checked ? d.filter((x) => x !== o.value) : [...d, o.value]))}
+                  onMouseEnter={() => setHighlighted(i)}
                   style={{ cursor: 'pointer', borderRadius: 3 }}
                 >
                   <label className="__s9cmpx-set-table-filter__checkbox __s9cmpx-checkbox" style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', pointerEvents: 'none' }}>

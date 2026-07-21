@@ -9,7 +9,7 @@ const meta: Meta<typeof AppSwitcher> = {
   args: {
     apps: [
       { id: 'default', markSrc: syenaMark, wordmark: 'Syena', name: 'Syena Primary' },
-      { id: 'green', markSrc: syenaMark, wordmark: 'Syena', accent: 'Green', accentColor: 'var(--__s9cmpx-color-teal-600, #187272)', name: 'Syena Green' },
+      { id: 'green', markSrc: syenaMark, wordmark: 'Syena', accent: 'Green', accentColor: '#0f5c5c', name: 'Syena Green' },
       { id: 'blue', markSrc: syenaMark, wordmark: 'Syena', accent: 'Blue', accentColor: 'var(--__s9cmpx-color-blue-600, #1c5ece)', name: 'Syena Blue' },
       { id: 'connect', markSrc: syenaMark, wordmark: 'Syena', name: 'Syena Premium', noPermission: true },
     ],

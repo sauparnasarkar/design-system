@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { NestedMultiSelect } from './NestedMultiSelect';
 
 const GROUPS = [
@@ -56,4 +57,40 @@ export const Playground: Story = {
       <NestedMultiSelect {...args} />
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const control = canvas.getByRole('combobox');
+    await userEvent.click(control);
+
+    // Lands on the first group row (EMEA), collapsed, on open.
+    const emea = canvas.getByRole('treeitem', { name: /EMEA/ });
+    await expect(control).toHaveAttribute('aria-activedescendant', emea.id);
+    await expect(emea).toHaveAttribute('aria-expanded', 'false');
+
+    // ArrowRight on a collapsed group expands it in place (activedescendant stays put).
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(emea).toHaveAttribute('aria-expanded', 'true');
+    await expect(control).toHaveAttribute('aria-activedescendant', emea.id);
+
+    // ArrowRight again, now that it's expanded, moves into its first child.
+    await userEvent.keyboard('{ArrowRight}');
+    const uk = canvas.getByRole('treeitem', { name: 'United Kingdom' });
+    await expect(control).toHaveAttribute('aria-activedescendant', uk.id);
+
+    // Enter toggles the highlighted child into the selection without closing the tree.
+    await userEvent.keyboard('{Enter}');
+    await expect(uk).toHaveAttribute('aria-selected', 'true');
+    await expect(canvas.getByRole('tree')).toBeInTheDocument();
+
+    // ArrowLeft from a child moves back up to its parent group…
+    await userEvent.keyboard('{ArrowLeft}');
+    await expect(control).toHaveAttribute('aria-activedescendant', emea.id);
+    // …and ArrowLeft again, now on an expanded group, collapses it.
+    await userEvent.keyboard('{ArrowLeft}');
+    await expect(emea).toHaveAttribute('aria-expanded', 'false');
+    await expect(canvas.queryByRole('treeitem', { name: 'United Kingdom' })).not.toBeInTheDocument();
+
+    await userEvent.keyboard('{Escape}');
+    await expect(canvas.queryByRole('tree')).not.toBeInTheDocument();
+  },
 };

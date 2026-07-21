@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { MultiSelect } from './MultiSelect';
 
 const OPTIONS = [
@@ -34,6 +35,20 @@ export const Playground: Story = {
       <MultiSelect {...args} />
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const control = canvas.getByRole('combobox');
+    await userEvent.click(control);
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+
+    // Enter toggles the highlighted option into the selection but — unlike Select —
+    // must NOT close the menu, since MultiSelect supports picking several in a row.
+    await expect(canvas.getByRole('listbox')).toBeInTheDocument();
+    await expect(canvas.getByRole('option', { name: 'Sovereigns' })).toHaveAttribute('aria-selected', 'true');
+
+    await userEvent.keyboard('{Escape}');
+    await expect(canvas.queryByRole('listbox')).not.toBeInTheDocument();
+  },
 };
 
 export const Preselected: Story = {

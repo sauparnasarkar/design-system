@@ -33,6 +33,40 @@ export function Tabs({
 }: TabsProps) {
   const [internal, setInternal] = React.useState(items[0]?.id);
   const active = activeId ?? internal;
+  const tabRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
+  // Callback refs only fire for indices React still renders, so a shrinking `items`
+  // would otherwise leave stale/detached elements at the tail of this array forever.
+  tabRefs.current = tabRefs.current.slice(0, items.length);
+
+  const select = (id: string) => {
+    setInternal(id);
+    onChange?.(id);
+  };
+
+  // Roving tabindex (APG tabs pattern): only the active tab (or, if none is active, the
+  // first enabled one) sits in the Tab order; Arrow/Home/End move focus + selection
+  // together between the remaining enabled tabs.
+  const activeIndex = items.findIndex((i) => i.id === active);
+  const firstEnabledIndex = items.findIndex((i) => !i.disabled);
+  const tabStopIndex = activeIndex !== -1 && !items[activeIndex].disabled ? activeIndex : firstEnabledIndex;
+
+  const focusAndSelect = (index: number) => {
+    const item = items[index];
+    if (!item || item.disabled) return;
+    select(item.id);
+    tabRefs.current[index]?.focus();
+  };
+
+  const moveFocus = (from: number, delta: number) => {
+    if (items.length === 0) return;
+    let next = from;
+    for (let i = 0; i < items.length; i++) {
+      next = (next + delta + items.length) % items.length;
+      if (!items[next].disabled) break;
+    }
+    focusAndSelect(next);
+  };
+
   return (
     <div
       role="tablist"
@@ -46,8 +80,12 @@ export function Tabs({
       {items.map((item, i) => (
         <button
           key={item.id}
+          ref={(el) => {
+            tabRefs.current[i] = el;
+          }}
           role="tab"
           type="button"
+          tabIndex={i === tabStopIndex ? 0 : -1}
           aria-selected={active === item.id}
           disabled={item.disabled}
           className={cx(
@@ -57,9 +95,21 @@ export function Tabs({
             item.disabled && '__s9cmpx-tab--disabled',
             lastItemRightAligned && i === items.length - 1 && '__s9cmpx-tab--last',
           )}
-          onClick={() => {
-            setInternal(item.id);
-            onChange?.(item.id);
+          onClick={() => select(item.id)}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              moveFocus(i, 1);
+            } else if (e.key === 'ArrowLeft') {
+              e.preventDefault();
+              moveFocus(i, -1);
+            } else if (e.key === 'Home') {
+              e.preventDefault();
+              moveFocus(-1, 1);
+            } else if (e.key === 'End') {
+              e.preventDefault();
+              moveFocus(0, -1);
+            }
           }}
         >
           {item.label}

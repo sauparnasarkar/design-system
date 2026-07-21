@@ -28,8 +28,8 @@ export const Playground: Story = {};
 export const IconSegments: Story = {
   args: {
     items: [
-      { value: 'grid', icon: 'grid' },
-      { value: 'list', icon: 'menu' },
+      { value: 'grid', icon: 'grid', ariaLabel: 'Grid view' },
+      { value: 'list', icon: 'menu', ariaLabel: 'List view' },
     ],
     square: true,
   },

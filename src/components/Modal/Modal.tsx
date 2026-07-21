@@ -1,5 +1,6 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
+import { useFocusTrap } from '../../lib/useFocusTrap';
 import { Icon } from '../Icon/Icon';
 
 export interface ModalProps {
@@ -35,6 +36,9 @@ export function Modal({
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  const dialogRef = useFocusTrap<HTMLDivElement>(open);
+  const titleId = React.useId();
+
   if (!open) return null;
   return (
     <div
@@ -45,14 +49,17 @@ export function Modal({
       }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        tabIndex={-1}
         className={cx('__s9cmpx-modal', small && '__s9cmpx-modal--small', className)}
       >
         {(title || onClose) && (
           <div className="__s9cmpx-modal__dialog-header-wrapper">
             <div className="__s9cmpx-modal__heading-wrapper-text">
-              <h2 className="__s9cmpx-headline6" style={{ margin: 0 }}>{title}</h2>
+              <h2 id={titleId} className="__s9cmpx-headline6" style={{ margin: 0 }}>{title}</h2>
             </div>
             {onClose && (
               <button
