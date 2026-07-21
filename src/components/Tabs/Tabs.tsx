@@ -34,6 +34,9 @@ export function Tabs({
   const [internal, setInternal] = React.useState(items[0]?.id);
   const active = activeId ?? internal;
   const tabRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
+  // Callback refs only fire for indices React still renders, so a shrinking `items`
+  // would otherwise leave stale/detached elements at the tail of this array forever.
+  tabRefs.current = tabRefs.current.slice(0, items.length);
 
   const select = (id: string) => {
     setInternal(id);

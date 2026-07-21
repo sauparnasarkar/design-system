@@ -29,7 +29,7 @@ export const Playground: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const trigger = canvas.getByRole('button', { name: 'Sector' });
+    const trigger = canvas.getByRole('combobox', { name: 'Sector' });
     await userEvent.click(trigger);
 
     // Opening auto-focuses the search input, so a keyboard user can start typing
@@ -47,7 +47,7 @@ export const Playground: Story = {
     await expect(canvas.getByRole('option', { name: 'Banks' })).toHaveAttribute('aria-selected', 'true');
 
     await userEvent.click(canvas.getByRole('button', { name: 'Apply' }));
-    await expect(canvas.getByRole('button', { name: 'Sector: 1 selected' })).toBeInTheDocument();
+    await expect(canvas.getByRole('combobox', { name: 'Sector: 1 selected' })).toBeInTheDocument();
   },
 };
 

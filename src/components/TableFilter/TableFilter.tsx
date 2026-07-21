@@ -39,6 +39,7 @@ export function TableFilter({
   const rootRef = React.useRef<HTMLDivElement>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listboxId = React.useId();
+  const labelId = React.useId();
   const optionId = (i: number) => `${listboxId}-option-${i}`;
   const current = value ?? applied;
 
@@ -108,11 +109,13 @@ export function TableFilter({
     <div ref={rootRef} className={cx('__s9cmpx-table-custom-filter-base', className)} style={{ position: 'relative', display: 'inline-block', height: 'fit-content', alignSelf: 'flex-start' }}>
       <button
         type="button"
+        role="combobox"
         className={cx('__s9cmpx-table-custom-filter-base-trigger-element', '__s9cmpx-label3')}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? listboxId : undefined}
         aria-activedescendant={open ? optionId(highlighted) : undefined}
+        aria-labelledby={labelId}
         onClick={() => (open ? setOpen(false) : openMenu())}
         onKeyDown={(e) => {
           if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
@@ -135,12 +138,12 @@ export function TableFilter({
         }}
       >
         {filtered ? (
-          <span className="__s9cmpx-table-custom-filter-base-trigger-element__selected-value" style={{ fontWeight: 600 }}>
+          <span id={labelId} className="__s9cmpx-table-custom-filter-base-trigger-element__selected-value" style={{ fontWeight: 600 }}>
             {label}: {current.length} selected
           </span>
         ) : (
           <span className="__s9cmpx-table-custom-filter-base-trigger-element__placeholder" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>
-            <span className="__s9cmpx-table-custom-filter-base-trigger-element__placeholder-text">{label}</span>
+            <span id={labelId} className="__s9cmpx-table-custom-filter-base-trigger-element__placeholder-text">{label}</span>
           </span>
         )}
         <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
