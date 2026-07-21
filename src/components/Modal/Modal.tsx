@@ -38,8 +38,8 @@ export function Modal({
   if (!open) return null;
   return (
     <div
-      className={cx('sy-modal__overlay', overlayTop && 'sy-modal__overlay--top')}
-      style={{ backgroundColor: 'var(--sy-static-background-backdrop, rgba(0,0,0,0.4))', padding: 16 }}
+      className={cx('__s9cmpx-modal__overlay', overlayTop && '__s9cmpx-modal__overlay--top')}
+      style={{ backgroundColor: 'var(--__s9cmpx-static-background-backdrop, rgba(0,0,0,0.4))', padding: 16 }}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose?.();
       }}
@@ -47,17 +47,17 @@ export function Modal({
       <div
         role="dialog"
         aria-modal="true"
-        className={cx('sy-modal', small && 'sy-modal--small', className)}
+        className={cx('__s9cmpx-modal', small && '__s9cmpx-modal--small', className)}
       >
         {(title || onClose) && (
-          <div className="sy-modal__dialog-header-wrapper">
-            <div className="sy-modal__heading-wrapper-text">
-              <h2 className="sy-headline6" style={{ margin: 0 }}>{title}</h2>
+          <div className="__s9cmpx-modal__dialog-header-wrapper">
+            <div className="__s9cmpx-modal__heading-wrapper-text">
+              <h2 className="__s9cmpx-headline6" style={{ margin: 0 }}>{title}</h2>
             </div>
             {onClose && (
               <button
                 type="button"
-                className="sy-modal__close-icon"
+                className="__s9cmpx-modal__close-icon"
                 aria-label="Close"
                 onClick={onClose}
                 style={{ border: 0, display: 'inline-flex' }}
@@ -67,9 +67,9 @@ export function Modal({
             )}
           </div>
         )}
-        <div className="sy-modal__content sy-body3-long">{children}</div>
+        <div className="__s9cmpx-modal__content __s9cmpx-body3-long">{children}</div>
         {actions && (
-          <div className="sy-modal__actions" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <div className="__s9cmpx-modal__actions" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
             {actions}
           </div>
         )}

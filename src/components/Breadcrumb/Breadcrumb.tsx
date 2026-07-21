@@ -12,19 +12,19 @@ export interface BreadcrumbProps extends React.HTMLAttributes<HTMLElement> {
 
 export function Breadcrumb({ items, className, ...rest }: BreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb" className={cx('sy-breadcrumb', className)} {...rest}>
+    <nav aria-label="Breadcrumb" className={cx('__s9cmpx-breadcrumb', className)} {...rest}>
       <ol style={{ display: 'flex', alignItems: 'center', gap: 4, listStyle: 'none', margin: 0, padding: 0 }}>
         {items.map((item, i) => {
           const last = i === items.length - 1;
           return (
-            <li key={i} className="sy-breadcrumb__item" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <li key={i} className="__s9cmpx-breadcrumb__item" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               {item.href && !last ? (
-                <a href={item.href} className="sy-breadcrumb__link sy-label2">
+                <a href={item.href} className="__s9cmpx-breadcrumb__link __s9cmpx-label2">
                   {item.label}
                 </a>
               ) : (
                 <span
-                  className={cx('sy-breadcrumb__link', last && 'sy-breadcrumb__link--active', 'sy-label2')}
+                  className={cx('__s9cmpx-breadcrumb__link', last && '__s9cmpx-breadcrumb__link--active', '__s9cmpx-label2')}
                   aria-current={last ? 'page' : undefined}
                 >
                   {item.label}

@@ -25,7 +25,7 @@ export const AllColors: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {(['grey', 'blue', 'green', 'red', 'yellow', 'white'] as const).map((c) => (
         <div key={c} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <span className="sy-label3" style={{ width: 60, color: 'var(--sy-static-text-weak)' }}>{c}</span>
+          <span className="__s9cmpx-label3" style={{ width: 60, color: 'var(--__s9cmpx-static-text-weak)' }}>{c}</span>
           <Tag color={c} size="small">Outlook</Tag>
           <Tag color={c} size="medium">Outlook</Tag>
           <Tag color={c} size="large">Outlook</Tag>

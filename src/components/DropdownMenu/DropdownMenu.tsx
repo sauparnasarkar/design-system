@@ -52,20 +52,20 @@ export function DropdownMenu({
       {React.cloneElement(trigger, { onClick: () => setOpen((o) => !o) })}
       {open && (
         <div
-          className={cx('sy-dropdown-menu', `sy-dropdown-menu--${size}`, withBorder && 'sy-dropdown-menu--with-border', className)}
+          className={cx('__s9cmpx-dropdown-menu', `__s9cmpx-dropdown-menu--${size}`, withBorder && '__s9cmpx-dropdown-menu--with-border', className)}
           style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 20, minWidth: 200 }}
         >
-          <div className="sy-dropdown-menu__list">
-            {header && <div className="sy-dropdown-menu__list-header sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{header}</div>}
-            <div className="sy-dropdown-menu__list-content" role="menu">
+          <div className="__s9cmpx-dropdown-menu__list">
+            {header && <div className="__s9cmpx-dropdown-menu__list-header __s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{header}</div>}
+            <div className="__s9cmpx-dropdown-menu__list-content" role="menu">
               {items.map((item) => (
                 <React.Fragment key={item.id}>
-                  {item.dividerBefore && <hr className="sy-dropdown-menu__divider" style={{ border: 0, height: 1 }} />}
+                  {item.dividerBefore && <hr className="__s9cmpx-dropdown-menu__divider" style={{ border: 0, height: 1 }} />}
                   <button
                     type="button"
                     role="menuitem"
                     disabled={item.disabled}
-                    className="sy-dropdown-menu__list-item sy-body3-short"
+                    className="__s9cmpx-dropdown-menu__list-item __s9cmpx-body3-short"
                     onClick={() => {
                       onSelect?.(item.id);
                       setOpen(false);
@@ -79,7 +79,7 @@ export function DropdownMenu({
                       border: 0,
                       borderRadius: 3,
                       cursor: item.disabled ? 'default' : 'pointer',
-                      color: item.disabled ? 'var(--sy-static-text-weak)' : 'inherit',
+                      color: item.disabled ? 'var(--__s9cmpx-static-text-weak)' : 'inherit',
                       textAlign: 'left',
                     }}
                   >
@@ -89,7 +89,7 @@ export function DropdownMenu({
                 </React.Fragment>
               ))}
             </div>
-            {footer && <div className="sy-dropdown-menu__list-footer">{footer}</div>}
+            {footer && <div className="__s9cmpx-dropdown-menu__list-footer">{footer}</div>}
           </div>
         </div>
       )}

@@ -32,7 +32,7 @@ export const AllVariants: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {(['primary', 'secondary', 'tertiary', 'chips'] as const).map((v) => (
         <div key={v}>
-          <div className="sy-label3" style={{ marginBottom: 8, color: 'var(--sy-static-text-weak)' }}>{v}</div>
+          <div className="__s9cmpx-label3" style={{ marginBottom: 8, color: 'var(--__s9cmpx-static-text-weak)' }}>{v}</div>
           <Tabs items={SECTOR_TABS} variant={v} />
         </div>
       ))}

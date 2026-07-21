@@ -15,11 +15,11 @@ type Story = StoryObj<typeof Divider>;
 export const Playground: Story = {
   render: (args) => (
     <div style={{ maxWidth: 480 }}>
-      <p className="sy-body3-long">Reports</p>
+      <p className="__s9cmpx-body3-long">Reports</p>
       <Divider {...args} />
-      <p className="sy-body3-long">Entities</p>
+      <p className="__s9cmpx-body3-long">Entities</p>
       <Divider {...args}>OR</Divider>
-      <p className="sy-body3-long">Instruments</p>
+      <p className="__s9cmpx-body3-long">Instruments</p>
     </div>
   ),
 };

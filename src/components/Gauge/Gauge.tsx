@@ -28,10 +28,10 @@ export function Gauge({ value, min = 0, max = 100, suffix = '', color, height = 
   React.useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const fill = color ?? cssVar(el, '--sy-chart-categorical-default-01', '#7accf5');
+    const fill = color ?? cssVar(el, '--__s9cmpx-chart-categorical-default-01', '#7accf5');
     const font = {
-      family: cssVar(el, '--sy-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
-      color: cssVar(el, '--sy-static-text-standard', '#494949'),
+      family: cssVar(el, '--__s9cmpx-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
+      color: cssVar(el, '--__s9cmpx-static-text-standard', '#494949'),
     };
     const data = [
       {
@@ -42,7 +42,7 @@ export function Gauge({ value, min = 0, max = 100, suffix = '', color, height = 
         gauge: {
           axis: { range: [min, max], tickfont: { ...font, size: 11 } },
           bar: { color: fill, thickness: 0.75 },
-          bgcolor: cssVar(el, '--sy-color-brand-100', '#ebebeb'),
+          bgcolor: cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb'),
           borderwidth: 0,
         },
       },
@@ -59,5 +59,5 @@ export function Gauge({ value, min = 0, max = 100, suffix = '', color, height = 
     };
   }, [value, min, max, suffix, color, height]);
 
-  return <div ref={ref} className={cx('sy-chart', 'sy-chart-plotly', className)} style={{ width: '100%' }} />;
+  return <div ref={ref} className={cx('__s9cmpx-chart', '__s9cmpx-chart-plotly', className)} style={{ width: '100%' }} />;
 }

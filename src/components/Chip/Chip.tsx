@@ -16,10 +16,10 @@ export interface ChipProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEle
 /** Pill-shaped filter chip (as used in the Reports/Advanced Search filter bars). */
 export function Chip({ active = false, grey = false, onRemove, onClick, disabled, className, children, ...rest }: ChipProps) {
   return (
-    <span className={cx('sy-chip', grey && 'sy-chip--color-grey', className)}>
+    <span className={cx('__s9cmpx-chip', grey && '__s9cmpx-chip--color-grey', className)}>
       <button
         type="button"
-        className={cx('sy-chip__item', active && 'sy-chip__item--active', 'sy-label2')}
+        className={cx('__s9cmpx-chip__item', active && '__s9cmpx-chip__item--active', '__s9cmpx-label2')}
         disabled={disabled}
         onClick={onClick}
         aria-pressed={active}
@@ -31,7 +31,7 @@ export function Chip({ active = false, grey = false, onRemove, onClick, disabled
           <span
             role="button"
             aria-label="Remove"
-            className="sy-chip__remove-btn"
+            className="__s9cmpx-chip__remove-btn"
             onClick={(e) => {
               e.stopPropagation();
               onRemove();

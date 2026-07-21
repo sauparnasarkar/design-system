@@ -16,7 +16,7 @@ export interface ScoreProps {
 
 /**
  * ESG-style score bar. Filled boxes take the color of the score value mapped
- * onto the 15-step --sy-chart-esgscore ramp (green 1 → red 15), matching how
+ * onto the 15-step --__s9cmpx-chart-esgscore ramp (green 1 → red 15), matching how
  * the Green theme products render entity/instrument scores.
  */
 export function Score({
@@ -29,10 +29,10 @@ export function Score({
 }: ScoreProps) {
   const clamped = Math.max(0, Math.min(value, max));
   const esgStep = max > 1 ? Math.round(((clamped - 1) / (max - 1)) * 14) + 1 : 1;
-  const fillColor = `var(--sy-chart-esgscore-esg${esgStep})`;
+  const fillColor = `var(--__s9cmpx-chart-esgscore-esg${esgStep})`;
   return (
     <div
-      className={cx('sy-score', `sy-score--${size}`, vertical && 'sy-score--vertical', clamped === 0 && 'sy-score--empty', className)}
+      className={cx('__s9cmpx-score', `__s9cmpx-score--${size}`, vertical && '__s9cmpx-score--vertical', clamped === 0 && '__s9cmpx-score--empty', className)}
       role="meter"
       aria-valuenow={clamped}
       aria-valuemin={0}
@@ -42,15 +42,15 @@ export function Score({
         const n = i + 1;
         const filled = n <= clamped;
         return (
-          <div key={n} className="sy-score__partition">
-            <div className="sy-score__box-container">
+          <div key={n} className="__s9cmpx-score__partition">
+            <div className="__s9cmpx-score__box-container">
               <div
-                className="sy-score__box"
+                className="__s9cmpx-score__box"
                 style={filled ? { background: fillColor } : undefined}
               />
             </div>
             {showNumbers && (
-              <div className="sy-score__number sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{n}</div>
+              <div className="__s9cmpx-score__number __s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{n}</div>
             )}
           </div>
         );

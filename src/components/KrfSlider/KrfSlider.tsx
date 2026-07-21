@@ -22,7 +22,7 @@ export interface KrfSliderProps {
 }
 
 /**
- * Key Rating Factor slider (`sy-krf-slider`): a discrete notch selector with a
+ * Key Rating Factor slider (`__s9cmpx-krf-slider`): a discrete notch selector with a
  * progress track, as used in Ratings Navigator-style factor panels. Not a
  * dual-thumb range — the vendor block is a labeled mark row.
  */
@@ -45,21 +45,21 @@ export function KrfSlider({
   };
 
   return (
-    <div className={cx('sy-krf-slider', className)}>
+    <div className={cx('__s9cmpx-krf-slider', className)}>
       <div
-        className={cx('sy-krf-slider__slider', disabled && 'sy-krf-slider__slider--disabled')}
+        className={cx('__s9cmpx-krf-slider__slider', disabled && '__s9cmpx-krf-slider__slider--disabled')}
         style={{ position: 'relative' }}
         role="radiogroup"
       >
         {/* track + filled progress up to the active mark */}
         <div
           aria-hidden="true"
-          style={{ position: 'absolute', left: '4%', right: '4%', top: 17, height: 2, background: 'var(--sy-color-brand-100, #ebebeb)', borderRadius: 2, pointerEvents: 'none' }}
+          style={{ position: 'absolute', left: '4%', right: '4%', top: 17, height: 2, background: 'var(--__s9cmpx-color-brand-100, #ebebeb)', borderRadius: 2, pointerEvents: 'none' }}
         />
         <div
-          className="sy-krf-slider__progress"
+          className="__s9cmpx-krf-slider__progress"
           aria-hidden="true"
-          style={{ position: 'absolute', left: '4%', width: `calc(${pct} * 0.92%)`, top: 17, height: 2, background: 'var(--sy-interactive-fill-primary-default, #1f1f1f)', borderRadius: 2, pointerEvents: 'none', margin: 0 }}
+          style={{ position: 'absolute', left: '4%', width: `calc(${pct} * 0.92%)`, top: 17, height: 2, background: 'var(--__s9cmpx-interactive-fill-primary-default, #1f1f1f)', borderRadius: 2, pointerEvents: 'none', margin: 0 }}
         />
         {/* thumb at the active mark */}
         <div
@@ -71,15 +71,15 @@ export function KrfSlider({
             width: 16,
             height: 16,
             borderRadius: '50%',
-            background: 'var(--sy-static-background-standard, #fff)',
-            border: '1px solid var(--sy-interactive-fill-primary-default, #1f1f1f)',
+            background: 'var(--__s9cmpx-static-background-standard, #fff)',
+            border: '1px solid var(--__s9cmpx-interactive-fill-primary-default, #1f1f1f)',
             boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
             transform: 'translate(-50%, -50%)',
             pointerEvents: 'none',
             zIndex: 2,
           }}
         />
-        <div className="sy-krf-slider__marks-wrapper">
+        <div className="__s9cmpx-krf-slider__marks-wrapper">
           {options.map((o, i) => {
             const active = i === activeIndex;
             return (
@@ -90,10 +90,10 @@ export function KrfSlider({
                 aria-checked={active}
                 disabled={disabled || o.disabled}
                 className={cx(
-                  'sy-krf-slider__mark',
-                  active && 'sy-krf-slider__mark--active',
-                  !active && o.sentiment === 'positive' && 'sy-krf-slider__mark--positive',
-                  !active && o.sentiment === 'negative' && 'sy-krf-slider__mark--negative',
+                  '__s9cmpx-krf-slider__mark',
+                  active && '__s9cmpx-krf-slider__mark--active',
+                  !active && o.sentiment === 'positive' && '__s9cmpx-krf-slider__mark--positive',
+                  !active && o.sentiment === 'negative' && '__s9cmpx-krf-slider__mark--negative',
                 )}
                 onClick={() => select(o.value)}
                 onKeyDown={(e) => {
@@ -104,20 +104,20 @@ export function KrfSlider({
                   flex: 1,
                   position: 'relative',
                   border: 0,
-                  background: active ? 'var(--sy-interactive-fill-primary-default, #1f1f1f)' : 'transparent',
-                  color: active ? 'var(--sy-interactive-fill-primary-onprimary, #fff)' : undefined,
+                  background: active ? 'var(--__s9cmpx-interactive-fill-primary-default, #1f1f1f)' : 'transparent',
+                  color: active ? 'var(--__s9cmpx-interactive-fill-primary-onprimary, #fff)' : undefined,
                   paddingTop: 34,
                 }}
               >
-                <span className="sy-krf-slider__label sy-label3">{o.label}</span>
+                <span className="__s9cmpx-krf-slider__label __s9cmpx-label3">{o.label}</span>
               </button>
             );
           })}
         </div>
       </div>
       {description && (
-        <div className="sy-krf-slider__description-wrapper" style={{ marginTop: 8 }}>
-          <span className="sy-krf-slider__description sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>
+        <div className="__s9cmpx-krf-slider__description-wrapper" style={{ marginTop: 8 }}>
+          <span className="__s9cmpx-krf-slider__description __s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>
             {description}
           </span>
         </div>

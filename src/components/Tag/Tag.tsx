@@ -26,21 +26,21 @@ export function Tag({
 }: TagProps) {
   const removable = Boolean(onRemove);
   return (
-    <span className={cx('sy-tags__container', `sy-tags__container--${color}`, className)} {...rest}>
+    <span className={cx('__s9cmpx-tags__container', `__s9cmpx-tags__container--${color}`, className)} {...rest}>
       <span
         className={cx(
-          'sy-tags',
-          `sy-tags--${size}`,
-          clickable && 'sy-tags--clickable',
-          removable && 'sy-tags--with-removable-btn',
+          '__s9cmpx-tags',
+          `__s9cmpx-tags--${size}`,
+          clickable && '__s9cmpx-tags--clickable',
+          removable && '__s9cmpx-tags--with-removable-btn',
         )}
       >
-        <span className="sy-tags__label sy-label3">{children}</span>
+        <span className="__s9cmpx-tags__label __s9cmpx-label3">{children}</span>
       </span>
       {removable && (
         <button
           type="button"
-          className="sy-tags__remove-button"
+          className="__s9cmpx-tags__remove-button"
           aria-label="Remove"
           onClick={onRemove}
           style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}

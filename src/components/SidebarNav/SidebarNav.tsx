@@ -55,6 +55,9 @@ export function SidebarNav({
   const isMobile = useIsMobile();
   const [internalOpen, setInternalOpen] = React.useState(() => !isMobile);
   const open = openProp ?? internalOpen;
+  const navRef = React.useRef<HTMLElement>(null);
+  const openButtonRef = React.useRef<HTMLButtonElement>(null);
+  const closeButtonRef = React.useRef<HTMLButtonElement>(null);
 
   const setOpenState = (next: boolean) => {
     setInternalOpen(next);
@@ -69,12 +72,55 @@ export function SidebarNav({
     setInternalOpen(!isMobile);
   }, [isMobile, openProp]);
 
+  // The off-canvas drawer behaves like a modal overlay while open — without
+  // this, keyboard/screen-reader users have no way to close it (the backdrop
+  // only responds to a mouse click) and focus is left sitting on whatever
+  // triggered it, behind the drawer.
+  React.useEffect(() => {
+    if (!isMobile) return;
+    if (open) {
+      closeButtonRef.current?.focus();
+    } else {
+      openButtonRef.current?.focus();
+    }
+  }, [isMobile, open]);
+
+  React.useEffect(() => {
+    if (!isMobile || !open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenState(false);
+        return;
+      }
+      if (e.key !== 'Tab' || !navRef.current) return;
+      // Basic focus trap: while the drawer is open, Tab should cycle within
+      // it rather than escaping into the (visually hidden, off-canvas) page
+      // content behind it.
+      const focusable = navRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile, open]);
+
   const renderItem = (item: SidebarNavItem) => (
-    <li key={item.id} className="sy-sidebar-nav__sidebar-item" role="none">
+    <li key={item.id} className="__s9cmpx-sidebar-nav__sidebar-item" role="none">
       <a
         role="menuitem"
         href={item.href ?? '#'}
-        className={cx('sy-sidebar-nav__sidebar-item-button', item.active && 'sy-sidebar-nav__sidebar-item-button--active', item.hasFlyout && 'sy-sidebar-nav__sidebar-item-button--flyout')}
+        className={cx('__s9cmpx-sidebar-nav__sidebar-item-button', item.active && '__s9cmpx-sidebar-nav__sidebar-item-button--active', item.hasFlyout && '__s9cmpx-sidebar-nav__sidebar-item-button--flyout')}
         onClick={(e) => {
           if (!item.href) e.preventDefault();
           onItemClick?.(item.id);
@@ -83,11 +129,11 @@ export function SidebarNav({
         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', textDecoration: 'none', color: 'inherit' }}
         title={open ? undefined : item.label}
       >
-        <span className="sy-sidebar-nav__sidebar-item-icon" style={{ display: 'inline-flex', flexShrink: 0 }}>
+        <span className="__s9cmpx-sidebar-nav__sidebar-item-icon" style={{ display: 'inline-flex', flexShrink: 0 }}>
           <Icon name={item.icon} size={20} />
         </span>
-        {open && <span className="sy-sidebar-nav__sidebar-item-text sy-label2" style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
-        {open && item.hasFlyout && <Icon name="chevron-right" size={14} style={{ color: 'var(--sy-static-text-weak)' }} />}
+        {open && <span className="__s9cmpx-sidebar-nav__sidebar-item-text __s9cmpx-label2" style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
+        {open && item.hasFlyout && <Icon name="chevron-right" size={14} style={{ color: 'var(--__s9cmpx-static-text-weak)' }} />}
       </a>
     </li>
   );
@@ -102,6 +148,7 @@ export function SidebarNav({
       {isMobile && !open && (
         <button
           type="button"
+          ref={openButtonRef}
           aria-label="Open menu"
           onClick={() => setOpenState(true)}
           style={{
@@ -115,9 +162,14 @@ export function SidebarNav({
             width: 40,
             height: 40,
             borderRadius: 8,
-            background: 'var(--sy-static-background-standard)',
-            border: '1px solid var(--sy-static-divider-standard, rgba(31,31,31,0.16))',
-            color: 'inherit',
+            // The elevated "menus, popovers, toasts" surface tone, not the flat
+            // card background — against a header that's often a similarly dark
+            // static-background-weak, the plain card tone left this control
+            // nearly imperceptible as a tappable element.
+            background: 'var(--__s9cmpx-static-layer-standard)',
+            border: '1px solid var(--__s9cmpx-static-divider-strong, rgba(31,31,31,0.24))',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+            color: 'var(--__s9cmpx-static-text-strong)',
             cursor: 'pointer',
           }}
         >
@@ -132,8 +184,11 @@ export function SidebarNav({
         />
       )}
       <nav
+        ref={navRef}
         aria-label="Sidebar Navigation"
-        className={cx('sy-sidebar-nav', className)}
+        role={isMobile && open ? 'dialog' : undefined}
+        aria-modal={isMobile && open ? true : undefined}
+        className={cx('__s9cmpx-sidebar-nav', className)}
         style={
           isMobile
             ? {
@@ -151,23 +206,24 @@ export function SidebarNav({
         }
       >
         <div
-          className={cx('sy-sidebar-nav__sidebar', open && 'sy-sidebar-nav__sidebar--open', !open && 'sy-sidebar-nav__sidebar--collapsed-mode')}
+          className={cx('__s9cmpx-sidebar-nav__sidebar', open && '__s9cmpx-sidebar-nav__sidebar--open', !open && '__s9cmpx-sidebar-nav__sidebar--collapsed-mode')}
           style={{ display: 'flex', flexDirection: 'column', height: '100%', width: isMobile ? 240 : open ? 240 : 56 }}
         >
           <button
             type="button"
+            ref={closeButtonRef}
             aria-label={isMobile ? 'Close menu' : 'Toggle Menu'}
             onClick={() => setOpenState(!open)}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'none', border: 0, cursor: 'pointer', color: 'inherit' }}
           >
             <Icon name={isMobile ? 'close' : 'menu'} size={20} />
           </button>
-          <ul className="sy-sidebar-nav__menu-list" role="menu" style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1 }}>
+          <ul className="__s9cmpx-sidebar-nav__menu-list" role="menu" style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1 }}>
             {items.map(renderItem)}
           </ul>
           {footerItems.length > 0 && (
             <>
-              <hr className="sy-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--sy-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
+              <hr className="__s9cmpx-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
               <ul role="menu" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                 {footerItems.map(renderItem)}
               </ul>

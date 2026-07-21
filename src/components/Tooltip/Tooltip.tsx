@@ -48,7 +48,7 @@ export function Tooltip({
         <span
           role="tooltip"
           data-placement={placement}
-          className={cx('sy-tooltip', `sy-tooltip--${variant}`)}
+          className={cx('__s9cmpx-tooltip', `__s9cmpx-tooltip--${variant}`)}
           style={{
             position: 'absolute',
             zIndex: 20,
@@ -58,9 +58,9 @@ export function Tooltip({
             ...PLACEMENT_STYLE[placement],
           }}
         >
-          {header && <span className="sy-tooltip__header sy-label3" style={{ display: 'block', fontWeight: 600 }}>{header}</span>}
-          <span className="sy-tooltip__label sy-label3" style={{ display: 'block' }}>{label}</span>
-          {description && <span className="sy-tooltip__description sy-label3" style={{ display: 'block' }}>{description}</span>}
+          {header && <span className="__s9cmpx-tooltip__header __s9cmpx-label3" style={{ display: 'block', fontWeight: 600 }}>{header}</span>}
+          <span className="__s9cmpx-tooltip__label __s9cmpx-label3" style={{ display: 'block' }}>{label}</span>
+          {description && <span className="__s9cmpx-tooltip__description __s9cmpx-label3" style={{ display: 'block' }}>{description}</span>}
         </span>
       )}
     </span>

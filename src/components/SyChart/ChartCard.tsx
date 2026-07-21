@@ -28,7 +28,7 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
               {onDownload && (
                 <button
                   type="button"
-                  className="sy-button sy-button--ghost sy-button--s sy-button--icon-only"
+                  className="__s9cmpx-button __s9cmpx-button--ghost __s9cmpx-button--s __s9cmpx-button--icon-only"
                   aria-label="Download chart data"
                   onClick={onDownload}
                 >
@@ -42,7 +42,7 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
     >
       {children}
       {asOf && (
-        <div className="sy-label3" style={{ color: 'var(--sy-static-text-weak)', marginTop: 8 }}>
+        <div className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)', marginTop: 8 }}>
           Data as of {asOf}
         </div>
       )}

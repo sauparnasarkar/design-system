@@ -29,16 +29,16 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={cx('sy-empty-state', `sy-empty-state--${size}`, bordered && 'sy-empty-state--bordered', background && 'sy-empty-state--background', className)}
+      className={cx('__s9cmpx-empty-state', `__s9cmpx-empty-state--${size}`, bordered && '__s9cmpx-empty-state--bordered', background && '__s9cmpx-empty-state--background', className)}
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: size === 'large' ? 48 : 32, textAlign: 'center', borderRadius: 3 }}
       {...rest}
     >
-      <span className="sy-empty-state__icon" style={{ color: 'var(--sy-static-text-weak)' }}>
+      <span className="__s9cmpx-empty-state__icon" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>
         <Icon name={icon} size={size === 'large' ? 40 : 32} />
       </span>
-      <span className={cx('sy-empty-state__title', size === 'large' ? 'sy-headline6' : 'sy-headline7')}>{title}</span>
+      <span className={cx('__s9cmpx-empty-state__title', size === 'large' ? '__s9cmpx-headline6' : '__s9cmpx-headline7')}>{title}</span>
       {message && (
-        <span className="sy-empty-state__message sy-body3-short" style={{ color: 'var(--sy-static-text-weak)', maxWidth: 420 }}>
+        <span className="__s9cmpx-empty-state__message __s9cmpx-body3-short" style={{ color: 'var(--__s9cmpx-static-text-weak)', maxWidth: 420 }}>
           {message}
         </span>
       )}

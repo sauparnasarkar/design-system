@@ -23,15 +23,15 @@ export default meta;
  */
 export const Overview: StoryObj = {
   render: () => (
-    <div data-theme="analytics" style={{ background: 'var(--sy-static-background-weak)', minHeight: '100vh', padding: 24, fontFamily: 'var(--sy-font-families-primary)', color: 'var(--sy-static-text-standard)' }}>
+    <div data-theme="analytics" style={{ background: 'var(--__s9cmpx-static-background-weak)', minHeight: '100vh', padding: 24, fontFamily: 'var(--__s9cmpx-font-families-primary)', color: 'var(--__s9cmpx-static-text-standard)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <h1 className="sy-headline4" style={{ margin: 0 }}>Climate Change Trend Analysis and Forecasting</h1>
-          <p className="sy-body3-short" style={{ margin: '4px 0 0', color: 'var(--sy-static-text-weak)' }}>
+          <h1 className="__s9cmpx-headline4" style={{ margin: 0 }}>Climate Change Trend Analysis and Forecasting</h1>
+          <p className="__s9cmpx-body3-short" style={{ margin: '4px 0 0', color: 'var(--__s9cmpx-static-text-weak)' }}>
             Greenhouse gas emissions for 10 major countries — regression models and ETS(A,Ad,N) forecasting.
           </p>
         </div>
-        <span className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>Data refreshed at Jul 13, 2026 09:06 PM</span>
+        <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>Data refreshed at Jul 13, 2026 09:06 PM</span>
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>

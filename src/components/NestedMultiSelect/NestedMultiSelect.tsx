@@ -23,7 +23,7 @@ export interface NestedMultiSelectProps {
 }
 
 /**
- * Tree multi-select (`sy-dropdown-nested-multi-select` + `sy-nested-checkbox`):
+ * Tree multi-select (`__s9cmpx-dropdown-nested-multi-select` + `__s9cmpx-nested-checkbox`):
  * expandable groups with tri-state parent checkboxes, as used by the
  * Advanced Search sector/geography filters.
  */
@@ -85,12 +85,12 @@ export function NestedMultiSelect({
 
   return (
     <div ref={rootRef} className={className} style={{ position: 'relative', minWidth: 300, height: 'fit-content', alignSelf: 'flex-start' }}>
-      {label && <span className="sy-label3" style={{ display: 'block', marginBottom: 4 }}>{label}</span>}
+      {label && <span className="__s9cmpx-label3" style={{ display: 'block', marginBottom: 4 }}>{label}</span>}
       <div
         className={cx(
-          'sy-dropdown-nested-multi-select',
-          `sy-dropdown-nested-multi-select--${size}`,
-          error && 'sy-dropdown-nested-multi-select--error',
+          '__s9cmpx-dropdown-nested-multi-select',
+          `__s9cmpx-dropdown-nested-multi-select--${size}`,
+          error && '__s9cmpx-dropdown-nested-multi-select--error',
         )}
       >
         <div
@@ -98,7 +98,7 @@ export function NestedMultiSelect({
           aria-expanded={open}
           aria-haspopup="tree"
           tabIndex={disabled ? -1 : 0}
-          className={cx('sy-dropdown-nested-multi-select__control', open && 'sy-dropdown-nested-multi-select__control--is-focused')}
+          className={cx('__s9cmpx-dropdown-nested-multi-select__control', open && '__s9cmpx-dropdown-nested-multi-select__control--is-focused')}
           onClick={() => !disabled && setOpen((o) => !o)}
           onKeyDown={(e) => {
             if (disabled) return;
@@ -110,9 +110,9 @@ export function NestedMultiSelect({
           }}
           style={{ display: 'flex', alignItems: 'center', minHeight: 32, padding: '2px 8px', borderRadius: 3, cursor: disabled ? 'default' : 'pointer' }}
         >
-          <div className="sy-dropdown-nested-multi-select__input-container" style={{ display: 'flex', flexWrap: 'wrap', gap: 4, flex: 1, alignItems: 'center' }}>
+          <div className="__s9cmpx-dropdown-nested-multi-select__input-container" style={{ display: 'flex', flexWrap: 'wrap', gap: 4, flex: 1, alignItems: 'center' }}>
             {selected.length === 0 ? (
-              <span className="sy-body3-short" style={{ color: 'var(--sy-static-text-weak)' }}>{placeholder}</span>
+              <span className="__s9cmpx-body3-short" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{placeholder}</span>
             ) : (
               selected.map((v) => (
                 <span key={v} onClick={(e) => e.stopPropagation()}>
@@ -121,15 +121,15 @@ export function NestedMultiSelect({
               ))
             )}
           </div>
-          <span className="sy-dropdown-nested-multi-select__indicators" style={{ display: 'inline-flex' }}>
-            <span className="sy-dropdown-nested-multi-select__dropdown-indicator" style={{ display: 'inline-flex' }}>
+          <span className="__s9cmpx-dropdown-nested-multi-select__indicators" style={{ display: 'inline-flex' }}>
+            <span className="__s9cmpx-dropdown-nested-multi-select__dropdown-indicator" style={{ display: 'inline-flex' }}>
               <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} />
             </span>
           </span>
         </div>
         {open && (
-          <div className={cx('sy-dropdown-nested-multi-select__menu', 'sy-dropdown-nested-multi-select__menu--open')} style={{ position: 'absolute', zIndex: 20, left: 0, right: 0, marginTop: 4 }}>
-            <ul className="sy-dropdown-nested-multi-select__menu-list" role="tree" style={{ listStyle: 'none', margin: 0, padding: 4, maxHeight: 300, overflowY: 'auto' }}>
+          <div className={cx('__s9cmpx-dropdown-nested-multi-select__menu', '__s9cmpx-dropdown-nested-multi-select__menu--open')} style={{ position: 'absolute', zIndex: 20, left: 0, right: 0, marginTop: 4 }}>
+            <ul className="__s9cmpx-dropdown-nested-multi-select__menu-list" role="tree" style={{ listStyle: 'none', margin: 0, padding: 4, maxHeight: 300, overflowY: 'auto' }}>
               {groups.map((g) => {
                 const enabled = g.children.filter((c) => !c.disabled).map((c) => c.value);
                 const selCount = enabled.filter((v) => selected.includes(v)).length;
@@ -137,20 +137,20 @@ export function NestedMultiSelect({
                 const some = selCount > 0 && !all;
                 const isExpanded = expanded.has(g.value);
                 return (
-                  <li key={g.value} role="treeitem" aria-expanded={isExpanded} className={cx('sy-nested-checkbox', 'sy-nested-checkbox--expandable-right', isExpanded && 'sy-nested-checkbox--expanded')}>
-                    <div className="sy-nested-checkbox__parent-wrapper" style={{ display: 'flex', alignItems: 'center', borderRadius: 3 }}>
+                  <li key={g.value} role="treeitem" aria-expanded={isExpanded} className={cx('__s9cmpx-nested-checkbox', '__s9cmpx-nested-checkbox--expandable-right', isExpanded && '__s9cmpx-nested-checkbox--expanded')}>
+                    <div className="__s9cmpx-nested-checkbox__parent-wrapper" style={{ display: 'flex', alignItems: 'center', borderRadius: 3 }}>
                       <label
-                        className="sy-dropdown-nested-multi-select__checkbox sy-dropdown-nested-multi-select__checkbox--parent sy-checkbox"
+                        className="__s9cmpx-dropdown-nested-multi-select__checkbox __s9cmpx-dropdown-nested-multi-select__checkbox--parent __s9cmpx-checkbox"
                         style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', flex: 1, cursor: 'pointer' }}
                         onClick={(e) => {
                           e.preventDefault();
                           toggleGroup(g);
                         }}
                       >
-                        <span className="sy-checkbox__container" style={{ display: 'inline-flex' }}>
+                        <span className="__s9cmpx-checkbox__container" style={{ display: 'inline-flex' }}>
                           <input
                             type="checkbox"
-                            className="sy-checkbox__input"
+                            className="__s9cmpx-checkbox__input"
                             checked={all}
                             ref={(el) => {
                               if (el) el.indeterminate = some;
@@ -158,17 +158,17 @@ export function NestedMultiSelect({
                             readOnly
                           />
                         </span>
-                        <span className="sy-checkbox__label sy-body3-short" style={{ fontWeight: 600 }}>{g.label}</span>
-                        <span className="sy-label3" style={{ marginLeft: 6, color: 'var(--sy-static-text-weak)' }}>
+                        <span className="__s9cmpx-checkbox__label __s9cmpx-body3-short" style={{ fontWeight: 600 }}>{g.label}</span>
+                        <span className="__s9cmpx-label3" style={{ marginLeft: 6, color: 'var(--__s9cmpx-static-text-weak)' }}>
                           {selCount > 0 ? `${selCount}/${g.children.length}` : g.children.length}
                         </span>
                       </label>
                       <button
                         type="button"
-                        className="sy-nested-checkbox__expandable-wrapper"
+                        className="__s9cmpx-nested-checkbox__expandable-wrapper"
                         aria-label={isExpanded ? 'Collapse' : 'Expand'}
                         onClick={() => toggleExpand(g.value)}
-                        style={{ background: 'none', border: 0, cursor: 'pointer', display: 'inline-flex', padding: 6, color: 'var(--sy-static-text-weak)' }}
+                        style={{ background: 'none', border: 0, cursor: 'pointer', display: 'inline-flex', padding: 6, color: 'var(--__s9cmpx-static-text-weak)' }}
                       >
                         <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={14} />
                       </button>
@@ -178,19 +178,19 @@ export function NestedMultiSelect({
                         {g.children.map((c) => {
                           const checked = selected.includes(c.value);
                           return (
-                            <li key={c.value} role="treeitem" aria-selected={checked} className="sy-nested-checkbox__option-wrapper">
+                            <li key={c.value} role="treeitem" aria-selected={checked} className="__s9cmpx-nested-checkbox__option-wrapper">
                               <label
-                                className={cx('sy-dropdown-nested-multi-select__checkbox', 'sy-dropdown-nested-multi-select__checkbox--child', 'sy-checkbox')}
+                                className={cx('__s9cmpx-dropdown-nested-multi-select__checkbox', '__s9cmpx-dropdown-nested-multi-select__checkbox--child', '__s9cmpx-checkbox')}
                                 style={{ display: 'flex', alignItems: 'center', padding: '6px 8px 6px 32px', cursor: c.disabled ? 'default' : 'pointer', opacity: c.disabled ? 0.5 : 1 }}
                                 onClick={(e) => {
                                   e.preventDefault();
                                   if (!c.disabled) toggleChild(c.value);
                                 }}
                               >
-                                <span className="sy-checkbox__container" style={{ display: 'inline-flex' }}>
-                                  <input type="checkbox" className="sy-checkbox__input" checked={checked} disabled={c.disabled} readOnly />
+                                <span className="__s9cmpx-checkbox__container" style={{ display: 'inline-flex' }}>
+                                  <input type="checkbox" className="__s9cmpx-checkbox__input" checked={checked} disabled={c.disabled} readOnly />
                                 </span>
-                                <span className="sy-checkbox__label sy-body3-short">{c.label}</span>
+                                <span className="__s9cmpx-checkbox__label __s9cmpx-body3-short">{c.label}</span>
                               </label>
                             </li>
                           );

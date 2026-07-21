@@ -21,7 +21,7 @@ export interface MediaObjectProps {
 }
 
 /**
- * Figure + content block (`sy-media-object-figure`), as used by the
+ * Figure + content block (`__s9cmpx-media-object-figure`), as used by the
  * "Videos, Webinars, Podcasts" cards. The vendor ships only the figure
  * styles; layout mirrors the products' stack utilities.
  */
@@ -43,7 +43,7 @@ export function MediaObject({
   const figureWidth = vertical ? figureSize : figureSize;
   return (
     <Wrapper
-      className={cx('sy-media-object', className)}
+      className={cx('__s9cmpx-media-object', className)}
       onClick={onClick}
       href={href}
       {...(Wrapper === 'button' ? { type: 'button' } : null)}
@@ -62,7 +62,7 @@ export function MediaObject({
         width: vertical ? figureSize : 'auto',
       }}
     >
-      <span className={cx('sy-media-object-figure', vertical && 'sy-media-object-figure--full-width')} style={{ flexShrink: 0 }}>
+      <span className={cx('__s9cmpx-media-object-figure', vertical && '__s9cmpx-media-object-figure--full-width')} style={{ flexShrink: 0 }}>
         <span
           style={{
             display: 'block',
@@ -70,21 +70,21 @@ export function MediaObject({
             height: vertical ? figureHeight : Math.round(figureSize * 0.6),
             borderRadius: 2,
             overflow: 'hidden',
-            background: 'var(--sy-color-brand-100, #ebebeb)',
+            background: 'var(--__s9cmpx-color-brand-100, #ebebeb)',
           }}
         >
           {imageSrc && <img src={imageSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
         </span>
-        {withOverlay && <span className="sy-media-object-figure__overlay" style={{ borderRadius: 2 }} />}
+        {withOverlay && <span className="__s9cmpx-media-object-figure__overlay" style={{ borderRadius: 2 }} />}
         {tag && (
-          <span className="sy-media-object-figure__tag">
+          <span className="__s9cmpx-media-object-figure__tag">
             <Tag size="small" color="white">{tag}</Tag>
           </span>
         )}
       </span>
       <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-        <span className="sy-headline7">{title}</span>
-        {meta && <span className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{meta}</span>}
+        <span className="__s9cmpx-headline7">{title}</span>
+        {meta && <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{meta}</span>}
       </span>
     </Wrapper>
   );

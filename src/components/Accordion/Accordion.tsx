@@ -38,35 +38,39 @@ export function Accordion({
     });
 
   return (
-    <div className={cx('sy-accordion', `sy-accordion--icon-${iconPosition}`, `sy-accordion--${size}`, className)}>
+    <div className={cx('__s9cmpx-accordion', `__s9cmpx-accordion--icon-${iconPosition}`, `__s9cmpx-accordion--${size}`, className)}>
       {items.map((item) => {
         const open = openIds.has(item.id);
+        const buttonId = `${item.id}-accordion-button`;
+        const panelId = `${item.id}-accordion-panel`;
         return (
-          <div key={item.id} className={cx('sy-accordion__item', item.disabled && 'sy-accordion__item--disabled')}>
-            <h3 className="sy-accordion__heading" style={{ margin: 0 }}>
+          <div key={item.id} className={cx('__s9cmpx-accordion__item', item.disabled && '__s9cmpx-accordion__item--disabled')}>
+            <h3 className="__s9cmpx-accordion__heading" style={{ margin: 0 }}>
               <button
                 type="button"
-                className="sy-accordion__button"
+                id={buttonId}
+                className="__s9cmpx-accordion__button"
                 aria-expanded={open}
+                aria-controls={panelId}
                 disabled={item.disabled}
                 onClick={() => toggle(item.id)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 8 }}
               >
                 {iconPosition === 'left' && (
-                  <span className="sy-accordion__icon">
+                  <span className="__s9cmpx-accordion__icon">
                     <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} />
                   </span>
                 )}
-                <span className="sy-accordion__title sy-headline7">{item.title}</span>
+                <span className="__s9cmpx-accordion__title __s9cmpx-headline7">{item.title}</span>
                 {iconPosition === 'right' && (
-                  <span className="sy-accordion__icon">
+                  <span className="__s9cmpx-accordion__icon">
                     <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} />
                   </span>
                 )}
               </button>
             </h3>
             {open && (
-              <div className="sy-accordion__panel sy-body3-long" role="region">
+              <div id={panelId} className="__s9cmpx-accordion__panel __s9cmpx-body3-long" role="region" aria-labelledby={buttonId}>
                 {item.content}
               </div>
             )}

@@ -21,7 +21,7 @@ export const AllIcons: Story = {
       {ICON_NAMES.map((n) => (
         <div key={n} style={{ width: 96, textAlign: 'center' }}>
           <Icon name={n} size={24} />
-          <div className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{n}</div>
+          <div className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{n}</div>
         </div>
       ))}
     </div>

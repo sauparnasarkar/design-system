@@ -47,6 +47,15 @@ export interface SyChartProps {
   yTickFormat?: string;
   /** Dashed horizontal reference line (e.g. "1990 level"). Drawn on the y-axis — intended for vertical charts; in 'h' mode y is the category axis. */
   referenceY?: { value: number; label?: string };
+  /**
+   * Accessible text alternative — Plotly's chart is otherwise entirely
+   * invisible to screen readers (canvas/SVG with no semantic content). A
+   * concise, specific description (e.g. "Line chart of CO2 emissions for
+   * China, India, and the US, 1990 to 2024") is far more useful than the
+   * auto-generated fallback below, which only knows the axis titles and
+   * series names.
+   */
+  ariaLabel?: string;
   className?: string;
 }
 
@@ -66,7 +75,7 @@ const DEFAULT_CONTINUOUS_SCALE: Array<[number, string]> = [
 ];
 
 function syPalette(el: Element): string[] {
-  return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--sy-chart-categorical-default-0${i + 1}`, fb));
+  return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--__s9cmpx-chart-categorical-default-0${i + 1}`, fb));
 }
 
 function withAlpha(color: string, alpha: number): string {
@@ -78,8 +87,8 @@ function withAlpha(color: string, alpha: number): string {
 }
 
 /**
- * Plotly chart in the `sy-chart` / `sy-chart-plotly` wrapper — the charting
- * stack used across Syena data products. Shapes: single-series column,
+ * Plotly chart in the `__s9cmpx-chart` / `__s9cmpx-chart-plotly` wrapper — the charting
+ * stack used across data products. Shapes: single-series column,
  * stacked column (+ line overlay), grouped column, multi-series line, and
  * shaded bands (forecast confidence intervals) with optional reference line.
  */
@@ -93,6 +102,7 @@ export function SyChart({
   showLegend = true,
   yTickFormat,
   referenceY,
+  ariaLabel,
   className,
 }: SyChartProps) {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -102,9 +112,9 @@ export function SyChart({
     if (!el) return;
     const palette = syPalette(el);
     const font = {
-      family: cssVar(el, '--sy-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
+      family: cssVar(el, '--__s9cmpx-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
       size: 12,
-      color: cssVar(el, '--sy-static-text-weak', '#757575'),
+      color: cssVar(el, '--__s9cmpx-static-text-weak', '#757575'),
     };
     const data = series.flatMap((s, i): unknown[] => {
       const color = s.color ?? palette[i % palette.length];
@@ -185,8 +195,8 @@ export function SyChart({
         automargin: true,
         // yTickFormat formats the value axis; in horizontal mode values live on x
         tickformat: orientation === 'h' ? yTickFormat : undefined,
-        gridcolor: cssVar(el, '--sy-color-brand-100', '#ebebeb'),
-        zerolinecolor: cssVar(el, '--sy-color-brand-200', '#e0e0e0'),
+        gridcolor: cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb'),
+        zerolinecolor: cssVar(el, '--__s9cmpx-color-brand-200', '#e0e0e0'),
       },
       yaxis: {
         title: yTitle ? { text: yTitle, font } : undefined,
@@ -194,8 +204,8 @@ export function SyChart({
         tickfont: font,
         automargin: true,
         tickformat: orientation === 'h' ? undefined : yTickFormat,
-        gridcolor: cssVar(el, '--sy-color-brand-100', '#ebebeb'),
-        zerolinecolor: cssVar(el, '--sy-color-brand-200', '#e0e0e0'),
+        gridcolor: cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb'),
+        zerolinecolor: cssVar(el, '--__s9cmpx-color-brand-200', '#e0e0e0'),
       },
       hovermode: 'x unified',
       shapes: referenceY
@@ -207,7 +217,7 @@ export function SyChart({
               x1: 1,
               y0: referenceY.value,
               y1: referenceY.value,
-              line: { color: cssVar(el, '--sy-static-text-weak', '#757575'), width: 1, dash: 'dot' },
+              line: { color: cssVar(el, '--__s9cmpx-static-text-weak', '#757575'), width: 1, dash: 'dot' },
             },
           ]
         : undefined,
@@ -232,5 +242,18 @@ export function SyChart({
     };
   }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY]);
 
-  return <div ref={ref} className={cx('sy-chart', 'sy-chart-plotly', className)} style={{ width: '100%' }} />;
+  const fallbackDescription =
+    [yTitle, xTitle ? `by ${xTitle}` : null, series.length ? `— ${series.map((s) => s.name).join(', ')}` : null]
+      .filter(Boolean)
+      .join(' ') || 'Chart';
+
+  return (
+    <div
+      ref={ref}
+      role="img"
+      aria-label={ariaLabel ?? fallbackDescription}
+      className={cx('__s9cmpx-chart', '__s9cmpx-chart-plotly', className)}
+      style={{ width: '100%' }}
+    />
+  );
 }

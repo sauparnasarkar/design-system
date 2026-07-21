@@ -19,12 +19,12 @@ export const Variants: Story = {
     <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
       {(['default', 'active', 'important', 'new-items'] as const).map((v) => (
         <span key={v} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <span className="sy-label3">{v}</span>
+          <span className="__s9cmpx-label3">{v}</span>
           <Counter value={23} variant={v} />
         </span>
       ))}
       <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        <span className="sy-label3">capped</span>
+        <span className="__s9cmpx-label3">capped</span>
         <Counter value={140} max={99} variant="important" />
       </span>
     </div>

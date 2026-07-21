@@ -1,58 +1,45 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
-import mark from '../../assets/logos/syena-mark.png';
-
-export type LogoProduct = 'default' | 'green' | 'blue' | 'analytics';
-
-const PRODUCT_WORD: Record<LogoProduct, string | null> = {
-  default: null,
-  green: 'Green',
-  blue: 'Blue',
-  analytics: 'Analytics',
-};
-
-const PRODUCT_COLOR: Record<LogoProduct, string> = {
-  default: 'var(--sy-static-text-strong, #000)',
-  green: 'var(--sy-color-teal-600, #187272)',
-  blue: 'var(--sy-color-blue-600, #1c5ece)',
-  // Analytics theme cyan, darkened for light surfaces (fixed, so the lockup reads the same outside the theme)
-  analytics: '#1d84a3',
-};
 
 export interface LogoProps extends React.HTMLAttributes<HTMLSpanElement> {
-  /** Which Syena product lockup to show */
-  product?: LogoProduct;
+  /** Brand mark image source — consumer-supplied, no built-in default (white-label: this is their brand, not the design system's). */
+  markSrc: string;
+  /** Wordmark text, e.g. the consumer's product/company name */
+  wordmark: React.ReactNode;
+  /** Optional accent-colored suffix word (e.g. a product line name) */
+  accent?: string;
+  /** Color for `accent`, if supplied. Defaults to a neutral text token. */
+  accentColor?: string;
   /** Rendered height in px */
   height?: number;
 }
 
-/** Syena lockup: the eagle mark (official 2026 logo) + "Syena" wordmark, with an accent-tinted product word. */
-export function Logo({ product = 'default', height = 28, className, ...rest }: LogoProps) {
-  const word = PRODUCT_WORD[product];
+/** Generic brand lockup: an image mark + wordmark, with an optional accent-tinted suffix word. */
+export function Logo({ markSrc, wordmark, accent, accentColor, height = 28, className, ...rest }: LogoProps) {
   return (
     <span
       role="img"
-      aria-label={word ? `Syena ${word}` : 'Syena'}
-      className={cx('sy-logo', className)}
+      aria-label={accent ? `${wordmark} ${accent}` : String(wordmark)}
+      className={cx('__s9cmpx-logo', className)}
       style={{ display: 'inline-flex', alignItems: 'center', gap: Math.round(height * 0.3) }}
       {...rest}
     >
-      <img src={mark} alt="" style={{ height, width: height, objectFit: 'contain', display: 'block' }} />
+      <img src={markSrc} alt="" style={{ height, width: height, objectFit: 'contain', display: 'block' }} />
       <span
-        className="sy-logo__asset"
+        className="__s9cmpx-logo__asset"
         style={{
-          fontFamily: 'var(--sy-font-families-primary)',
+          fontFamily: 'var(--__s9cmpx-font-families-primary)',
           fontWeight: 700,
           fontSize: height * 0.62,
           lineHeight: 1,
           letterSpacing: '-0.01em',
-          color: 'var(--sy-static-text-strong, #000)',
+          color: 'var(--__s9cmpx-static-text-strong, #000)',
           whiteSpace: 'nowrap',
         }}
       >
-        Syena
-        {word && (
-          <span style={{ color: PRODUCT_COLOR[product], fontWeight: 500, marginLeft: '0.28em' }}>{word}</span>
+        {wordmark}
+        {accent && (
+          <span style={{ color: accentColor ?? 'var(--__s9cmpx-static-text-strong, #000)', fontWeight: 500, marginLeft: '0.28em' }}>{accent}</span>
         )}
       </span>
     </span>

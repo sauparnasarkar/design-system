@@ -32,20 +32,20 @@ export function BannerAlert({
     <div
       role="alert"
       className={cx(
-        'sy-banner-alert',
-        `sy-banner-alert--${variant}`,
-        withBorder && `sy-banner-alert--${variant}-border`,
-        onClose && 'sy-banner-alert--removable',
+        '__s9cmpx-banner-alert',
+        `__s9cmpx-banner-alert--${variant}`,
+        withBorder && `__s9cmpx-banner-alert--${variant}-border`,
+        onClose && '__s9cmpx-banner-alert--removable',
         className,
       )}
       {...rest}
     >
       <Icon name={VARIANT_ICON[variant]} size={16} />
-      <span className="sy-body3-short">{children}</span>
+      <span className="__s9cmpx-body3-short">{children}</span>
       {onClose && (
         <button
           type="button"
-          className="sy-banner-alert__close-button"
+          className="__s9cmpx-banner-alert__close-button"
           aria-label="Close"
           onClick={onClose}
           style={{ display: 'inline-flex', marginLeft: 8 }}

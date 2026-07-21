@@ -20,7 +20,7 @@ export const Playground: Story = {
     <Section {...args}>
       {['3M Data Points', '116k Records', '938 Fields'].map((t) => (
         <Tile key={t} secondary>
-          <span className="sy-label2">{t}</span>
+          <span className="__s9cmpx-label2">{t}</span>
         </Tile>
       ))}
     </Section>

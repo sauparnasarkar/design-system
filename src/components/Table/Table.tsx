@@ -12,6 +12,10 @@ export interface TableColumn<Row> {
   render?: (row: Row) => React.ReactNode;
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
+  /** Wrap cell content across lines instead of the default single-line
+   * ellipsis truncation — for columns whose value is genuinely important to
+   * read in full (a URL, a long description), not just a label. */
+  wrap?: boolean;
 }
 
 export interface TableProps<Row> {
@@ -55,40 +59,50 @@ export function Table<Row extends Record<string, unknown>>({
     }));
 
   return (
+    // overflow-x:auto as a last-resort safety net — the primary fix is
+    // overflow-wrap on the cells below, so unbroken long strings (URLs, IDs)
+    // wrap within their own cell instead of forcing this table, and the page
+    // body around it, wider than the viewport.
+    <div style={{ overflowX: 'auto' }}>
     <table
       className={cx(
-        'sy-simple-table',
-        size === 'small' && 'sy-simple-table--small',
-        size === 'large' && 'sy-simple-table--large',
-        striped === 'even' && 'sy-simple-table--striped-even',
-        striped === 'odd' && 'sy-simple-table--striped-odd',
-        rowBorders && 'sy-simple-table--row-borders',
-        columnBorders && 'sy-simple-table--column-borders',
-        withBorder && 'sy-simple-table--has-border',
+        '__s9cmpx-simple-table',
+        size === 'small' && '__s9cmpx-simple-table--small',
+        size === 'large' && '__s9cmpx-simple-table--large',
+        striped === 'even' && '__s9cmpx-simple-table--striped-even',
+        striped === 'odd' && '__s9cmpx-simple-table--striped-odd',
+        rowBorders && '__s9cmpx-simple-table--row-borders',
+        columnBorders && '__s9cmpx-simple-table--column-borders',
+        withBorder && '__s9cmpx-simple-table--has-border',
         className,
       )}
-      style={{ borderCollapse: 'collapse', width: '100%' }}
+      // table-layout: fixed is what actually makes overflow-wrap effective —
+      // without it, the browser's automatic table layout sizes each column to
+      // its content's *unwrapped* width first, so a long unbroken string (a
+      // URL, an ID) still grows the column/table past its container no matter
+      // what wrapping rules the cells themselves have.
+      style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}
     >
-      {caption && <caption className="sy-simple-table__caption sy-label3">{caption}</caption>}
+      {caption && <caption className="__s9cmpx-simple-table__caption __s9cmpx-label3">{caption}</caption>}
       <thead>
-        <tr className="sy-simple-table-row sy-simple-table-row--header">
+        <tr className="__s9cmpx-simple-table-row __s9cmpx-simple-table-row--header">
           {columns.map((c) => (
             <th
               key={c.key}
-              className={cx('sy-simple-table-cell', 'sy-simple-table-cell--header', c.align && `sy-simple-table-cell--${c.align}`, 'sy-label2')}
-              style={{ padding: '8px 12px', textAlign: c.align ?? 'left' }}
+              className={cx('__s9cmpx-simple-table-cell', '__s9cmpx-simple-table-cell--header', c.align && `__s9cmpx-simple-table-cell--${c.align}`, '__s9cmpx-label2')}
+              style={{ padding: '8px 12px', textAlign: c.align ?? 'left', overflowWrap: 'anywhere' }}
               aria-sort={sort.key === c.key && sort.dir ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
             >
               {c.sortable ? (
                 <button
                   type="button"
-                  className="sy-table-header"
+                  className="__s9cmpx-table-header"
                   onClick={() => toggleSort(c.key)}
                   style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 0, cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
                 >
                   {c.header}
-                  <span className="sy-table-header__sort-wrapper">
-                    <span className={cx('sy-table-header__icon', (sort.key !== c.key || !sort.dir) && 'sy-table-header__icon--none')}>
+                  <span className="__s9cmpx-table-header__sort-wrapper">
+                    <span className={cx('__s9cmpx-table-header__icon', (sort.key !== c.key || !sort.dir) && '__s9cmpx-table-header__icon--none')}>
                       <Icon name={sort.key === c.key && sort.dir === 'desc' ? 'chevron-down' : 'chevron-up'} size={14} />
                     </span>
                   </span>
@@ -102,12 +116,12 @@ export function Table<Row extends Record<string, unknown>>({
       </thead>
       <tbody>
         {sorted.map((row, ri) => (
-          <tr key={ri} className="sy-simple-table-row">
+          <tr key={ri} className="__s9cmpx-simple-table-row">
             {columns.map((c) => (
               <td
                 key={c.key}
-                className={cx('sy-simple-table-cell', c.align && `sy-simple-table-cell--${c.align}`, 'sy-body3-short')}
-                style={{ padding: '8px 12px', textAlign: c.align ?? 'left' }}
+                className={cx('__s9cmpx-simple-table-cell', c.align && `__s9cmpx-simple-table-cell--${c.align}`, c.wrap && '__s9cmpx-simple-table-cell--wrap-text', '__s9cmpx-body3-short')}
+                style={{ padding: '8px 12px', textAlign: c.align ?? 'left', overflowWrap: 'anywhere' }}
               >
                 {c.render ? c.render(row) : (row[c.key] as React.ReactNode)}
               </td>
@@ -116,5 +130,6 @@ export function Table<Row extends Record<string, unknown>>({
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

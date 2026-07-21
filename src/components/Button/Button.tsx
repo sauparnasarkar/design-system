@@ -43,20 +43,20 @@ export function Button({
     <button
       type="button"
       className={cx(
-        'sy-button',
-        `sy-button--${variant}`,
-        `sy-button--${size}`,
-        fullWidth && 'sy-button--full-width',
-        fullRadius && 'sy-button--full-radius',
-        iconOnly && 'sy-button--icon-only',
-        isLoading && 'sy-button--is-loading',
+        '__s9cmpx-button',
+        `__s9cmpx-button--${variant}`,
+        `__s9cmpx-button--${size}`,
+        fullWidth && '__s9cmpx-button--full-width',
+        fullRadius && '__s9cmpx-button--full-radius',
+        iconOnly && '__s9cmpx-button--icon-only',
+        isLoading && '__s9cmpx-button--is-loading',
         className,
       )}
       disabled={disabled || isLoading}
       {...rest}
     >
       {isLoading ? (
-        <Icon name="chevron-down" size={ICON_SIZE[size]} className="sy-button__loading-icon" />
+        <Icon name="chevron-down" size={ICON_SIZE[size]} className="__s9cmpx-button__loading-icon" />
       ) : (
         <>
           {iconLeft && <Icon name={iconLeft} size={ICON_SIZE[size]} />}

@@ -40,7 +40,7 @@ export interface DateRangeDropdownProps {
 }
 
 /**
- * Date filter dropdown (`sy-date-range-dropdown`): preset ranges with a
+ * Date filter dropdown (`__s9cmpx-date-range-dropdown`): preset ranges with a
  * divider-separated "Custom Range" entry that reveals from/to date inputs.
  */
 export function DateRangeDropdown({
@@ -78,10 +78,10 @@ export function DateRangeDropdown({
       : presets.find((p) => p.id === current?.preset)?.label;
 
   return (
-    <div ref={rootRef} className={cx('sy-date-range-dropdown', className)} style={{ position: 'relative', display: 'inline-block' }}>
+    <div ref={rootRef} className={cx('__s9cmpx-date-range-dropdown', className)} style={{ position: 'relative', display: 'inline-block' }}>
       <button
         type="button"
-        className="sy-button sy-button--secondary sy-button--m"
+        className="__s9cmpx-button __s9cmpx-button--secondary __s9cmpx-button--m"
         aria-haspopup="listbox"
         aria-expanded={open}
         disabled={disabled}
@@ -92,14 +92,14 @@ export function DateRangeDropdown({
         <Icon name={open ? 'chevron-up' : 'chevron-down'} size={14} />
       </button>
       {open && (
-        <div className="sy-dropdown-menu sy-dropdown-menu--medium sy-dropdown-menu--with-border" style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 20, minWidth: 220 }}>
-          <div className="sy-dropdown-menu__list">
-            <ul className="sy-date-range-dropdown__list sy-dropdown-menu__list-content" role="listbox" style={{ listStyle: 'none', margin: 0 }}>
+        <div className="__s9cmpx-dropdown-menu __s9cmpx-dropdown-menu--medium __s9cmpx-dropdown-menu--with-border" style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 20, minWidth: 220 }}>
+          <div className="__s9cmpx-dropdown-menu__list">
+            <ul className="__s9cmpx-date-range-dropdown__list __s9cmpx-dropdown-menu__list-content" role="listbox" style={{ listStyle: 'none', margin: 0 }}>
               {presets.map((p) => (
                 <li key={p.id} role="option" aria-selected={current?.preset === p.id}>
                   <button
                     type="button"
-                    className="sy-dropdown-menu__list-item sy-body3-short"
+                    className="__s9cmpx-dropdown-menu__list-item __s9cmpx-body3-short"
                     onClick={() => {
                       commit({
                         preset: p.id,
@@ -115,22 +115,22 @@ export function DateRangeDropdown({
                 </li>
               ))}
               <li role="option" aria-selected={current?.preset === 'custom'}>
-                <div className="sy-dropdown-menu__list-item" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <span className="sy-label3" style={{ fontWeight: current?.preset === 'custom' ? 600 : undefined }}>Custom Range</span>
+                <div className="__s9cmpx-dropdown-menu__list-item" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <span className="__s9cmpx-label3" style={{ fontWeight: current?.preset === 'custom' ? 600 : undefined }}>Custom Range</span>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <input
                       type="date"
                       aria-label="From"
-                      className="sy-input__input sy-body3-short"
+                      className="__s9cmpx-input__input __s9cmpx-body3-short"
                       value={customFrom}
                       onChange={(e) => setCustomFrom(e.target.value)}
                       style={{ borderRadius: 3, padding: '4px 6px' }}
                     />
-                    <span className="sy-label3">–</span>
+                    <span className="__s9cmpx-label3">–</span>
                     <input
                       type="date"
                       aria-label="To"
-                      className="sy-input__input sy-body3-short"
+                      className="__s9cmpx-input__input __s9cmpx-body3-short"
                       value={customTo}
                       onChange={(e) => setCustomTo(e.target.value)}
                       style={{ borderRadius: 3, padding: '4px 6px' }}
@@ -138,7 +138,7 @@ export function DateRangeDropdown({
                   </div>
                   <button
                     type="button"
-                    className="sy-button sy-button--primary sy-button--s"
+                    className="__s9cmpx-button __s9cmpx-button--primary __s9cmpx-button--s"
                     disabled={!customFrom || !customTo}
                     onClick={() => {
                       commit({ preset: 'custom', from: customFrom, to: customTo });

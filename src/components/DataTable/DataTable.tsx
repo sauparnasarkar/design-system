@@ -21,7 +21,7 @@ export interface DataTableProps<Row> {
 }
 
 /**
- * AG Grid wrapped in the vendor's `sy-table` / `ag-theme-syena` theme —
+ * AG Grid wrapped in the vendor's `__s9cmpx-table` / `ag-theme-s9cmpx` theme —
  * the same stack the products use for Reports/Entities/Instruments grids.
  * Uses AG Grid's legacy CSS theming so the vendor rules apply.
  */
@@ -87,13 +87,13 @@ export function DataTable<Row>({
   }, [rows, columns]);
 
   return (
-    <div ref={wrapperRef} className={cx('sy-table', 'ag-theme-syena', className)} style={{ position: 'relative', height, width: '100%' }}>
+    <div ref={wrapperRef} className={cx('__s9cmpx-table', 'ag-theme-s9cmpx', className)} style={{ position: 'relative', height, width: '100%' }}>
       <AgGridReact<Row>
         theme="legacy"
         columnDefs={columns}
         rowData={rows}
         defaultColDef={defaultColDef}
-        rowClass={striped ? 'sy-table__row--default-appearance' : undefined}
+        rowClass={striped ? '__s9cmpx-table__row--default-appearance' : undefined}
         suppressCellFocus
         // AG Grid's base CSS sets `content-visibility: auto` on the grid wrapper as a
         // rendering optimization for off-screen grids. If the grid mounts while below
@@ -107,10 +107,17 @@ export function DataTable<Row>({
       {isScrollable && (
         <div
           aria-hidden="true"
-          className="sy-table__scroll-hint"
+          className="__s9cmpx-table__scroll-hint"
           style={{
             position: 'absolute',
-            top: 8,
+            // Anchored to the bottom-right corner, not the top — the header
+            // row is a single, persistent line that always has real column
+            // labels right up to the edge on narrow/many-column tables, so a
+            // top-right badge reliably obscured them. Body rows are lower
+            // stakes: there are many of them, and covering one corner cell
+            // for the moment before the user scrolls (which dismisses this)
+            // is far less disruptive than covering the only header row.
+            bottom: 8,
             right: 8,
             display: 'flex',
             alignItems: 'center',

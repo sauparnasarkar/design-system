@@ -32,7 +32,7 @@ export const Playground: Story = {
           />
         }
       >
-        <p className="sy-body3-long">
+        <p className="__s9cmpx-body3-long">
           Global credit conditions have weakened after the oil shock, yet overall resilience
           persists across most rated portfolios.
         </p>
@@ -54,7 +54,7 @@ export const WithFooter: Story = {
         header={<CardHeader title="Primary Market Review" size="small" />}
         footer={<Button variant="ghost-blue" size="s" iconRight="chevron-right">View All</Button>}
       >
-        <p className="sy-body3-long">
+        <p className="__s9cmpx-body3-long">
           High-level research reports on labelled bonds published within a few hours of announcement.
         </p>
       </Card>

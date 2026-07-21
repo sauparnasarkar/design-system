@@ -17,7 +17,7 @@ export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
   children?: React.ReactNode;
 }
 
-/** Layout wrapper (`sy-section`) with gap/padding/margin/alignment presets. */
+/** Layout wrapper (`__s9cmpx-section`) with gap/padding/margin/alignment presets. */
 export function Section({
   row = false,
   gap,
@@ -35,14 +35,14 @@ export function Section({
   return (
     <Tag
       className={cx(
-        'sy-section',
-        row && 'sy-section--row',
-        gap && `sy-section--gap-${gap}`,
-        padding && `sy-section--padding-${padding}`,
-        margin && `sy-section--margin-${margin}`,
-        horizontalAlign && horizontalAlign !== 'start' && `sy-section--horizontal-align-${horizontalAlign}`,
-        verticalAlign && verticalAlign !== 'start' && `sy-section--vertical-align-${verticalAlign}`,
-        fluid && 'sy-section--fluid',
+        '__s9cmpx-section',
+        row && '__s9cmpx-section--row',
+        gap && `__s9cmpx-section--gap-${gap}`,
+        padding && `__s9cmpx-section--padding-${padding}`,
+        margin && `__s9cmpx-section--margin-${margin}`,
+        horizontalAlign && horizontalAlign !== 'start' && `__s9cmpx-section--horizontal-align-${horizontalAlign}`,
+        verticalAlign && verticalAlign !== 'start' && `__s9cmpx-section--vertical-align-${verticalAlign}`,
+        fluid && '__s9cmpx-section--fluid',
         className,
       )}
       style={{ display: 'flex', flexDirection: row ? 'row' : 'column' }}

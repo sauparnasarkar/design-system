@@ -26,7 +26,7 @@ export const AllValues: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 320 }}>
       {[1, 2, 3, 4, 5].map((v) => (
         <div key={v}>
-          <div className="sy-label3" style={{ marginBottom: 4, color: 'var(--sy-static-text-weak)' }}>
+          <div className="__s9cmpx-label3" style={{ marginBottom: 4, color: 'var(--__s9cmpx-static-text-weak)' }}>
             ESG Entity Score: {v}
           </div>
           <Score value={v} />

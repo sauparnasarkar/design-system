@@ -36,11 +36,11 @@ export function Avatar({
       role="img"
       aria-label={name || 'Avatar'}
       className={cx(
-        'sy-avatar',
-        size !== 'default' && `sy-avatar--${size}`,
-        gray && 'sy-avatar--gray',
-        bordered && 'sy-avatar--bordered',
-        square && 'sy-avatar--square',
+        '__s9cmpx-avatar',
+        size !== 'default' && `__s9cmpx-avatar--${size}`,
+        gray && '__s9cmpx-avatar--gray',
+        bordered && '__s9cmpx-avatar--bordered',
+        square && '__s9cmpx-avatar--square',
         className,
       )}
       {...rest}

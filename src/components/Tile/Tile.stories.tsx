@@ -22,8 +22,8 @@ export const Playground: Story = {
     <div style={{ maxWidth: 320 }}>
       <Tile {...args}>
         <div>
-          <div className="sy-headline7">3M</div>
-          <div className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>Data Points</div>
+          <div className="__s9cmpx-headline7">3M</div>
+          <div className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>Data Points</div>
         </div>
       </Tile>
     </div>
@@ -36,8 +36,8 @@ export const StatRow: Story = {
       {[['3M', 'Data Points'], ['116k', 'Records'], ['938', 'Fields']].map(([v, l]) => (
         <Tile key={l} secondary interactive>
           <div>
-            <div className="sy-headline5">{v}</div>
-            <div className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{l}</div>
+            <div className="__s9cmpx-headline5">{v}</div>
+            <div className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{l}</div>
           </div>
         </Tile>
       ))}

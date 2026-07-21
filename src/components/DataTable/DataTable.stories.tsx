@@ -61,7 +61,7 @@ export const CustomCells: Story = {
         headerName: 'Sector',
         cellRenderer: (p: { value: string }) => <Tag size="small">{p.value}</Tag>,
       },
-      { field: 'rating', headerName: 'Rating', maxWidth: 120, headerClass: 'sy-header-cell--highlight', cellClass: 'sy-table-highlight-cell' },
+      { field: 'rating', headerName: 'Rating', maxWidth: 120, headerClass: '__s9cmpx-header-cell--highlight', cellClass: '__s9cmpx-table-highlight-cell' },
       { field: 'outlook', headerName: 'Outlook', maxWidth: 130 },
     ],
   },
