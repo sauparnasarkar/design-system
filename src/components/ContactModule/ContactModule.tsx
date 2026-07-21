@@ -14,7 +14,7 @@ export interface ContactModuleProps {
   className?: string;
 }
 
-/** Analyst contacts carousel (`sy-contact-module`): pages through ContactItems with arrow controls. */
+/** Analyst contacts carousel (`__s9cmpx-contact-module`): pages through ContactItems with arrow controls. */
 export function ContactModule({ children, title, perPage = 3, action, className }: ContactModuleProps) {
   const items = React.Children.toArray(children);
   const pageCount = Math.max(1, Math.ceil(items.length / perPage));
@@ -23,15 +23,15 @@ export function ContactModule({ children, title, perPage = 3, action, className 
   const showArrows = pageCount > 1;
 
   return (
-    <div className={cx('sy-contact-module', className)}>
+    <div className={cx('__s9cmpx-contact-module', className)}>
       {(title || showArrows) && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          {title && <span className="sy-headline7">{title}</span>}
+          {title && <span className="__s9cmpx-headline7">{title}</span>}
           {showArrows && (
-            <span className={cx('sy-contact-module__arrows')} style={{ display: 'inline-flex', gap: 4 }}>
+            <span className={cx('__s9cmpx-contact-module__arrows')} style={{ display: 'inline-flex', gap: 4 }}>
               <button
                 type="button"
-                className="sy-button sy-button--secondary sy-button--s sy-button--icon-only"
+                className="__s9cmpx-button __s9cmpx-button--secondary __s9cmpx-button--s __s9cmpx-button--icon-only"
                 aria-label="Previous contacts"
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -40,7 +40,7 @@ export function ContactModule({ children, title, perPage = 3, action, className 
               </button>
               <button
                 type="button"
-                className="sy-button sy-button--secondary sy-button--s sy-button--icon-only"
+                className="__s9cmpx-button __s9cmpx-button--secondary __s9cmpx-button--s __s9cmpx-button--icon-only"
                 aria-label="Next contacts"
                 disabled={page >= pageCount - 1}
                 onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
@@ -51,11 +51,11 @@ export function ContactModule({ children, title, perPage = 3, action, className 
           )}
         </div>
       )}
-      <div className="sy-contact-module__first-active-slide" style={{ display: 'flex', gap: 24 }}>
+      <div className="__s9cmpx-contact-module__first-active-slide" style={{ display: 'flex', gap: 24 }}>
         {visible}
       </div>
       {action && (
-        <div className="sy-contact-module__message-wrapper" style={{ marginTop: 16 }}>
+        <div className="__s9cmpx-contact-module__message-wrapper" style={{ marginTop: 16 }}>
           {action}
         </div>
       )}

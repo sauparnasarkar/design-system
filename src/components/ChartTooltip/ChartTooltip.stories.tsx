@@ -11,9 +11,9 @@ const meta: Meta<typeof ChartTooltip> = {
     title: 'Jun 2026',
     variant: 'dark',
     rows: [
-      { color: 'var(--sy-chart-categorical-default-01, #2677f1)', label: 'GDP Growth', value: '2.1%' },
-      { color: 'var(--sy-chart-categorical-default-02, #187254)', label: 'Inflation', value: '4.6%' },
-      { color: 'var(--sy-chart-categorical-default-03, #e6ad1b)', label: 'Policy Rate', value: '3.75%' },
+      { color: 'var(--__s9cmpx-chart-categorical-default-01, #2677f1)', label: 'GDP Growth', value: '2.1%' },
+      { color: 'var(--__s9cmpx-chart-categorical-default-02, #187254)', label: 'Inflation', value: '4.6%' },
+      { color: 'var(--__s9cmpx-chart-categorical-default-03, #e6ad1b)', label: 'Policy Rate', value: '3.75%' },
     ],
   },
 };

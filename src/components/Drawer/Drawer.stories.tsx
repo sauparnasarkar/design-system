@@ -25,7 +25,7 @@ function DrawerDemo(args: React.ComponentProps<typeof Drawer>) {
         {...args}
         open={open}
         onClose={() => setOpen(false)}
-        subheader={<span className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>3 unread</span>}
+        subheader={<span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>3 unread</span>}
         footer={<Button variant="secondary" fullWidth onClick={() => setOpen(false)}>Mark all as read</Button>}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -35,7 +35,7 @@ function DrawerDemo(args: React.ComponentProps<typeof Drawer>) {
             ['Bank Rating Criteria', 'Criteria'],
           ].map(([t, tag]) => (
             <div key={t} style={{ borderBottom: '1px solid rgba(31,31,31,0.08)', paddingBottom: 12 }}>
-              <div className="sy-body3-short" style={{ marginBottom: 6 }}>{t}</div>
+              <div className="__s9cmpx-body3-short" style={{ marginBottom: 6 }}>{t}</div>
               <Tag size="small">{tag}</Tag>
             </div>
           ))}

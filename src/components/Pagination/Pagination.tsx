@@ -19,7 +19,7 @@ function range(from: number, to: number): number[] {
 
 /**
  * Pager composed from fg button styles. The products page their data grids
- * through AG Grid, so the vendor library has no sy-pagination block; this
+ * through AG Grid, so the vendor library has no __s9cmpx-pagination block; this
  * follows the same visual language (secondary buttons, label typography).
  */
 export function Pagination({
@@ -38,7 +38,7 @@ export function Pagination({
   const navButton = (dir: 'prev' | 'next') => (
     <button
       type="button"
-      className="sy-button sy-button--secondary sy-button--s sy-button--icon-only"
+      className="__s9cmpx-button __s9cmpx-button--secondary __s9cmpx-button--s __s9cmpx-button--icon-only"
       aria-label={dir === 'prev' ? 'Previous page' : 'Next page'}
       disabled={dir === 'prev' ? page <= 1 : page >= pageCount}
       onClick={() => go(dir === 'prev' ? page - 1 : page + 1)}
@@ -51,7 +51,7 @@ export function Pagination({
     return (
       <nav aria-label="Pagination" className={className} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {navButton('prev')}
-        <span className="sy-label2">Page {page} of {pageCount}</span>
+        <span className="__s9cmpx-label2">Page {page} of {pageCount}</span>
         {navButton('next')}
       </nav>
     );
@@ -72,12 +72,12 @@ export function Pagination({
       {navButton('prev')}
       {pages.map((p, i) =>
         p === 'gap' ? (
-          <span key={`gap-${i}`} className="sy-label2" style={{ padding: '0 4px', color: 'var(--sy-static-text-weak)' }}>…</span>
+          <span key={`gap-${i}`} className="__s9cmpx-label2" style={{ padding: '0 4px', color: 'var(--__s9cmpx-static-text-weak)' }}>…</span>
         ) : (
           <button
             key={p}
             type="button"
-            className={cx('sy-button', 'sy-button--s', p === page ? 'sy-button--primary' : 'sy-button--ghost')}
+            className={cx('__s9cmpx-button', '__s9cmpx-button--s', p === page ? '__s9cmpx-button--primary' : '__s9cmpx-button--ghost')}
             aria-current={p === page ? 'page' : undefined}
             onClick={() => go(p)}
           >

@@ -16,7 +16,7 @@ export interface FileUploadProps {
   className?: string;
 }
 
-/** Drag-and-drop upload area (`sy-file-upload`). */
+/** Drag-and-drop upload area (`__s9cmpx-file-upload`). */
 export function FileUpload({
   onFiles,
   accept,
@@ -41,10 +41,10 @@ export function FileUpload({
       tabIndex={disabled ? -1 : 0}
       aria-disabled={disabled}
       className={cx(
-        'sy-file-upload',
-        dragActive && 'sy-file-upload--drag-active',
-        disabled && 'sy-file-upload--disabled',
-        loading && 'sy-file-upload--loading',
+        '__s9cmpx-file-upload',
+        dragActive && '__s9cmpx-file-upload--drag-active',
+        disabled && '__s9cmpx-file-upload--disabled',
+        loading && '__s9cmpx-file-upload--loading',
         className,
       )}
       onClick={() => !disabled && !loading && inputRef.current?.click()}
@@ -79,11 +79,11 @@ export function FileUpload({
         <Spinner label="Uploading…" />
       ) : (
         <>
-          <span style={{ color: 'var(--sy-static-text-weak)' }}>
+          <span style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>
             <Icon name="download" size={28} style={{ transform: 'rotate(180deg)' }} />
           </span>
-          <span className="sy-body3-short">{label}</span>
-          {hint && <span className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{hint}</span>}
+          <span className="__s9cmpx-body3-short">{label}</span>
+          {hint && <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{hint}</span>}
         </>
       )}
     </div>

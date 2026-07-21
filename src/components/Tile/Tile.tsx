@@ -28,12 +28,12 @@ export function Tile({
   return (
     <div
       className={cx(
-        'sy-tile',
-        size !== 'default' && `sy-tile--${size}`,
-        secondary && 'sy-tile--secondary',
-        interactive && 'sy-tile--interactive',
-        disabled && 'sy-tile--disabled',
-        fullHeight && 'sy-tile--full-height',
+        '__s9cmpx-tile',
+        size !== 'default' && `__s9cmpx-tile--${size}`,
+        secondary && '__s9cmpx-tile--secondary',
+        interactive && '__s9cmpx-tile--interactive',
+        disabled && '__s9cmpx-tile--disabled',
+        fullHeight && '__s9cmpx-tile--full-height',
         className,
       )}
       {...rest}

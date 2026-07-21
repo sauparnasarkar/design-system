@@ -27,20 +27,20 @@ export function KpiStat({
 }: KpiStatProps) {
   const deltaColor =
     deltaDirection === 'up'
-      ? 'var(--sy-static-text-sentiment-positive, #187254)'
+      ? 'var(--__s9cmpx-static-text-sentiment-positive, #187254)'
       : deltaDirection === 'down'
-        ? 'var(--sy-static-text-sentiment-negative, #8d1a2a)'
-        : 'var(--sy-static-text-weak, #757575)';
+        ? 'var(--__s9cmpx-static-text-sentiment-negative, #8d1a2a)'
+        : 'var(--__s9cmpx-static-text-weak, #757575)';
   return (
     <div
-      className={cx('sy-kpi-stat', card && 'sy-card sy-card--with-border', className)}
+      className={cx('__s9cmpx-kpi-stat', card && '__s9cmpx-card __s9cmpx-card--with-border', className)}
       style={{ padding: card ? 16 : 0, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}
       {...rest}
     >
-      <span className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{label}</span>
-      <span className="sy-headline4" style={{ lineHeight: 1.1 }}>{value}</span>
+      <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{label}</span>
+      <span className="__s9cmpx-headline4" style={{ lineHeight: 1.1 }}>{value}</span>
       {delta && (
-        <span className="sy-label2" style={{ color: deltaColor, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <span className="__s9cmpx-label2" style={{ color: deltaColor, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
           {deltaDirection !== 'neutral' && (
             <Icon name={deltaDirection === 'up' ? 'chevron-up' : 'chevron-down'} size={14} />
           )}

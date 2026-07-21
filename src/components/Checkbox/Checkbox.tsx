@@ -12,17 +12,17 @@ export function Checkbox({ label, error = false, disabled, className, id, ...res
   return (
     <div
       className={cx(
-        'sy-checkbox',
-        error && 'sy-checkbox--error',
-        disabled && 'sy-checkbox--disabled',
+        '__s9cmpx-checkbox',
+        error && '__s9cmpx-checkbox--error',
+        disabled && '__s9cmpx-checkbox--disabled',
         className,
       )}
     >
-      <span className="sy-checkbox__container" style={{ display: 'inline-flex' }}>
-        <input id={inputId} type="checkbox" className="sy-checkbox__input" disabled={disabled} {...rest} />
+      <span className="__s9cmpx-checkbox__container" style={{ display: 'inline-flex' }}>
+        <input id={inputId} type="checkbox" className="__s9cmpx-checkbox__input" disabled={disabled} {...rest} />
       </span>
       {label && (
-        <label htmlFor={inputId} className="sy-checkbox__label sy-body3-short">
+        <label htmlFor={inputId} className="__s9cmpx-checkbox__label __s9cmpx-body3-short">
           {label}
         </label>
       )}

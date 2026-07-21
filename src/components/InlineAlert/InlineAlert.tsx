@@ -34,23 +34,23 @@ export function InlineAlert({
     <div
       role={variant === 'error' || variant === 'warning' ? 'alert' : 'status'}
       className={cx(
-        'sy-inline-alert',
-        `sy-inline-alert--${variant}`,
-        withBorder && `sy-inline-alert--${variant}-border`,
-        fullWidth && 'sy-inline-alert--full-width',
+        '__s9cmpx-inline-alert',
+        `__s9cmpx-inline-alert--${variant}`,
+        withBorder && `__s9cmpx-inline-alert--${variant}-border`,
+        fullWidth && '__s9cmpx-inline-alert--full-width',
         className,
       )}
       {...rest}
     >
-      <span className="sy-inline-alert__icon-wrapper">
+      <span className="__s9cmpx-inline-alert__icon-wrapper">
         <Icon name={VARIANT_ICON[variant]} size={16} />
       </span>
-      <span className="sy-inline-alert__content sy-body3-short">
+      <span className="__s9cmpx-inline-alert__content __s9cmpx-body3-short">
         {children}
         {link && (
           <>
             {' '}
-            <a className="sy-inline-alert__link sy-link sy-link--blue sy-link2" href={link.href}>
+            <a className="__s9cmpx-inline-alert__link __s9cmpx-link __s9cmpx-link--blue __s9cmpx-link2" href={link.href}>
               {link.label}
             </a>
           </>

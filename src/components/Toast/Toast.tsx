@@ -55,28 +55,28 @@ export function Toast({
             maxWidth: 560,
           }}
         >
-          <div className={cx('sy-toast', long && 'sy-toast--long', withoutCloseIcon && 'sy-toast--without-close-icon')}>
-            <div className={cx('sy-toast__wrapper', !actions && 'sy-toast__wrapper--without-buttons')} style={{ display: 'flex', alignItems: long ? 'flex-start' : 'center', gap: 8 }}>
-              <span className="sy-toast__icon" style={{ display: 'inline-flex', flexShrink: 0 }}>
+          <div className={cx('__s9cmpx-toast', long && '__s9cmpx-toast--long', withoutCloseIcon && '__s9cmpx-toast--without-close-icon')}>
+            <div className={cx('__s9cmpx-toast__wrapper', !actions && '__s9cmpx-toast__wrapper--without-buttons')} style={{ display: 'flex', alignItems: long ? 'flex-start' : 'center', gap: 8 }}>
+              <span className="__s9cmpx-toast__icon" style={{ display: 'inline-flex', flexShrink: 0 }}>
                 <Icon name={VARIANT_ICON[variant]} size={16} />
               </span>
-              <span className="sy-toast__text sy-body3-short">{children}</span>
+              <span className="__s9cmpx-toast__text __s9cmpx-body3-short">{children}</span>
             </div>
             {actions && (
-              <div className={cx('sy-toast__button-wrapper', !withoutCloseIcon && 'sy-toast__button-wrapper--with-close-button')} style={{ display: 'flex', gap: 8 }}>
+              <div className={cx('__s9cmpx-toast__button-wrapper', !withoutCloseIcon && '__s9cmpx-toast__button-wrapper--with-close-button')} style={{ display: 'flex', gap: 8 }}>
                 {actions}
               </div>
             )}
           </div>
           {!withoutCloseIcon && (
-            <span className={cx('sy-toast__close-button-wrapper', 'sy-toast__close-button-wrapper--top')}>
+            <span className={cx('__s9cmpx-toast__close-button-wrapper', '__s9cmpx-toast__close-button-wrapper--top')}>
               <button
                 type="button"
                 aria-label="Close"
                 onClick={onClose}
                 style={{ background: 'none', border: 0, cursor: 'pointer', display: 'inline-flex', padding: 0 }}
               >
-                <span className="sy-toast__close-button-icon" style={{ display: 'inline-flex' }}>
+                <span className="__s9cmpx-toast__close-button-icon" style={{ display: 'inline-flex' }}>
                   <Icon name="close" size={14} />
                 </span>
               </button>

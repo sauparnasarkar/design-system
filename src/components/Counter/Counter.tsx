@@ -10,12 +10,12 @@ export interface CounterProps extends React.HTMLAttributes<HTMLSpanElement> {
   max?: number;
 }
 
-/** Count badge (`sy-counter`) — result counts and notification pips. */
+/** Count badge (`__s9cmpx-counter`) — result counts and notification pips. */
 export function Counter({ value, variant = 'default', max, className, ...rest }: CounterProps) {
   const display = max !== undefined && value > max ? `${max}+` : String(value);
   return (
     <span
-      className={cx('sy-counter', `sy-counter--${variant}`, 'sy-label3', className)}
+      className={cx('__s9cmpx-counter', `__s9cmpx-counter--${variant}`, '__s9cmpx-label3', className)}
       style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10 }}
       {...rest}
     >

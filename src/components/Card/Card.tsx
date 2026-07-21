@@ -26,25 +26,25 @@ export function CardHeader({
   return (
     <div
       className={cx(
-        'sy-card-header',
-        size !== 'default' && `sy-card-header--size-${size}`,
-        hasTabs && 'sy-card-header--has-tabs',
+        '__s9cmpx-card-header',
+        size !== 'default' && `__s9cmpx-card-header--size-${size}`,
+        hasTabs && '__s9cmpx-card-header--has-tabs',
         className,
       )}
       {...rest}
     >
-      <div className="sy-card-header__wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-        <div className="sy-card-header__left-side">
-          <div className="sy-card-header__title-wrapper">
-            <h5 className="sy-card-header__title sy-headline6">{title}</h5>
+      <div className="__s9cmpx-card-header__wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        <div className="__s9cmpx-card-header__left-side">
+          <div className="__s9cmpx-card-header__title-wrapper">
+            <h5 className="__s9cmpx-card-header__title __s9cmpx-headline6">{title}</h5>
             {supportText && (
-              <span className="sy-card-header__support-text sy-body4" style={{ color: 'var(--sy-static-text-weak)' }}>
+              <span className="__s9cmpx-card-header__support-text __s9cmpx-body4" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>
                 {supportText}
               </span>
             )}
           </div>
         </div>
-        {actions && <div className="sy-card-header__right-side sy-card-header__right-side--with-gap" style={{ display: 'flex', gap: 8 }}>{actions}</div>}
+        {actions && <div className="__s9cmpx-card-header__right-side __s9cmpx-card-header__right-side--with-gap" style={{ display: 'flex', gap: 8 }}>{actions}</div>}
       </div>
     </div>
   );
@@ -75,18 +75,18 @@ export function Card({
   return (
     <div
       className={cx(
-        'sy-card',
-        withBorder && 'sy-card--with-border',
-        withShadow && 'sy-card--with-shadow',
-        fullHeight && 'sy-card--full-height',
-        Boolean(footer) && 'sy-card--has-footer',
+        '__s9cmpx-card',
+        withBorder && '__s9cmpx-card--with-border',
+        withShadow && '__s9cmpx-card--with-shadow',
+        fullHeight && '__s9cmpx-card--full-height',
+        Boolean(footer) && '__s9cmpx-card--has-footer',
         className,
       )}
       {...rest}
     >
       {header}
-      <div className={`sy-card__content--${padding}`}>{children}</div>
-      {footer && <div className="sy-card-footer sy-card-footer--size-medium">{footer}</div>}
+      <div className={`__s9cmpx-card__content--${padding}`}>{children}</div>
+      {footer && <div className="__s9cmpx-card-footer __s9cmpx-card-footer--size-medium">{footer}</div>}
     </div>
   );
 }

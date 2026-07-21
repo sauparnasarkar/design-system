@@ -18,30 +18,30 @@ export function Input({ size = 'm', error = false, iconLeft, iconRight, label, c
   return (
     <div className={className}>
       {label && (
-        <label htmlFor={inputId} className="sy-label3" style={{ display: 'block', marginBottom: 4 }}>
+        <label htmlFor={inputId} className="__s9cmpx-label3" style={{ display: 'block', marginBottom: 4 }}>
           {label}
         </label>
       )}
       <div
         className={cx(
-          'sy-input',
-          `sy-input--${size}`,
-          iconLeft && 'sy-input--with-left-element',
-          iconRight && 'sy-input--with-right-element',
+          '__s9cmpx-input',
+          `__s9cmpx-input--${size}`,
+          iconLeft && '__s9cmpx-input--with-left-element',
+          iconRight && '__s9cmpx-input--with-right-element',
         )}
       >
         {iconLeft && (
-          <span className="sy-input__left-element">
+          <span className="__s9cmpx-input__left-element">
             <Icon name={iconLeft} size={16} />
           </span>
         )}
         <input
           id={inputId}
-          className={cx('sy-input__input', error && 'sy-input__input--error')}
+          className={cx('__s9cmpx-input__input', error && '__s9cmpx-input__input--error')}
           {...rest}
         />
         {iconRight && (
-          <span className="sy-input__right-element">
+          <span className="__s9cmpx-input__right-element">
             <Icon name={iconRight} size={16} />
           </span>
         )}

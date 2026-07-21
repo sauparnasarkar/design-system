@@ -71,24 +71,24 @@ export function Slider({
     <div className={className} style={{ minWidth: 220 }}>
       {(label || showValue) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-          {label && <span className="sy-label3">{label}</span>}
-          {showValue && <span className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{current}</span>}
+          {label && <span className="__s9cmpx-label3">{label}</span>}
+          {showValue && <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{current}</span>}
         </div>
       )}
       <div
-        className={cx('sy-slider', disabled && 'sy-slider--disabled')}
+        className={cx('__s9cmpx-slider', disabled && '__s9cmpx-slider--disabled')}
         style={{ display: 'flex', opacity: disabled ? 0.5 : 1 }}
         onPointerDown={onPointerDown}
         onPointerMove={(e) => e.buttons === 1 && !disabled && setFromClientX(e.clientX)}
       >
-        <div ref={trackRef} className="sy-slider__track" style={{ width: '100%' }}>
-          <div className="sy-slider__track-fill" style={{ width: `${pct}%` }} />
+        <div ref={trackRef} className="__s9cmpx-slider__track" style={{ width: '100%' }}>
+          <div className="__s9cmpx-slider__track-fill" style={{ width: `${pct}%` }} />
           {showTicks && tickCount > 1 && (
-            <div className="sy-slider__ticks" style={{ position: 'absolute', inset: 0 }}>
+            <div className="__s9cmpx-slider__ticks" style={{ position: 'absolute', inset: 0 }}>
               {Array.from({ length: tickCount }, (_, i) => (
                 <span
                   key={i}
-                  className="sy-slider__ticks-mark"
+                  className="__s9cmpx-slider__ticks-mark"
                   style={{
                     position: 'absolute',
                     left: `${(i / (tickCount - 1)) * 100}%`,
@@ -96,7 +96,7 @@ export function Slider({
                     width: 1,
                     height: 6,
                     transform: 'translate(-50%, -50%)',
-                    background: 'var(--sy-interactive-fill-tertiary-default)',
+                    background: 'var(--__s9cmpx-interactive-fill-tertiary-default)',
                   }}
                 />
               ))}
@@ -109,7 +109,7 @@ export function Slider({
             aria-valuemax={max}
             aria-valuenow={current}
             aria-disabled={disabled}
-            className="sy-slider__thumb"
+            className="__s9cmpx-slider__thumb"
             style={{ left: `${pct}%`, top: '50%' }}
             onKeyDown={onKeyDown}
           />

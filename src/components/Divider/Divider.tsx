@@ -16,15 +16,15 @@ export function Divider({ vertical = false, emphasis = 'default', dashed = false
       role="separator"
       aria-orientation={vertical ? 'vertical' : 'horizontal'}
       className={cx(
-        'sy-divider',
-        vertical && 'sy-divider--vertical',
-        emphasis !== 'default' && `sy-divider--${emphasis}`,
-        dashed && 'sy-divider--dashed',
+        '__s9cmpx-divider',
+        vertical && '__s9cmpx-divider--vertical',
+        emphasis !== 'default' && `__s9cmpx-divider--${emphasis}`,
+        dashed && '__s9cmpx-divider--dashed',
         className,
       )}
       {...rest}
     >
-      {children && <span className="sy-divider__content sy-label3">{children}</span>}
+      {children && <span className="__s9cmpx-divider__content __s9cmpx-label3">{children}</span>}
     </div>
   );
 }

@@ -35,7 +35,7 @@ export function SegmentedControl({
   square = false,
   fullWidth = false,
   disabled = false,
-  name = 'sy-segmented-control',
+  name = '__s9cmpx-segmented-control',
   className,
 }: SegmentedControlProps) {
   const [internal, setInternal] = React.useState(items[0]?.value);
@@ -43,11 +43,11 @@ export function SegmentedControl({
   return (
     <div
       className={cx(
-        'sy-segmented-control',
-        `sy-segmented-control--${size}`,
-        square && 'sy-segmented-control--square',
-        fullWidth && 'sy-segmented-control--full-width',
-        disabled && 'sy-segmented-control--disabled',
+        '__s9cmpx-segmented-control',
+        `__s9cmpx-segmented-control--${size}`,
+        square && '__s9cmpx-segmented-control--square',
+        fullWidth && '__s9cmpx-segmented-control--full-width',
+        disabled && '__s9cmpx-segmented-control--disabled',
         className,
       )}
       role="radiogroup"
@@ -57,11 +57,11 @@ export function SegmentedControl({
         return (
           <label
             key={item.value}
-            className={cx('sy-segmented-control__item', isActive && 'sy-segmented-control--active')}
+            className={cx('__s9cmpx-segmented-control__item', isActive && '__s9cmpx-segmented-control--active')}
           >
             <input
               type="radio"
-              className="sy-segmented-control__item-input"
+              className="__s9cmpx-segmented-control__item-input"
               name={name}
               value={item.value}
               checked={isActive}
@@ -72,14 +72,14 @@ export function SegmentedControl({
                 onChange?.(item.value);
               }}
             />
-            <span className="sy-segmented-control__item-content">
+            <span className="__s9cmpx-segmented-control__item-content">
               {item.icon && (
-                <span className="sy-segmented-control__item-content__icon">
+                <span className="__s9cmpx-segmented-control__item-content__icon">
                   <Icon name={item.icon} size={size === 'small' ? 14 : 16} />
                 </span>
               )}
               {item.label && (
-                <span className="sy-segmented-control__item-content__label">{item.label}</span>
+                <span className="__s9cmpx-segmented-control__item-content__label">{item.label}</span>
               )}
             </span>
           </label>

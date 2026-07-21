@@ -6,12 +6,12 @@ export interface DotTypingProps extends React.HTMLAttributes<HTMLDivElement> {
   dots?: number;
 }
 
-/** Bouncing-dots "typing" indicator (`sy-dot-typing`), used by the Syena AI chat while responding. */
+/** Bouncing-dots "typing" indicator (`__s9cmpx-dot-typing`), used by AI-chat-style panels while responding. */
 export function DotTyping({ dots = 4, className, ...rest }: DotTypingProps) {
   return (
-    <div role="status" aria-label="Typing" className={cx('sy-dot-typing', className)} {...rest}>
+    <div role="status" aria-label="Typing" className={cx('__s9cmpx-dot-typing', className)} {...rest}>
       {Array.from({ length: dots }, (_, i) => (
-        <span key={i} className="sy-dot-typing__dot" />
+        <span key={i} className="__s9cmpx-dot-typing__dot" />
       ))}
     </div>
   );

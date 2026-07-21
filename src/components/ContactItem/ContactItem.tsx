@@ -30,7 +30,7 @@ function initials(name: string): string {
   return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
 }
 
-/** Analyst/contact card (`sy-contact-item`): centered photo, name, role, icon footer. */
+/** Analyst/contact card (`__s9cmpx-contact-item`): centered photo, name, role, icon footer. */
 export function ContactItem({
   headline,
   subHeader,
@@ -42,25 +42,25 @@ export function ContactItem({
 }: ContactItemProps) {
   const name = placeholderName ?? (typeof headline === 'string' ? headline : '');
   return (
-    <div className={cx('sy-contact-item', className)}>
+    <div className={cx('__s9cmpx-contact-item', className)}>
       {photoSrc ? (
-        <img className="sy-contact-item__photo" src={photoSrc} alt={name} style={{ width: 112, aspectRatio: '1 / 1', objectFit: 'cover' }} />
+        <img className="__s9cmpx-contact-item__photo" src={photoSrc} alt={name} style={{ width: 112, aspectRatio: '1 / 1', objectFit: 'cover' }} />
       ) : (
-        <div className="sy-contact-item__photo-placeholder sy-headline5" aria-hidden="true">
+        <div className="__s9cmpx-contact-item__photo-placeholder __s9cmpx-headline5" aria-hidden="true">
           {initials(name)}
         </div>
       )}
-      <div className="sy-contact-item__headline sy-headline7">{headline}</div>
-      {subHeader && <div className="sy-contact-item__sub-header sy-body4">{subHeader}</div>}
+      <div className="__s9cmpx-contact-item__headline __s9cmpx-headline7">{headline}</div>
+      {subHeader && <div className="__s9cmpx-contact-item__sub-header __s9cmpx-body4">{subHeader}</div>}
       {(actions.length > 0 || footerText) && (
-        <div className="sy-contact-item__footer">
+        <div className="__s9cmpx-contact-item__footer">
           {actions.map((a, i) => {
             const Btn = (a.href ? 'a' : 'button') as React.ElementType;
             return (
               <React.Fragment key={a.label}>
-                {i > 0 && <span className="sy-contact-item__footer-separator" />}
+                {i > 0 && <span className="__s9cmpx-contact-item__footer-separator" />}
                 <Btn
-                  className="sy-contact-item__footer-icon"
+                  className="__s9cmpx-contact-item__footer-icon"
                   aria-label={a.label}
                   title={a.label}
                   href={a.href}
@@ -75,8 +75,8 @@ export function ContactItem({
           })}
           {footerText && (
             <>
-              {actions.length > 0 && <span className="sy-contact-item__footer-separator" />}
-              <span className="sy-contact-item__footer-text sy-label3">{footerText}</span>
+              {actions.length > 0 && <span className="__s9cmpx-contact-item__footer-separator" />}
+              <span className="__s9cmpx-contact-item__footer-text __s9cmpx-label3">{footerText}</span>
             </>
           )}
         </div>

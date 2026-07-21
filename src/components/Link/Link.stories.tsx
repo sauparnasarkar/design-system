@@ -26,7 +26,7 @@ export const Variants: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {(['default', 'blue', 'inline', 'button'] as const).map((v) => (
         <div key={v} style={{ display: 'flex', gap: 24, alignItems: 'baseline' }}>
-          <span className="sy-label3" style={{ width: 70, color: 'var(--sy-static-text-weak)' }}>{v}</span>
+          <span className="__s9cmpx-label3" style={{ width: 70, color: 'var(--__s9cmpx-static-text-weak)' }}>{v}</span>
           <Link href="#" variant={v} size={1}>Link size 1</Link>
           <Link href="#" variant={v} size={2}>Link size 2</Link>
         </div>

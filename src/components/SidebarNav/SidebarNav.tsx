@@ -116,11 +116,11 @@ export function SidebarNav({
   }, [isMobile, open]);
 
   const renderItem = (item: SidebarNavItem) => (
-    <li key={item.id} className="sy-sidebar-nav__sidebar-item" role="none">
+    <li key={item.id} className="__s9cmpx-sidebar-nav__sidebar-item" role="none">
       <a
         role="menuitem"
         href={item.href ?? '#'}
-        className={cx('sy-sidebar-nav__sidebar-item-button', item.active && 'sy-sidebar-nav__sidebar-item-button--active', item.hasFlyout && 'sy-sidebar-nav__sidebar-item-button--flyout')}
+        className={cx('__s9cmpx-sidebar-nav__sidebar-item-button', item.active && '__s9cmpx-sidebar-nav__sidebar-item-button--active', item.hasFlyout && '__s9cmpx-sidebar-nav__sidebar-item-button--flyout')}
         onClick={(e) => {
           if (!item.href) e.preventDefault();
           onItemClick?.(item.id);
@@ -129,11 +129,11 @@ export function SidebarNav({
         style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', textDecoration: 'none', color: 'inherit' }}
         title={open ? undefined : item.label}
       >
-        <span className="sy-sidebar-nav__sidebar-item-icon" style={{ display: 'inline-flex', flexShrink: 0 }}>
+        <span className="__s9cmpx-sidebar-nav__sidebar-item-icon" style={{ display: 'inline-flex', flexShrink: 0 }}>
           <Icon name={item.icon} size={20} />
         </span>
-        {open && <span className="sy-sidebar-nav__sidebar-item-text sy-label2" style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
-        {open && item.hasFlyout && <Icon name="chevron-right" size={14} style={{ color: 'var(--sy-static-text-weak)' }} />}
+        {open && <span className="__s9cmpx-sidebar-nav__sidebar-item-text __s9cmpx-label2" style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
+        {open && item.hasFlyout && <Icon name="chevron-right" size={14} style={{ color: 'var(--__s9cmpx-static-text-weak)' }} />}
       </a>
     </li>
   );
@@ -166,10 +166,10 @@ export function SidebarNav({
             // card background — against a header that's often a similarly dark
             // static-background-weak, the plain card tone left this control
             // nearly imperceptible as a tappable element.
-            background: 'var(--sy-static-layer-standard)',
-            border: '1px solid var(--sy-static-divider-strong, rgba(31,31,31,0.24))',
+            background: 'var(--__s9cmpx-static-layer-standard)',
+            border: '1px solid var(--__s9cmpx-static-divider-strong, rgba(31,31,31,0.24))',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-            color: 'var(--sy-static-text-strong)',
+            color: 'var(--__s9cmpx-static-text-strong)',
             cursor: 'pointer',
           }}
         >
@@ -188,7 +188,7 @@ export function SidebarNav({
         aria-label="Sidebar Navigation"
         role={isMobile && open ? 'dialog' : undefined}
         aria-modal={isMobile && open ? true : undefined}
-        className={cx('sy-sidebar-nav', className)}
+        className={cx('__s9cmpx-sidebar-nav', className)}
         style={
           isMobile
             ? {
@@ -206,7 +206,7 @@ export function SidebarNav({
         }
       >
         <div
-          className={cx('sy-sidebar-nav__sidebar', open && 'sy-sidebar-nav__sidebar--open', !open && 'sy-sidebar-nav__sidebar--collapsed-mode')}
+          className={cx('__s9cmpx-sidebar-nav__sidebar', open && '__s9cmpx-sidebar-nav__sidebar--open', !open && '__s9cmpx-sidebar-nav__sidebar--collapsed-mode')}
           style={{ display: 'flex', flexDirection: 'column', height: '100%', width: isMobile ? 240 : open ? 240 : 56 }}
         >
           <button
@@ -218,12 +218,12 @@ export function SidebarNav({
           >
             <Icon name={isMobile ? 'close' : 'menu'} size={20} />
           </button>
-          <ul className="sy-sidebar-nav__menu-list" role="menu" style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1 }}>
+          <ul className="__s9cmpx-sidebar-nav__menu-list" role="menu" style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1 }}>
             {items.map(renderItem)}
           </ul>
           {footerItems.length > 0 && (
             <>
-              <hr className="sy-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--sy-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
+              <hr className="__s9cmpx-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
               <ul role="menu" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                 {footerItems.map(renderItem)}
               </ul>

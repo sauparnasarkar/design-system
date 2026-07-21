@@ -17,7 +17,7 @@ export interface DrawerProps {
   className?: string;
 }
 
-/** Right-hand slide-in panel (`sy-drawer`), as used for notification and detail panes. */
+/** Right-hand slide-in panel (`__s9cmpx-drawer`), as used for notification and detail panes. */
 export function Drawer({
   open,
   onClose,
@@ -41,20 +41,20 @@ export function Drawer({
   const widthValue = typeof width === 'number' ? `${width}px` : width;
   return (
     <div
-      className={cx('sy-drawer', open && 'sy-drawer--open', embedded && 'sy-drawer--embedded', className)}
+      className={cx('__s9cmpx-drawer', open && '__s9cmpx-drawer--open', embedded && '__s9cmpx-drawer--embedded', className)}
       style={
         {
-          '--sy-c-drawer-width': widthValue,
+          '--__s9cmpx-c-drawer-width': widthValue,
           ...(embedded ? { position: 'static', height: '100%', transform: 'none', visibility: 'visible' } : null),
         } as React.CSSProperties
       }
       role="dialog"
       aria-hidden={!open}
     >
-      <div className="sy-drawer__content">
+      <div className="__s9cmpx-drawer__content">
         {(title || onClose) && (
-          <div className="sy-drawer-header">
-            <h2 className="sy-headline6" style={{ margin: 0 }}>{title}</h2>
+          <div className="__s9cmpx-drawer-header">
+            <h2 className="__s9cmpx-headline6" style={{ margin: 0 }}>{title}</h2>
             {onClose && (
               <button
                 type="button"
@@ -67,9 +67,9 @@ export function Drawer({
             )}
           </div>
         )}
-        {subheader && <div className="sy-drawer-subheader">{subheader}</div>}
-        <div className="sy-drawer-body sy-body3-long">{children}</div>
-        {footer && <div className="sy-drawer-footer">{footer}</div>}
+        {subheader && <div className="__s9cmpx-drawer-subheader">{subheader}</div>}
+        <div className="__s9cmpx-drawer-body __s9cmpx-body3-long">{children}</div>
+        {footer && <div className="__s9cmpx-drawer-footer">{footer}</div>}
       </div>
     </div>
   );

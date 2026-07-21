@@ -33,11 +33,11 @@ export const Scale: StoryObj = {
       <tbody>
         {STYLES.map((s) => (
           <tr key={s} style={{ borderBottom: '1px solid rgba(31,31,31,0.08)' }}>
-            <td className="sy-label3" style={{ padding: '12px 24px 12px 0', color: 'var(--sy-static-text-weak)', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
-              sy-{s}
+            <td className="__s9cmpx-label3" style={{ padding: '12px 24px 12px 0', color: 'var(--__s9cmpx-static-text-weak)', whiteSpace: 'nowrap', verticalAlign: 'middle' }}>
+              __s9cmpx-{s}
             </td>
             <td style={{ padding: '12px 0' }}>
-              <span className={`sy-${s}`}>The quick brown fox jumps over the lazy dog</span>
+              <span className={`__s9cmpx-${s}`}>The quick brown fox jumps over the lazy dog</span>
             </td>
           </tr>
         ))}

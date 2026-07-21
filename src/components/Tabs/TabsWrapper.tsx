@@ -9,7 +9,7 @@ export interface TabsWrapperProps extends TabsProps {
 }
 
 /**
- * Scroll wrapper for Tabs (`sy-tabs-wrapper`): when the tablist overflows,
+ * Scroll wrapper for Tabs (`__s9cmpx-tabs-wrapper`): when the tablist overflows,
  * gradient-backed chevron controls appear on the overflowing side(s).
  */
 export function TabsWrapper({ scrollStep = 240, size = 'large', ...tabsProps }: TabsWrapperProps) {
@@ -36,10 +36,10 @@ export function TabsWrapper({ scrollStep = 240, size = 'large', ...tabsProps }: 
   const scrollBy = (dx: number) => scrollRef.current?.scrollBy({ left: dx, behavior: 'smooth' });
 
   const controls = (side: 'left' | 'right') => (
-    <div className={cx('sy-tabs__controls', `sy-tabs__controls--${side}`, size === 'small' && 'sy-tabs__controls--small')}>
+    <div className={cx('__s9cmpx-tabs__controls', `__s9cmpx-tabs__controls--${side}`, size === 'small' && '__s9cmpx-tabs__controls--small')}>
       <button
         type="button"
-        className="sy-tabs__controls-button"
+        className="__s9cmpx-tabs__controls-button"
         aria-label={side === 'left' ? 'Scroll tabs left' : 'Scroll tabs right'}
         onClick={() => scrollBy(side === 'left' ? -scrollStep : scrollStep)}
         style={{ cursor: 'pointer' }}
@@ -50,7 +50,7 @@ export function TabsWrapper({ scrollStep = 240, size = 'large', ...tabsProps }: 
   );
 
   return (
-    <div className="sy-tabs-wrapper">
+    <div className="__s9cmpx-tabs-wrapper">
       <div ref={scrollRef} onScroll={update} style={{ overflowX: 'auto', scrollbarWidth: 'none' }}>
         <Tabs size={size} {...tabsProps} />
       </div>

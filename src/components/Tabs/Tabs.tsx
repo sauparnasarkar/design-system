@@ -37,9 +37,9 @@ export function Tabs({
     <div
       role="tablist"
       className={cx(
-        'sy-tabs',
-        `sy-tabs--${variant}`,
-        lastItemRightAligned && 'sy-tabs--last-item-right-alignment',
+        '__s9cmpx-tabs',
+        `__s9cmpx-tabs--${variant}`,
+        lastItemRightAligned && '__s9cmpx-tabs--last-item-right-alignment',
         className,
       )}
     >
@@ -51,11 +51,11 @@ export function Tabs({
           aria-selected={active === item.id}
           disabled={item.disabled}
           className={cx(
-            'sy-tab',
-            `sy-tab--${size}`,
-            active === item.id && 'sy-tab--active',
-            item.disabled && 'sy-tab--disabled',
-            lastItemRightAligned && i === items.length - 1 && 'sy-tab--last',
+            '__s9cmpx-tab',
+            `__s9cmpx-tab--${size}`,
+            active === item.id && '__s9cmpx-tab--active',
+            item.disabled && '__s9cmpx-tab--disabled',
+            lastItemRightAligned && i === items.length - 1 && '__s9cmpx-tab--last',
           )}
           onClick={() => {
             setInternal(item.id);

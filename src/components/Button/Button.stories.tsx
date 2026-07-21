@@ -31,7 +31,7 @@ export const AllVariants: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {(['primary', 'secondary', 'ghost', 'ghost-blue', 'special', 'warning'] as const).map((v) => (
         <div key={v} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span className="sy-label3" style={{ width: 90, color: 'var(--sy-static-text-weak)' }}>{v}</span>
+          <span className="__s9cmpx-label3" style={{ width: 90, color: 'var(--__s9cmpx-static-text-weak)' }}>{v}</span>
           {(['xs', 's', 'm', 'l', 'xl'] as const).map((s) => (
             <Button key={s} variant={v} size={s}>Download</Button>
           ))}

@@ -66,14 +66,14 @@ export function Table<Row extends Record<string, unknown>>({
     <div style={{ overflowX: 'auto' }}>
     <table
       className={cx(
-        'sy-simple-table',
-        size === 'small' && 'sy-simple-table--small',
-        size === 'large' && 'sy-simple-table--large',
-        striped === 'even' && 'sy-simple-table--striped-even',
-        striped === 'odd' && 'sy-simple-table--striped-odd',
-        rowBorders && 'sy-simple-table--row-borders',
-        columnBorders && 'sy-simple-table--column-borders',
-        withBorder && 'sy-simple-table--has-border',
+        '__s9cmpx-simple-table',
+        size === 'small' && '__s9cmpx-simple-table--small',
+        size === 'large' && '__s9cmpx-simple-table--large',
+        striped === 'even' && '__s9cmpx-simple-table--striped-even',
+        striped === 'odd' && '__s9cmpx-simple-table--striped-odd',
+        rowBorders && '__s9cmpx-simple-table--row-borders',
+        columnBorders && '__s9cmpx-simple-table--column-borders',
+        withBorder && '__s9cmpx-simple-table--has-border',
         className,
       )}
       // table-layout: fixed is what actually makes overflow-wrap effective —
@@ -83,26 +83,26 @@ export function Table<Row extends Record<string, unknown>>({
       // what wrapping rules the cells themselves have.
       style={{ borderCollapse: 'collapse', width: '100%', tableLayout: 'fixed' }}
     >
-      {caption && <caption className="sy-simple-table__caption sy-label3">{caption}</caption>}
+      {caption && <caption className="__s9cmpx-simple-table__caption __s9cmpx-label3">{caption}</caption>}
       <thead>
-        <tr className="sy-simple-table-row sy-simple-table-row--header">
+        <tr className="__s9cmpx-simple-table-row __s9cmpx-simple-table-row--header">
           {columns.map((c) => (
             <th
               key={c.key}
-              className={cx('sy-simple-table-cell', 'sy-simple-table-cell--header', c.align && `sy-simple-table-cell--${c.align}`, 'sy-label2')}
+              className={cx('__s9cmpx-simple-table-cell', '__s9cmpx-simple-table-cell--header', c.align && `__s9cmpx-simple-table-cell--${c.align}`, '__s9cmpx-label2')}
               style={{ padding: '8px 12px', textAlign: c.align ?? 'left', overflowWrap: 'anywhere' }}
               aria-sort={sort.key === c.key && sort.dir ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
             >
               {c.sortable ? (
                 <button
                   type="button"
-                  className="sy-table-header"
+                  className="__s9cmpx-table-header"
                   onClick={() => toggleSort(c.key)}
                   style={{ display: 'inline-flex', alignItems: 'center', background: 'none', border: 0, cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
                 >
                   {c.header}
-                  <span className="sy-table-header__sort-wrapper">
-                    <span className={cx('sy-table-header__icon', (sort.key !== c.key || !sort.dir) && 'sy-table-header__icon--none')}>
+                  <span className="__s9cmpx-table-header__sort-wrapper">
+                    <span className={cx('__s9cmpx-table-header__icon', (sort.key !== c.key || !sort.dir) && '__s9cmpx-table-header__icon--none')}>
                       <Icon name={sort.key === c.key && sort.dir === 'desc' ? 'chevron-down' : 'chevron-up'} size={14} />
                     </span>
                   </span>
@@ -116,11 +116,11 @@ export function Table<Row extends Record<string, unknown>>({
       </thead>
       <tbody>
         {sorted.map((row, ri) => (
-          <tr key={ri} className="sy-simple-table-row">
+          <tr key={ri} className="__s9cmpx-simple-table-row">
             {columns.map((c) => (
               <td
                 key={c.key}
-                className={cx('sy-simple-table-cell', c.align && `sy-simple-table-cell--${c.align}`, c.wrap && 'sy-simple-table-cell--wrap-text', 'sy-body3-short')}
+                className={cx('__s9cmpx-simple-table-cell', c.align && `__s9cmpx-simple-table-cell--${c.align}`, c.wrap && '__s9cmpx-simple-table-cell--wrap-text', '__s9cmpx-body3-short')}
                 style={{ padding: '8px 12px', textAlign: c.align ?? 'left', overflowWrap: 'anywhere' }}
               >
                 {c.render ? c.render(row) : (row[c.key] as React.ReactNode)}

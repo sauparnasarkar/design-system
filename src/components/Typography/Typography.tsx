@@ -48,11 +48,11 @@ export function Typography({
   return (
     <Tag
       className={cx(
-        'sy-typography',
-        `sy-${variant}`,
-        color && `sy-typography--color-${color}`,
-        weight && `sy-typography--weight-${weight}`,
-        align && `sy-typography--align-${align}`,
+        '__s9cmpx-typography',
+        `__s9cmpx-${variant}`,
+        color && `__s9cmpx-typography--color-${color}`,
+        weight && `__s9cmpx-typography--weight-${weight}`,
+        align && `__s9cmpx-typography--align-${align}`,
         className,
       )}
       {...rest}

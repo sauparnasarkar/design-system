@@ -6,7 +6,7 @@ export type LinkSize = 1 | 2;
 
 export interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   variant?: LinkVariant;
-  /** sy-link1 (16px) or sy-link2 (14px) type style */
+  /** __s9cmpx-link1 (16px) or __s9cmpx-link2 (14px) type style */
   size?: LinkSize;
   /** Show the visited state color */
   hasVisited?: boolean;
@@ -24,10 +24,10 @@ export function Link({
   return (
     <a
       className={cx(
-        'sy-link',
-        `sy-link--${variant}`,
-        `sy-link${size}`,
-        hasVisited && 'sy-link--has-visited',
+        '__s9cmpx-link',
+        `__s9cmpx-link--${variant}`,
+        `__s9cmpx-link${size}`,
+        hasVisited && '__s9cmpx-link--has-visited',
         className,
       )}
       {...rest}

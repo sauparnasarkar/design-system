@@ -21,15 +21,15 @@ export function CardCarousel({ title, subtitle, perPage = 5, children, className
   const visible = items.slice(page * perPage, page * perPage + perPage);
 
   return (
-    <div className={cx('sy-card-carousel', className)}>
+    <div className={cx('__s9cmpx-card-carousel', className)}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        {title && <span className="sy-headline6">{title}</span>}
-        {subtitle && <span className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{subtitle}</span>}
+        {title && <span className="__s9cmpx-headline6">{title}</span>}
+        {subtitle && <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{subtitle}</span>}
         {pageCount > 1 && (
           <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: 4 }}>
             <button
               type="button"
-              className="sy-button sy-button--secondary sy-button--s sy-button--icon-only"
+              className="__s9cmpx-button __s9cmpx-button--secondary __s9cmpx-button--s __s9cmpx-button--icon-only"
               aria-label="Previous"
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -38,7 +38,7 @@ export function CardCarousel({ title, subtitle, perPage = 5, children, className
             </button>
             <button
               type="button"
-              className="sy-button sy-button--secondary sy-button--s sy-button--icon-only"
+              className="__s9cmpx-button __s9cmpx-button--secondary __s9cmpx-button--s __s9cmpx-button--icon-only"
               aria-label="Next"
               disabled={page >= pageCount - 1}
               onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}

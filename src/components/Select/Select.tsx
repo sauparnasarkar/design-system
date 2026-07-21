@@ -83,19 +83,19 @@ export function Select({
 
   return (
     <div className={className} ref={rootRef} style={{ position: 'relative', width: 'fit-content', minWidth: 200 }}>
-      {label && <span id={labelId} className="sy-label3" style={{ display: 'block', marginBottom: 4 }}>{label}</span>}
+      {label && <span id={labelId} className="__s9cmpx-label3" style={{ display: 'block', marginBottom: 4 }}>{label}</span>}
       <div
         className={cx(
-          'sy-select',
-          borderless ? 'sy-select--borderless' : 'sy-select--default',
-          `sy-select--${size}`,
-          error && 'sy-select--error',
-          disabled && 'sy-select--is-disabled',
+          '__s9cmpx-select',
+          borderless ? '__s9cmpx-select--borderless' : '__s9cmpx-select--default',
+          `__s9cmpx-select--${size}`,
+          error && '__s9cmpx-select--error',
+          disabled && '__s9cmpx-select--is-disabled',
         )}
       >
         <button
           type="button"
-          className={cx('sy-select__control', open && 'sy-select__control--is-focused', disabled && 'sy-select__control--is-disabled')}
+          className={cx('__s9cmpx-select__control', open && '__s9cmpx-select__control--is-focused', disabled && '__s9cmpx-select__control--is-disabled')}
           style={{ width: '100%' }}
           aria-haspopup="listbox"
           aria-expanded={open}
@@ -137,19 +137,19 @@ export function Select({
           }}
         >
           {selectedOption ? (
-            <span className="sy-select__single-value sy-body3-short">{selectedOption.label}</span>
+            <span className="__s9cmpx-select__single-value __s9cmpx-body3-short">{selectedOption.label}</span>
           ) : (
-            <span className="sy-select__placeholder sy-body3-short">{placeholder}</span>
+            <span className="__s9cmpx-select__placeholder __s9cmpx-body3-short">{placeholder}</span>
           )}
-          <span className="sy-select__indicators">
-            <span className="sy-select__dropdown-indicator">
+          <span className="__s9cmpx-select__indicators">
+            <span className="__s9cmpx-select__dropdown-indicator">
               <Icon name={open ? 'chevron-up' : 'chevron-down'} size={16} />
             </span>
           </span>
         </button>
         {open && (
-          <div className={cx('sy-select__menu', `sy-select__menu--${size}`, 'sy-select__menu--open')} style={{ position: 'absolute', zIndex: 10, left: 0, right: 0 }}>
-            <ul id={listboxId} className="sy-select__menu-list" role="listbox" aria-labelledby={label ? labelId : undefined} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+          <div className={cx('__s9cmpx-select__menu', `__s9cmpx-select__menu--${size}`, '__s9cmpx-select__menu--open')} style={{ position: 'absolute', zIndex: 10, left: 0, right: 0 }}>
+            <ul id={listboxId} className="__s9cmpx-select__menu-list" role="listbox" aria-labelledby={label ? labelId : undefined} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {options.map((o, i) => (
                 <li
                   key={o.value}
@@ -157,11 +157,11 @@ export function Select({
                   role="option"
                   aria-selected={selected === o.value}
                   className={cx(
-                    'sy-select__option',
-                    'sy-body3-short',
-                    selected === o.value && 'sy-select__option--is-selected',
-                    i === highlighted && 'sy-select__option--is-focused',
-                    o.disabled && 'sy-select__option--is-disabled',
+                    '__s9cmpx-select__option',
+                    '__s9cmpx-body3-short',
+                    selected === o.value && '__s9cmpx-select__option--is-selected',
+                    i === highlighted && '__s9cmpx-select__option--is-focused',
+                    o.disabled && '__s9cmpx-select__option--is-disabled',
                   )}
                   onClick={() => {
                     if (o.disabled) return;
@@ -170,7 +170,7 @@ export function Select({
                   }}
                   onMouseEnter={() => setHighlighted(i)}
                 >
-                  <span className="sy-select__option-label">{o.label}</span>
+                  <span className="__s9cmpx-select__option-label">{o.label}</span>
                 </li>
               ))}
             </ul>

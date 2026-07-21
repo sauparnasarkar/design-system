@@ -14,13 +14,13 @@ export function Toggle({ label, size = 'medium', disabled, className, id, ...res
   return (
     <label
       htmlFor={inputId}
-      className={cx('sy-toggle', `sy-toggle--${size}`, disabled && 'sy-toggle--disabled', className)}
+      className={cx('__s9cmpx-toggle', `__s9cmpx-toggle--${size}`, disabled && '__s9cmpx-toggle--disabled', className)}
     >
-      <span className="sy-toggle__toggle">
-        <input id={inputId} type="checkbox" role="switch" className="sy-toggle__input" disabled={disabled} {...rest} />
-        <span className="sy-toggle__slider" />
+      <span className="__s9cmpx-toggle__toggle">
+        <input id={inputId} type="checkbox" role="switch" className="__s9cmpx-toggle__input" disabled={disabled} {...rest} />
+        <span className="__s9cmpx-toggle__slider" />
       </span>
-      {label && <span className="sy-toggle__label sy-body3-short">{label}</span>}
+      {label && <span className="__s9cmpx-toggle__label __s9cmpx-body3-short">{label}</span>}
     </label>
   );
 }

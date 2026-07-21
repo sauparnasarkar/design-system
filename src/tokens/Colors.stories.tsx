@@ -24,7 +24,7 @@ const HUES = [
 function Ramp({ hue }: { hue: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span className="sy-label2" style={{ width: 90 }}>{hue}</span>
+      <span className="__s9cmpx-label2" style={{ width: 90 }}>{hue}</span>
       {SHADES.map((s) => (
         <div key={s} style={{ textAlign: 'center' }}>
           <div
@@ -33,10 +33,10 @@ function Ramp({ hue }: { hue: string }) {
               height: 40,
               borderRadius: 3,
               border: '1px solid rgba(31,31,31,0.08)',
-              background: `var(--sy-color-${hue}-${s})`,
+              background: `var(--__s9cmpx-color-${hue}-${s})`,
             }}
           />
-          <span className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>{s}</span>
+          <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{s}</span>
         </div>
       ))}
     </div>
@@ -53,10 +53,10 @@ function Semantic({ names }: { names: string[] }) {
               height: 40,
               borderRadius: 3,
               border: '1px solid rgba(31,31,31,0.08)',
-              background: `var(--sy-${n})`,
+              background: `var(--__s9cmpx-${n})`,
             }}
           />
-          <span className="sy-label3" style={{ color: 'var(--sy-static-text-weak)' }}>--sy-{n}</span>
+          <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>--__s9cmpx-{n}</span>
         </div>
       ))}
     </div>
@@ -72,7 +72,7 @@ export default meta;
 export const Palettes: StoryObj = {
   render: () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <p className="sy-body3-long">
+      <p className="__s9cmpx-body3-long">
         Color ramps from the Syena Default theme. The <code>brand</code> ramp
         is what the Green and Blue themes override — switch themes in the toolbar.
       </p>
@@ -87,7 +87,7 @@ export const SemanticTokens: StoryObj = {
   render: () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div>
-        <h3 className="sy-headline6">Interactive fill (primary)</h3>
+        <h3 className="__s9cmpx-headline6">Interactive fill (primary)</h3>
         <Semantic
           names={[
             'interactive-fill-primary-default',
@@ -98,7 +98,7 @@ export const SemanticTokens: StoryObj = {
         />
       </div>
       <div>
-        <h3 className="sy-headline6">Static text</h3>
+        <h3 className="__s9cmpx-headline6">Static text</h3>
         <Semantic
           names={[
             'static-text-standard',
@@ -112,7 +112,7 @@ export const SemanticTokens: StoryObj = {
         />
       </div>
       <div>
-        <h3 className="sy-headline6">Static background</h3>
+        <h3 className="__s9cmpx-headline6">Static background</h3>
         <Semantic
           names={[
             'static-background-standard',

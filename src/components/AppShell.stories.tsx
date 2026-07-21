@@ -10,6 +10,7 @@ import { Link } from './Link/Link';
 import { Breadcrumb } from './Breadcrumb/Breadcrumb';
 import { Tabs } from './Tabs/Tabs';
 import { Logo } from './Logo/Logo';
+import syenaMark from '../assets/logos/syena-mark.png';
 
 const meta: Meta = {
   title: 'Shell/AppShell',
@@ -21,7 +22,7 @@ export const ProductPage: StoryObj = {
   render: () => (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fff' }}>
       <Header
-        logo={<Logo product="green" />}
+        logo={<Logo markSrc={syenaMark} wordmark="Syena" accent="Green" accentColor="var(--__s9cmpx-color-teal-600, #187272)" />}
         searchPlaceholder="Search Entities, Reports and Instruments..."
       />
       <div style={{ display: 'flex', flex: 1 }}>
@@ -77,7 +78,7 @@ export const ProductPage: StoryObj = {
           </Card>
         </main>
       </div>
-      <Footer />
+      <Footer copyright="Copyright 2026 Syena Systems." />
     </div>
   ),
 };
