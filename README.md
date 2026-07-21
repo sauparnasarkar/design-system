@@ -49,11 +49,17 @@ variables. Themes are small override files in `src/styles/themes/` scoped to
 `npm test` (`vitest run`) runs two Vitest projects:
 - **`storybook`** — every `*.stories.tsx` file runs as a real test (mounts the
   story, runs its `play` function if present, plus an automatic a11y/axe-core
-  check per story via `addon-a11y`). This covers all ~60 components with zero
-  dedicated test files. `DataTable`, `Logo`, `Footer`, `Chatbot`, and
-  `AppSwitcher` additionally have explicit `play`-function assertions
-  regression-proofing the white-label rework (AG Grid theme class pairing,
-  consumer-supplied branding actually rendering).
+  check per story via `addon-a11y`, enforced: `a11y.test: 'error'` in
+  `.storybook/preview.tsx` fails the test on any violation, not just reports
+  it). This covers all ~60 components with zero dedicated test files.
+  `DataTable`, `Logo`, `Footer`, `Chatbot`, and `AppSwitcher` additionally
+  have explicit `play`-function assertions regression-proofing the
+  white-label rework (AG Grid theme class pairing, consumer-supplied
+  branding actually rendering). `Select`, `MultiSelect`, `Slider`,
+  `Pagination`, `Tabs`, `Modal`, `Drawer`, `TableFilter`, and
+  `NestedMultiSelect` additionally have `play`-function tests covering
+  keyboard interaction (arrow-key navigation, focus traps on Modal/Drawer,
+  roving tabindex on Tabs, tree navigation on NestedMultiSelect).
 - **`unit`** — plain Node-environment tests, currently
   `src/__tests__/no-vendor-strings.test.ts`, which fails if a hardcoded
   `Syena`/`syena` string is reintroduced into non-story component source or

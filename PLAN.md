@@ -249,3 +249,91 @@ small defects). Nothing queued — pick items from there to turn into tasks.
   functions for the interactive components (Select, MultiSelect,
   NestedMultiSelect, Tabs, Modal, Drawer, TableFilter, Pagination, Slider),
   and turning a11y from `todo` to enforced.
+
+## Interaction & a11y test pass (2026-07-21, sauparnasarkar/design-system#3)
+- Read every one of the 9 components' actual keyboard handlers before
+  assuming the ENHANCEMENTS.md backlog note was still accurate — it wasn't,
+  uniformly. Select, MultiSelect, Slider, and Pagination were already fully
+  correct (combobox pattern, arrow-key value stepping, native buttons) and
+  only needed `play`-function tests proving it. Tabs, TableFilter, Modal,
+  Drawer, and NestedMultiSelect had real, confirmed gaps.
+- Added `src/lib/useFocusTrap.ts`: a shared hook (save/restore
+  `document.activeElement`, focus the first focusable descendant on open,
+  trap Tab/Shift+Tab at both boundaries) adopted by both `Modal` and
+  `Drawer` — `Drawer`'s always-mounted `embedded` mode opts out of all
+  modal-only behavior (`aria-modal`, `inert`, the trap itself) since it's a
+  permanently-visible docked panel, not a dialog.
+- `Tabs`: roving tabindex (only the active/first-enabled tab sits in the Tab
+  order) plus ArrowLeft/ArrowRight/Home/End, skipping disabled tabs and
+  wrapping at the ends, per the APG tabs pattern.
+- `TableFilter`: reused the same highlighted-index/`aria-activedescendant`
+  pattern Select/MultiSelect already had, wired to ArrowUp/Down/Enter/Escape
+  on both the trigger and the search input.
+- `NestedMultiSelect`: tree keyboard nav over a flattened list of visible
+  group/child rows (respecting expand/collapse state) —
+  ArrowUp/Down/Left/Right/Enter/Space — plus a pre-existing, previously
+  undetected gap: the combobox had no `aria-labelledby` connecting it to its
+  own visible label at all.
+- Each of the 5 fixed components was verified by deliberately reverting the
+  fix locally, confirming its new test failed with a clear message, then
+  restoring — same discipline as the "Testing wired up" pass above.
+- Flipping `.storybook/preview.tsx`'s `a11y.test` from `'todo'` to `'error'`
+  surfaced 345 violations across 42 failing tests, traced to a handful of
+  root causes (not fixed piecemeal):
+  - `--__s9cmpx-static-text-weak: #757575` failed 4.5:1 against its three
+    most common backgrounds — accounted for 338 of the 345 violations.
+    Computed a replacement (`#666666`) via the WCAG luminance formula rather
+    than guessing.
+  - `Slider`/`Progress`/`Score` had no accessible name on their
+    `role="slider"`/`"progressbar"`/`"meter"` elements despite having (or,
+    for `Score`, gaining) a `label` concept — wired `aria-labelledby`/
+    `aria-label`.
+  - `Select`'s trigger `<button>` had an implicit `role="button"`, which
+    doesn't support `aria-activedescendant` per the ARIA spec — fixed with
+    an explicit `role="combobox"`. The same bug, independently, in
+    `TableFilter`'s trigger — same fix, but this one also required adding
+    `aria-labelledby` since `combobox` (unlike `button`) doesn't compute its
+    accessible name from content the way the old implicit role did. Found by
+    Copilot's PR review, not the original a11y-enforcement pass — see below.
+  - `ChartTooltip`'s vendor-CSS-driven scrollable region had no way to be
+    reached by keyboard (`tabIndex={0}`).
+  - `ClimateDashboard.stories.tsx`'s demo page nested an `<h1>` directly
+    above `ChartCard`'s hardcoded `<h5>` title, skipping heading levels.
+    Made the heading level configurable (`CardHeader`/`ChartCard`
+    `headingLevel` prop, default `5` unchanged) and set it to `2` in that
+    story.
+  - Several demo-story-only fixes: `SegmentedControl`'s `IconSegments` story
+    not using the component's own existing `ariaLabel` prop; accent colors
+    left over from the white-label rework's own story choices
+    (`AppShell`/`Header`/`Logo`/`AppSwitcher` stories) failing contrast;
+    `SyChart`'s "Ratings Distribution" story embedding an unlabeled `Select`
+    (added a `Select` `ariaLabel` prop for compact/unlabeled uses, matching
+    the pattern this fix needed).
+  - Along the way, found `overrides.css` (the `.__s9cmpx-tab` background fix
+    and the new search-input-on-inverse fix, see below) was only ever
+    imported by Storybook's own preview, never by the actual consuming app —
+    fixed by adding the import to
+    `climate-dashboard-react/src/main.tsx` (sauparnasarkar/climate-emissions-analysis-project#71).
+  - Header's search input rendered white text on an effectively-light
+    background (1.09:1) despite the existing dark-backdrop/token-remap
+    mechanism looking correct on paper — root cause only found by
+    instrumenting the live DOM (a temporary diagnostic story dumping
+    `getComputedStyle()`), which showed `SearchInput`'s own root div
+    redefines the same CSS custom property `SearchInput`'s inner control div
+    also matches (`[class*=__s9cmpx-search-input]` catches both, by
+    substring), overriding the ancestor Header wrapper's attempted fix
+    regardless of it being inline. Fixed with a `.__s9cmpx-search-input--on-inverse`
+    rule in `overrides.css` targeting both the root and the inner control
+    div directly, applied via `SearchInput`'s existing `className` prop.
+- Copilot's PR review (sauparnasarkar/design-system#3) caught two things the
+  above pass missed: the `TableFilter` `aria-activedescendant`-on-`button`
+  bug above, and `Tabs`' `tabRefs` array retaining stale/detached button
+  references if `items` ever shrinks (fixed with a `.slice(0, items.length)`
+  trim each render).
+- Verified via a scripted real-Chromium spot-check (Playwright against a
+  running Storybook dev server, no GUI browser tool available): Modal and
+  Drawer both trap focus, wrap Tab/Shift+Tab, and restore focus to the
+  trigger on close; Tabs' roving tabindex + ArrowRight move focus and
+  selection together.
+- Current state: `npm test` → 69 files, 121 tests, all passing;
+  `npm run build-storybook` still succeeds.

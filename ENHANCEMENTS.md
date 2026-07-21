@@ -20,21 +20,30 @@ fg CSS v7.32.2, Storybook 10, all typechecked and visually verified.
 
 ## Tier 1 — highest value next
 
-1. **Interaction & a11y test pass** — **PARTIALLY BUILT 2026-07-21.**
+1. **Interaction & a11y test pass** — **CLOSED 2026-07-21.**
    `@storybook/addon-vitest` and `addon-a11y` were installed but unused (no
    `vitest.config`, no `"test"` script, zero test files) — now wired up:
    `npm test` runs every `*.stories.tsx` as a real test (mount + automatic
-   a11y/axe-core check) plus a Node-environment unit-test project, 69 files /
-   120 tests passing. Explicit `play`-function assertions were added to
-   `DataTable`, `Logo`, `Footer`, `Chatbot`, `AppSwitcher` (the components
-   touched by the white-label rework) and a static guard test against
-   reintroducing hardcoded `Syena` strings. Details: "Testing wired up" in
-   `PLAN.md`.
-   **Still open**: the originally-proposed `play` functions for the
+   a11y/axe-core check) plus a Node-environment unit-test project. Explicit
+   `play`-function assertions were added to `DataTable`, `Logo`, `Footer`,
+   `Chatbot`, `AppSwitcher` (the components touched by the white-label
+   rework) and a static guard test against reintroducing hardcoded `Syena`
+   strings. Details: "Testing wired up" in `PLAN.md`.
+   The remainder — the originally-proposed `play` functions for the
    interactive components (Select, MultiSelect, NestedMultiSelect, Tabs,
-   Modal, Drawer, TableFilter, Pagination, Slider), and turning a11y from
-   `todo` to enforced + fixing violations (several menus need arrow-key
-   navigation; Modal/Drawer need focus traps).
+   Modal, Drawer, TableFilter, Pagination, Slider) plus turning a11y from
+   `todo` to enforced — landed in
+   sauparnasarkar/design-system#3: shared focus-trap hook for Modal/Drawer,
+   roving-tabindex arrow-key nav for Tabs, highlighted-index keyboard
+   handling for TableFilter, tree keyboard nav for NestedMultiSelect, `play`
+   tests for all 9 components, and `a11y.test` flipped to `'error'` with
+   every violation it surfaced fixed (a shared contrast token failing WCAG
+   AA, missing accessible names on Slider/Progress/Score/NestedMultiSelect,
+   an invalid `aria-activedescendant` on Select's and TableFilter's implicit
+   `role="button"`, an unreachable ChartTooltip scroll region, a
+   heading-order jump in the ClimateDashboard template, and stale demo-story
+   colors from the white-label rework). `npm test` → 69 files, 121 tests,
+   all passing. Details: "Interaction & a11y test pass" in `PLAN.md`.
 2. **Visual regression CI (Chromatic)** — `@chromatic-com/storybook` is
    already in the addons. Init a git repo, wire `build-storybook` + Chromatic
    in GitHub Actions, snapshot all stories in all 3 themes. This locks in the
