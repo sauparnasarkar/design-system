@@ -26,6 +26,7 @@ export { DropdownMenu } from './components/DropdownMenu/DropdownMenu';
 export { Drawer } from './components/Drawer/Drawer';
 export { Chip } from './components/Chip/Chip';
 export { Slider } from './components/Slider/Slider';
+export { RangeSlider } from './components/RangeSlider/RangeSlider';
 export { Pagination } from './components/Pagination/Pagination';
 export { MultiSelect } from './components/MultiSelect/MultiSelect';
 export { DateRangeDropdown } from './components/DateRangeDropdown/DateRangeDropdown';
