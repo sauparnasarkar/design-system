@@ -56,10 +56,11 @@ variables. Themes are small override files in `src/styles/themes/` scoped to
   have explicit `play`-function assertions regression-proofing the
   white-label rework (AG Grid theme class pairing, consumer-supplied
   branding actually rendering). `Select`, `MultiSelect`, `Slider`,
-  `Pagination`, `Tabs`, `Modal`, `Drawer`, `TableFilter`, and
+  `RangeSlider`, `Pagination`, `Tabs`, `Modal`, `Drawer`, `TableFilter`, and
   `NestedMultiSelect` additionally have `play`-function tests covering
   keyboard interaction (arrow-key navigation, focus traps on Modal/Drawer,
-  roving tabindex on Tabs, tree navigation on NestedMultiSelect).
+  roving tabindex on Tabs, tree navigation on NestedMultiSelect, dual-thumb
+  cross-clamping on RangeSlider, type-to-search filtering on MultiSelect).
 - **`unit`** — plain Node-environment tests, currently
   `src/__tests__/no-vendor-strings.test.ts`, which fails if a hardcoded
   `Syena`/`syena` string is reintroduced into non-story component source or
@@ -67,17 +68,21 @@ variables. Themes are small override files in `src/styles/themes/` scoped to
 
 `npm run test:watch` for interactive/watch mode.
 
-## Component inventory (61)
+## Component inventory (62)
 
 Button, Typography, Link, Tag, Chip, Tabs, TabsWrapper, SegmentedControl,
-Checkbox, Radio, Toggle, Input, Select, MultiSelect, NestedMultiSelect,
+Checkbox, Radio, Toggle, Input, Select, MultiSelect (dropdown menu opens with
+a type-to-search box filtering options by label; opt out per instance with
+`suppressSearch`), NestedMultiSelect,
 SearchInput, DropdownMenu, DateRangeDropdown, InlineAlert, BannerAlert,
 Card(+Header), Tile, Accordion, Breadcrumb, Table, DataTable (AG Grid with
 the `ag-theme-s9cmpx` skin) + presets (HeatCell, TrendCell, TableToolbar),
 TableFilter, Pagination, Icon, Avatar, Logo (generic markSrc/wordmark lockup),
 Modal, Drawer, Toast, Tooltip,
 ChartTooltip, SyChart (Plotly: column / stacked+line / grouped / multi-line)
-+ ChartCard, Slider, KrfSlider, Score, Progress, Spinner, DotTyping, Divider,
++ ChartCard, Slider, RangeSlider (dual-thumb, cross-clamped, APG multi-thumb
+slider pattern — for continuous ranges, e.g. a year filter), KrfSlider,
+Score, Progress, Spinner, DotTyping, Divider,
 Section, Textarea, Counter, EmptyState, JumpLinks, FileUpload, KpiStat, Gauge, News,
 MediaObject, CardCarousel, ContactItem, ContactModule, Chatbot (generic
 title/messages, no hardcoded assistant name),

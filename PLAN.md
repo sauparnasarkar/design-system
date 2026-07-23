@@ -337,3 +337,56 @@ small defects). Nothing queued — pick items from there to turn into tasks.
   selection together.
 - Current state: `npm test` → 69 files, 121 tests, all passing;
   `npm run build-storybook` still succeeds.
+
+## RangeSlider + MultiSelect type-to-search (2026-07-23, sauparnasarkar/design-system#4, #5)
+
+Both driven by the same consumer need: `climate-emissions-analysis-project`'s
+new Data Explorer page (a ~220-country picker plus a year-range filter with no
+existing control for it).
+
+- **`RangeSlider` — new component.** Dual-thumb, reusing 100% of `Slider`'s
+  existing vendor CSS classes (`.__s9cmpx-slider*`) with zero stylesheet
+  changes — a second thumb's own `left: %` plus a fill spanning between both,
+  the same way `Slider` already positions its one thumb. Additive only: does
+  not touch `Slider`'s prop contract or any current consumer. Follows the APG
+  multi-thumb slider pattern — each thumb is an independent `role="slider"`
+  with its own `aria-valuemin`/`max`/`now` and a distinct accessible name
+  (`thumbLabels` prop; two thumbs sharing one label would be indistinguishable
+  to a screen reader). Cross-clamped on every update (drag or keyboard) so the
+  lower thumb can never pass the upper one and vice versa — coincident thumbs
+  represent a single-point selection. Home/End jump to a thumb's *own* bound
+  (the partner thumb's current value), not the global min/max.
+  - Copilot's PR review caught one real bug: step-snapping used
+    `Math.round(raw / step) * step`, which snaps to multiples of `step`
+    starting at 0 rather than at `min` — wrong whenever `min` isn't itself a
+    multiple of `step`. Fixed to `min + Math.round((raw - min) / step) * step`.
+    No behavior change for the actual year-slider consumer (`min` and `step`
+    are both integers, so the two formulas are identical there), but a real
+    fix for any future non-zero-offset use.
+- **`MultiSelect` — type-to-search added to the dropdown menu.** On by
+  default for every consumer (not just the motivating 220-country list);
+  `suppressSearch` opts out. Mirrors `TableFilter`'s own existing
+  search-in-menu pattern rather than inventing a new one. Space is treated as
+  a normal typed character in the search input (not a toggle key, unlike the
+  `suppressSearch` keyboard path where the control itself still drives
+  selection) — multi-word queries like "United King..." work.
+  - Writing real interaction tests for this (rather than closing the menu at
+    the end of every story, as every prior `MultiSelect` story happened to
+    do) surfaced a genuine, pre-existing a11y defect that had never been
+    caught: the per-option checkbox was a real `<input type="checkbox">`
+    nested inside a `<li role="option">` — an axe "nested-interactive"
+    violation. Confirmed `tabIndex={-1}` plus `aria-hidden="true"` do **not**
+    satisfy this specific axe rule (its own message says so explicitly —
+    some assistive tech can still reach a nested native control regardless).
+    The actual fix: no real `<input>` at all inside the option — a decorative
+    `<span>` echoing the already-present `aria-selected` state instead. The
+    same bug exists in `TableFilter`'s own option list (same pattern,
+    untouched here — out of scope for this change, worth a future pass).
+  - The empty-results ("No matches") state needed its own two a11y fixes:
+    `aria-activedescendant` must not point at an option index that doesn't
+    exist when the filtered list is empty, and the placeholder row itself
+    needs `role="option"` + `aria-disabled="true"` (not `role="presentation"`
+    — an empty `role="listbox"` with zero `option`/`group` children is itself
+    an `aria-required-children` violation).
+- Current state: `npm test` → 70 files, 130 tests, all passing;
+  `npm run build-storybook` still succeeds; `tsc -b` clean.

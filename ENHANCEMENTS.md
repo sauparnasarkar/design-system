@@ -144,3 +144,9 @@ fg CSS v7.32.2, Storybook 10, all typechecked and visually verified.
   matters, add react-toastify and mount ours inside its container.
 - `npm run dev` is broken (the Vite app entry was removed in favor of
   Storybook-only); either restore a minimal `main.tsx` or delete the script.
+- `TableFilter`'s per-option checkbox is a real `<input type="checkbox">`
+  nested inside a `<li role="option">` — the same axe "nested-interactive"
+  violation found and fixed in `MultiSelect` (sauparnasarkar/design-system#5).
+  Never caught here because no `TableFilter` story leaves the menu open when
+  its a11y scan runs. Same fix should apply: a decorative `<span>` echoing
+  the already-present `aria-selected` state instead of a real `<input>`.

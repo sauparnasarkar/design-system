@@ -115,8 +115,9 @@ than every other component.
   `.storybook/preview.tsx` — a violation fails the test, not just reports
   it). This is the primary test coverage mechanism; most components have no
   dedicated test file, only stories.
-  - Interactive components (`Select`, `MultiSelect`, `Slider`, `Pagination`,
-    `Tabs`, `Modal`, `Drawer`, `TableFilter`, `NestedMultiSelect`, ...) have
+  - Interactive components (`Select`, `MultiSelect`, `Slider`, `RangeSlider`,
+    `Pagination`, `Tabs`, `Modal`, `Drawer`, `TableFilter`,
+    `NestedMultiSelect`, ...) have
     `play` functions using `storybook/test` (`within`, `userEvent`,
     `expect`) exercising keyboard interaction — arrow-key navigation, focus
     traps, roving tabindex, tree navigation. Follow this pattern (see
