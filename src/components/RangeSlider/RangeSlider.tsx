@@ -52,7 +52,7 @@ export function RangeSlider({
   // Clamps a candidate value for `index` against [min, max] AND against the other thumb's
   // current value, so the two thumbs can meet (a single-point selection) but never cross.
   const commit = (index: ThumbIndex, raw: number) => {
-    const snapped = Math.round(raw / step) * step;
+    const snapped = min + Math.round((raw - min) / step) * step;
     const bounded = Math.max(min, Math.min(max, snapped));
     const next: [number, number] =
       index === 0
