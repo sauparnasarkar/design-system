@@ -127,3 +127,39 @@ export const SearchSuppressed: Story = {
     await expect(canvas.getByRole('option', { name: 'Sovereigns' })).toHaveAttribute('aria-selected', 'true');
   },
 };
+
+export const MaxSelected: Story = {
+  args: { maxSelected: 2 },
+  render: (args) => (
+    <div style={{ minHeight: 360 }}>
+      <MultiSelect {...args} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('combobox', { name: 'Sectors' }));
+
+    // Select the first two options, reaching the cap.
+    await userEvent.keyboard('{Enter}'); // Corporates (default highlight)
+    await userEvent.keyboard('{ArrowDown}{Enter}'); // Sovereigns
+    await expect(canvas.getByRole('option', { name: 'Corporates' })).toHaveAttribute('aria-selected', 'true');
+    await expect(canvas.getByRole('option', { name: 'Sovereigns' })).toHaveAttribute('aria-selected', 'true');
+
+    // At the cap: the hint appears, and a third, not-yet-selected option is blocked.
+    await expect(canvas.getByText('Maximum 2 selected')).toBeInTheDocument();
+    const fi = canvas.getByRole('option', { name: 'Financial Institutions' });
+    await expect(fi).toHaveAttribute('aria-disabled', 'true');
+    await userEvent.click(fi);
+    await expect(fi).toHaveAttribute('aria-selected', 'false');
+
+    // Removing an already-selected option is still allowed at the cap, freeing a slot.
+    const sovereigns = canvas.getByRole('option', { name: 'Sovereigns' });
+    await userEvent.click(sovereigns);
+    await expect(sovereigns).toHaveAttribute('aria-selected', 'false');
+    await expect(canvas.queryByText('Maximum 2 selected')).not.toBeInTheDocument();
+
+    // With a slot free again, the previously-blocked option can now be selected.
+    await userEvent.click(fi);
+    await expect(fi).toHaveAttribute('aria-selected', 'true');
+  },
+};
