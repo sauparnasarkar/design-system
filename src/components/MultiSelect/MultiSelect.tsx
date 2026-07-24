@@ -25,6 +25,11 @@ export interface MultiSelectProps {
   suppressSearch?: boolean;
   /** Placeholder for the in-menu search box */
   searchPlaceholder?: string;
+  /** Caps the number of simultaneous selections — further un-selected options render
+   * disabled (blocked from toggling on) once reached, while existing tags stay removable.
+   * For picking a bounded number from a large pool (e.g. up to 10 countries for a chart
+   * that gets unreadable past that), not general form validation. */
+  maxSelected?: number;
   className?: string;
 }
 
@@ -43,6 +48,7 @@ export function MultiSelect({
   label,
   suppressSearch = false,
   searchPlaceholder = 'Search…',
+  maxSelected,
   className,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
@@ -54,7 +60,10 @@ export function MultiSelect({
   const selected = value ?? internal;
   const labelId = React.useId();
   const listboxId = React.useId();
+  const maxHintId = React.useId();
   const optionId = (i: number) => `${listboxId}-option-${i}`;
+  const atCap = maxSelected !== undefined && selected.length >= maxSelected;
+  const isBlocked = (o: MultiSelectOption) => o.disabled || (atCap && !selected.includes(o.value));
 
   const visibleOptions = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -75,7 +84,7 @@ export function MultiSelect({
   // aria-activedescendant never point at a filtered-out (or stale) option.
   React.useEffect(() => {
     if (!open) return;
-    const firstEnabled = visibleOptions.findIndex((o) => !o.disabled);
+    const firstEnabled = visibleOptions.findIndex((o) => !isBlocked(o));
     setHighlighted(firstEnabled === -1 ? 0 : firstEnabled);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, visibleOptions]);
@@ -90,15 +99,22 @@ export function MultiSelect({
     setInternal(next);
     onChange?.(next);
   };
-  const toggle = (v: string) =>
-    commit(selected.includes(v) ? selected.filter((x) => x !== v) : [...selected, v]);
+  // Removing an already-selected value is always allowed, even at the cap — only adding a
+  // new one is blocked once maxSelected is reached.
+  const toggle = (v: string) => {
+    if (selected.includes(v)) {
+      commit(selected.filter((x) => x !== v));
+    } else if (!atCap) {
+      commit([...selected, v]);
+    }
+  };
 
   const moveHighlight = (delta: number) => {
     if (visibleOptions.length === 0) return;
     let next = highlighted;
     for (let i = 0; i < visibleOptions.length; i++) {
       next = (next + delta + visibleOptions.length) % visibleOptions.length;
-      if (!visibleOptions[next].disabled) break;
+      if (!isBlocked(visibleOptions[next])) break;
     }
     setHighlighted(next);
   };
@@ -112,7 +128,7 @@ export function MultiSelect({
     if (e.key === 'Enter' || (allowSpaceToggle && e.key === ' ')) {
       e.preventDefault();
       const opt = visibleOptions[highlighted];
-      if (opt && !opt.disabled) toggle(opt.value);
+      if (opt && !isBlocked(opt)) toggle(opt.value);
       return;
     }
     if (e.key === 'Escape') {
@@ -217,12 +233,22 @@ export function MultiSelect({
                   aria-controls={listboxId}
                   aria-activedescendant={visibleOptions.length > 0 ? optionId(highlighted) : undefined}
                   aria-label={typeof label === 'string' ? `Search ${label}` : 'Search options'}
+                  aria-describedby={atCap ? maxHintId : undefined}
                   value={query}
                   placeholder={searchPlaceholder}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => navigateOrToggle(e, false)}
                   style={{ flex: 1, border: 0, outline: 'none', background: 'transparent', font: 'inherit', color: 'inherit' }}
                 />
+              </div>
+            )}
+            {atCap && (
+              <div
+                id={maxHintId}
+                className="__s9cmpx-dropdown-multi-select__max-hint __s9cmpx-body4"
+                style={{ padding: '6px 8px', color: 'var(--__s9cmpx-static-text-weak)' }}
+              >
+                Maximum {maxSelected} selected
               </div>
             )}
             <ul id={listboxId} className="__s9cmpx-dropdown-multi-select__menu-list" role="listbox" aria-multiselectable="true" style={{ listStyle: 'none', margin: 0, padding: 4, maxHeight: 240, overflowY: 'auto' }}>
@@ -239,21 +265,23 @@ export function MultiSelect({
               ) : (
                 visibleOptions.map((o, i) => {
                   const isSel = selected.includes(o.value);
+                  const blocked = isBlocked(o);
                   return (
                     <li
                       key={o.value}
                       id={optionId(i)}
                       role="option"
                       aria-selected={isSel}
+                      aria-disabled={blocked || undefined}
                       className={cx(
                         '__s9cmpx-dropdown-multi-select__option',
                         isSel && '__s9cmpx-dropdown-multi-select__option--is-selected',
                         i === highlighted && '__s9cmpx-dropdown-multi-select__option--is-focused',
-                        o.disabled && '__s9cmpx-dropdown-multi-select__option--is-disabled',
+                        blocked && '__s9cmpx-dropdown-multi-select__option--is-disabled',
                       )}
-                      onClick={() => !o.disabled && toggle(o.value)}
+                      onClick={() => !blocked && toggle(o.value)}
                       onMouseEnter={() => setHighlighted(i)}
-                      style={{ cursor: o.disabled ? 'default' : 'pointer' }}
+                      style={{ cursor: blocked ? 'default' : 'pointer' }}
                     >
                       {/* A real <input type="checkbox"> here would be a focusable element
                           nested inside this <li role="option"> — an axe "nested-interactive"
@@ -274,7 +302,7 @@ export function MultiSelect({
                             borderRadius: 2,
                             boxSizing: 'border-box',
                             border: isSel ? 'none' : '1px solid var(--__s9cmpx-c-checkbox-input-border-color-default)',
-                            background: o.disabled
+                            background: blocked
                               ? 'var(--__s9cmpx-c-checkbox-input-background-color-disabled)'
                               : isSel
                                 ? 'var(--__s9cmpx-c-checkbox-input-background-color-checked)'

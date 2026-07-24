@@ -60,3 +60,54 @@ export const KeyboardSkipsDisabledOption: Story = {
     await expect(control).toHaveAttribute('aria-activedescendant', allSectors.id);
   },
 };
+
+export const SearchFiltersOptions: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('combobox', { name: 'Sector' }));
+
+    const search = canvas.getByRole('combobox', { name: 'Search Sector' });
+    await expect(search).toHaveFocus();
+    await userEvent.type(search, 'Financial');
+
+    await expect(canvas.getByRole('option', { name: 'Financial Institutions' })).toBeInTheDocument();
+    await expect(canvas.queryByRole('option', { name: 'Corporates' })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('option', { name: 'Sovereigns' })).not.toBeInTheDocument();
+
+    // Selecting still works against the filtered list, and commits + closes as usual.
+    await userEvent.keyboard('{Enter}');
+    const control = canvas.getByRole('combobox', { name: 'Sector' });
+    await expect(control).toHaveTextContent('Financial Institutions');
+    await expect(canvas.queryByRole('listbox')).not.toBeInTheDocument();
+  },
+};
+
+export const SearchNoMatches: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('combobox', { name: 'Sector' }));
+    await userEvent.type(canvas.getByRole('combobox', { name: 'Search Sector' }), 'zzz-no-such-sector');
+
+    // "No matches" is itself a disabled role="option" placeholder row.
+    const noMatches = canvas.getByRole('option', { name: 'No matches' });
+    await expect(noMatches).toHaveAttribute('aria-disabled', 'true');
+    await expect(canvas.getAllByRole('option')).toHaveLength(1);
+  },
+};
+
+export const SearchSuppressed: Story = {
+  args: { suppressSearch: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const control = canvas.getByRole('combobox', { name: 'Sector' });
+    await userEvent.click(control);
+
+    await expect(canvas.queryByPlaceholderText('Search…')).not.toBeInTheDocument();
+
+    // With no search box to move focus to, the control itself must still drive selection
+    // directly, same as before this feature existed.
+    await expect(control).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}');
+    await expect(control).toHaveTextContent('Sovereigns');
+  },
+};
