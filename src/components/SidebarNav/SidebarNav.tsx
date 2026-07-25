@@ -249,7 +249,7 @@ export function SidebarNav({
                     {group.label}
                   </span>
                 )}
-                <ul className="__s9cmpx-sidebar-nav__menu-list" role="menu" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                <ul className="__s9cmpx-sidebar-nav__menu-list" role="menu" aria-label={group.label} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                   {group.items.map(renderItem)}
                 </ul>
               </React.Fragment>
