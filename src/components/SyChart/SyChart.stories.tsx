@@ -135,6 +135,40 @@ export const MultiSeriesLine: Story = {
   },
 };
 
+/**
+ * Many-series legend in a narrow container (~290px, matching a mobile viewport) — regression
+ * story for a real bug: a horizontal legend that can't fit all entries in one row wraps to one
+ * item per row, and without extra height reserved for it, Plotly makes the legend's own
+ * overflow area internally scrollable. That scrollbar rendered as a bare gray bar over the plot
+ * with no visible legend container around it (no `bgcolor` is set), since the legend region
+ * itself was clipped far below the tiny space actually available. Resize this story's container
+ * (or check it in Chromatic/visual review at a narrow width) — every country should be listed
+ * with no gray bar cutting across the lines.
+ */
+export const ManySeriesLineNarrow: Story = {
+  render: () => {
+    const years = ['1990', '2000', '2010', '2020', '2024'];
+    const countries = ['China', 'United States', 'India', 'Russia', 'Japan', 'Germany', 'Brazil', 'United Kingdom', 'South Africa', 'Australia'];
+    return (
+      <div style={{ maxWidth: 290 }}>
+        <ChartCard title="CO₂ Emissions by Country" onDownload={() => {}}>
+          <SyChart
+            height={280}
+            xTitle="Year"
+            yTitle="CO₂ (MtCO₂)"
+            series={countries.map((name, i) => ({
+              name,
+              x: years,
+              y: years.map((_, yi) => 1000 + i * 300 + yi * 150),
+              kind: 'line' as const,
+            }))}
+          />
+        </ChartCard>
+      </div>
+    );
+  },
+};
+
 /** Shaded confidence-interval band, default vs. a lower `fillOpacity` for a less visually dominant CI. */
 export const ConfidenceBand: Story = {
   render: () => {

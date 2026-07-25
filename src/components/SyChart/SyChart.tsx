@@ -411,6 +411,28 @@ export function SyChart({
         Plotly.relayout(el, { height: Math.max(220, width / CHOROPLETH_ASPECT_RATIO) });
       });
       resizeObserver.observe(el);
+    } else if (showLegend && series.length > 3) {
+      // A horizontal legend above the plot (see layout.legend below) wraps to more rows once
+      // its entries don't fit one container's width -- Plotly gives the legend a fixed share
+      // of the chart's own `height` regardless of row count, so once it wraps to more rows
+      // than that share can show, it silently becomes an internally-scrollable box instead of
+      // growing, and the scrollbar thumb renders as a bare gray bar over the plot with no
+      // visible legend container around it (confirmed via direct DOM inspection: with 10
+      // countries at a ~290px mobile container width, wrapped rows overflowed the legend's
+      // ~40%-of-height allocation, `rect.scrollbar` rendered with a non-zero height instead of
+      // the 0 it has when the content fits). Estimating rows from container width and growing
+      // `height` accordingly keeps every row visible without scrolling; wide/desktop
+      // containers that already fit the legend in one row compute rows=1 and get no change.
+      const LEGEND_ITEM_WIDTH = 150; // swatch + gap + a country name as long as "United Kingdom"
+      const LEGEND_ROW_HEIGHT = 22; // measured: each wrapped row is ~19-20px tall, plus a small buffer
+      resizeObserver = new ResizeObserver((entries) => {
+        const width = entries[0]?.contentRect.width;
+        if (!width) return;
+        const itemsPerRow = Math.max(1, Math.floor(width / LEGEND_ITEM_WIDTH));
+        const rows = Math.ceil(series.length / itemsPerRow);
+        Plotly.relayout(el, { height: rows > 1 ? height + (rows - 1) * LEGEND_ROW_HEIGHT : height });
+      });
+      resizeObserver.observe(el);
     }
 
     return () => {
