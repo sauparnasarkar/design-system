@@ -308,7 +308,10 @@ export function SyChart({
       barmode,
       height,
       font,
-      margin: { l: 48, r: 8, t: 8, b: 32 },
+      // Choropleths have no axis titles/ticks to reserve room for -- the default left
+      // margin (sized for a y-axis title) would otherwise reduce usable map width and
+      // shift it off-center.
+      margin: hasChoropleth ? { l: 8, r: 8, t: 8, b: 8 } : { l: 48, r: 8, t: 8, b: 32 },
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
       showlegend: showLegend,
@@ -342,6 +345,11 @@ export function SyChart({
             bgcolor: 'rgba(0,0,0,0)',
             lakecolor: cssVar(el, '--__s9cmpx-static-layer-standard', '#1f1f1f'),
             landcolor: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'),
+            // Country-level choropleths never need Antarctica/high-Arctic ocean, which
+            // Plotly otherwise reserves visible latitude range for -- cropping it lets the
+            // map scale up to fill more of the available width for the same chart height,
+            // instead of centering a smaller map with large empty margins on both sides.
+            lataxis: { range: [-60, 85] },
           }
         : undefined,
       hovermode: 'x unified',
@@ -361,7 +369,33 @@ export function SyChart({
       annotations: allAnnotations.length > 0 ? allAnnotations : undefined,
     };
     Plotly.react(el, data, layout, { displayModeBar: false, responsive: true });
+
+    // Choropleth maps size themselves off their own container width rather than the fixed
+    // `height` prop -- a hardcoded height either leaves large empty side margins on wide
+    // desktop containers (Plotly is height-bound, so it centers a narrower map) or renders a
+    // tiny map lost in a mostly-empty box on narrow/mobile containers (still width-bound, but
+    // now against a height built for desktop). `height` above is just the pre-measurement
+    // fallback for the very first paint. Plotly.relayout is used rather than a React state
+    // update because a state-driven re-render would trigger a rapid purge+react cycle
+    // immediately following the first one (ResizeObserver fires once on observe()), which
+    // raced Plotly's internal async update pipeline in jsdom and threw. relayout is Plotly's
+    // own supported mechanism for exactly this kind of live resize and carries no such risk.
+    let resizeObserver: ResizeObserver | undefined;
+    if (hasChoropleth) {
+      // Matches the natural-earth projection's own visible aspect ratio once cropped via
+      // the geo.lataxis range above (measured empirically); the floor guards against a
+      // vanishingly small map on an extremely narrow container.
+      const CHOROPLETH_ASPECT_RATIO = 2;
+      resizeObserver = new ResizeObserver((entries) => {
+        const width = entries[0]?.contentRect.width;
+        if (!width) return;
+        Plotly.relayout(el, { height: Math.max(220, width / CHOROPLETH_ASPECT_RATIO) });
+      });
+      resizeObserver.observe(el);
+    }
+
     return () => {
+      resizeObserver?.disconnect();
       Plotly.purge(el);
     };
   }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations]);
