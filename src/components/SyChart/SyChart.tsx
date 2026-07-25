@@ -12,6 +12,8 @@ export interface SyChartSeries {
   kind?: 'bar' | 'line' | 'band' | 'choropleth' | 'treemap';
   /** Lower bound for kind 'band'; `y` is the upper bound */
   yLower?: Array<number | null>;
+  /** Fill opacity for kind 'band' (0–1). Defaults to 0.25. */
+  fillOpacity?: number;
   /** Any CSS color; defaults to the categorical palette in order */
   color?: string;
   /**
@@ -238,7 +240,7 @@ export function SyChart({
             y: s.y,
             line: { width: 0 },
             fill: 'tonexty',
-            fillcolor: withAlpha(color, 0.25),
+            fillcolor: withAlpha(color, s.fillOpacity ?? 0.25),
           },
         ];
       }
