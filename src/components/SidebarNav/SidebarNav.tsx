@@ -28,8 +28,17 @@ export interface SidebarNavItem {
   active?: boolean;
 }
 
-export interface SidebarNavProps {
+export interface SidebarNavGroup {
+  /** Section caption, e.g. "Exploration". Omit for an unlabeled cluster. */
+  label?: string;
   items: SidebarNavItem[];
+}
+
+export interface SidebarNavProps {
+  /** Flat list, unlabeled — existing behavior, unchanged for current consumers. */
+  items?: SidebarNavItem[];
+  /** Labeled sections — mutually exclusive with `items` (if both are passed, `groups` wins). */
+  groups?: SidebarNavGroup[];
   /** Items pinned to the bottom, after a divider (e.g. Customer Support) */
   footerItems?: SidebarNavItem[];
   /** Expanded (labels visible) vs collapsed (icons only) */
@@ -45,6 +54,7 @@ export interface SidebarNavProps {
 
 export function SidebarNav({
   items,
+  groups,
   footerItems = [],
   open: openProp,
   onToggle,
@@ -52,6 +62,10 @@ export function SidebarNav({
   className,
   mobileToggleSide = 'left',
 }: SidebarNavProps) {
+  // Normalize to a single list-of-groups shape internally, regardless of
+  // which prop the consumer passed — `items` becomes one unlabeled group, so
+  // the render logic below has a single path for both flat and grouped nav.
+  const renderedGroups: SidebarNavGroup[] = groups ?? [{ items: items ?? [] }];
   const isMobile = useIsMobile();
   const [internalOpen, setInternalOpen] = React.useState(() => !isMobile);
   const open = openProp ?? internalOpen;
@@ -218,9 +232,29 @@ export function SidebarNav({
           >
             <Icon name={isMobile ? 'close' : 'menu'} size={20} />
           </button>
-          <ul className="__s9cmpx-sidebar-nav__menu-list" role="menu" style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1 }}>
-            {items.map(renderItem)}
-          </ul>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            {renderedGroups.map((group, i) => (
+              <React.Fragment key={group.label ?? i}>
+                {i > 0 && (
+                  <hr
+                    className="__s9cmpx-sidebar-nav__sidebar-item--divider"
+                    style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }}
+                  />
+                )}
+                {group.label && open && (
+                  <span
+                    className="__s9cmpx-sidebar-nav__group-label __s9cmpx-label3"
+                    style={{ display: 'block', padding: '8px 14px 4px', color: 'var(--__s9cmpx-static-text-weak)', textTransform: 'uppercase' }}
+                  >
+                    {group.label}
+                  </span>
+                )}
+                <ul className="__s9cmpx-sidebar-nav__menu-list" role="menu" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {group.items.map(renderItem)}
+                </ul>
+              </React.Fragment>
+            ))}
+          </div>
           {footerItems.length > 0 && (
             <>
               <hr className="__s9cmpx-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
