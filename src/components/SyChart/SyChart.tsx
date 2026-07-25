@@ -226,6 +226,18 @@ export function SyChart({
               ? {
                   colors: s.colorValues,
                   colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+                  // Plotly auto-scales a continuous colorscale to the actual min/max of the
+                  // provided values, not to a fixed zero-centered range -- with no colorScale
+                  // override (i.e. the default green/lightgrey/crimson "below/above a
+                  // reference point" convention), that silently breaks the convention itself
+                  // whenever the data is skewed: e.g. one huge outlier riser drags the
+                  // "crimson" end far to the right, so every merely-modest riser lands near
+                  // the "green" end of the auto-range and reads as green despite being an
+                  // increase. Pinning the midpoint to true 0 keeps lightgrey at "no change"
+                  // and red/green symmetric around it regardless of skew. Only applied to the
+                  // default scale -- a custom colorScale (e.g. a one-sided magnitude scale)
+                  // may not have a meaningful zero crossing at all.
+                  cmid: s.colorScale ? undefined : 0,
                   showscale: s.showColorbar ?? true,
                   colorbar: {
                     title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
@@ -279,6 +291,9 @@ export function SyChart({
         ? {
             color: s.colorValues,
             colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+            // See the treemap branch's identical cmid comment above -- same auto-range skew
+            // risk applies to bar's marker.color continuous scaling.
+            cmid: s.colorScale ? undefined : 0,
             showscale: s.showColorbar ?? true,
             colorbar: {
               title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
