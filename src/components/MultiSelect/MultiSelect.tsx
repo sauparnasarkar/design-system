@@ -204,8 +204,8 @@ export function MultiSelect({
               // visually distinct "control-level actions" group — without this, the
               // clear-all "×" sits directly adjacent to the last tag's own remove-×,
               // same icon/size, easily mistaken for one another.
-              marginLeft: 8,
-              paddingLeft: 8,
+              marginLeft: selected.length > 0 ? 8 : undefined,
+              paddingLeft: selected.length > 0 ? 8 : undefined,
               borderLeft: selected.length > 0 ? '1px solid var(--__s9cmpx-static-divider-weak, rgba(31,31,31,0.08))' : undefined,
             }}
           >
