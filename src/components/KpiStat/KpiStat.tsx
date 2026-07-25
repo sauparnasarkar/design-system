@@ -9,8 +9,15 @@ export interface KpiStatProps extends React.HTMLAttributes<HTMLDivElement> {
   value: React.ReactNode;
   /** Change indicator, e.g. "+76.5%" */
   delta?: React.ReactNode;
-  /** Colors the delta; "up" green, "down" red, "neutral" gray */
-  deltaDirection?: 'up' | 'down' | 'neutral';
+  /**
+   * Colors the delta. `"up"`/`"down"` color by numeric sign (green/red) and render a
+   * matching chevron — the right choice when a larger number is inherently the good
+   * outcome (revenue, attendance). `"good"`/`"bad"` color by outcome directly, with no
+   * chevron, for metrics where sign and desirability point in opposite directions (e.g.
+   * an emissions increase is "up" numerically but a bad outcome) — callers shouldn't have
+   * to invert up/down themselves to get the right color. `"neutral"` is gray, no chevron.
+   */
+  deltaDirection?: 'up' | 'down' | 'neutral' | 'good' | 'bad';
   /** Render inside a bordered card (BoldBI KPI tile look) */
   card?: boolean;
 }
@@ -26,11 +33,12 @@ export function KpiStat({
   ...rest
 }: KpiStatProps) {
   const deltaColor =
-    deltaDirection === 'up'
+    deltaDirection === 'up' || deltaDirection === 'good'
       ? 'var(--__s9cmpx-static-text-sentiment-positive, #187254)'
-      : deltaDirection === 'down'
+      : deltaDirection === 'down' || deltaDirection === 'bad'
         ? 'var(--__s9cmpx-static-text-sentiment-negative, #8d1a2a)'
         : 'var(--__s9cmpx-static-text-weak, #757575)';
+  const showChevron = deltaDirection === 'up' || deltaDirection === 'down';
   return (
     <div
       className={cx('__s9cmpx-kpi-stat', card && '__s9cmpx-card __s9cmpx-card--with-border', className)}
@@ -41,7 +49,7 @@ export function KpiStat({
       <span className="__s9cmpx-headline4" style={{ lineHeight: 1.1 }}>{value}</span>
       {delta && (
         <span className="__s9cmpx-label2" style={{ color: deltaColor, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          {deltaDirection !== 'neutral' && (
+          {showChevron && (
             <Icon name={deltaDirection === 'up' ? 'chevron-up' : 'chevron-down'} size={14} />
           )}
           {delta}

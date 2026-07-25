@@ -168,3 +168,99 @@ export const ConfidenceBand: Story = {
     );
   },
 };
+
+/** World map — 'choropleth' kind with a log-scaled colorbar (`zLog`) so mid-tier values remain distinguishable. */
+export const Choropleth: Story = {
+  render: () => {
+    const countries = ['CHN', 'USA', 'IND', 'RUS', 'JPN', 'DEU', 'BRA', 'GBR', 'ZAF', 'AUS', 'FRA', 'CAN', 'IDN', 'MEX'];
+    const co2 = [11900, 5000, 2900, 1700, 1050, 640, 470, 340, 440, 390, 300, 570, 680, 480];
+    return (
+      <ChartCard title="Latest-Year CO₂ Emissions by Country" onDownload={() => {}}>
+        <SyChart
+          height={420}
+          showLegend={false}
+          series={[{
+            name: 'CO₂ (Mt)',
+            x: [],
+            y: [],
+            kind: 'choropleth',
+            locations: countries,
+            zLog: true,
+            colorValues: co2,
+            colorScale: [[0, '#fff2cc'], [0.5, '#f0a24a'], [1, '#7a1f1f']],
+            colorbarTitle: 'MtCO₂',
+          }]}
+        />
+      </ChartCard>
+    );
+  },
+};
+
+/** Flat, non-hierarchical treemap — 'treemap' kind sized by BAU cumulative total, colored by reduction upside. */
+export const Treemap: Story = {
+  render: () => {
+    const countries = ['China', 'United States', 'India', 'Russia', 'Japan', 'Germany', 'Brazil', 'United Kingdom'];
+    const bauTotal = [420000, 180000, 110000, 62000, 38000, 23000, 17000, 12000];
+    const reductionUpsidePct = [18, 32, 12, 22, 41, 55, 25, 48];
+    return (
+      <ChartCard title="Cumulative BAU Emissions, Sized by Total / Colored by Reduction Upside" onDownload={() => {}}>
+        <SyChart
+          height={360}
+          showLegend={false}
+          series={[{
+            name: 'Reduction Upside',
+            x: [],
+            y: [],
+            kind: 'treemap',
+            labels: countries,
+            parents: countries.map(() => ''),
+            values: bauTotal,
+            colorValues: reductionUpsidePct,
+            colorScale: [[0, '#eaf7ea'], [1, '#1a7a3c']],
+            colorbarTitle: '% Reduction Upside',
+          }]}
+        />
+      </ChartCard>
+    );
+  },
+};
+
+/** Two small-multiple panels sharing an identical `yRange` — the detail that makes side-by-side comparison honest. */
+export const SharedYRange: Story = {
+  render: () => {
+    const years = ['2019', '2020', '2021', '2022', '2023'];
+    const chinaBau = [10200, 9800, 10500, 10800, 11200];
+    const usBau = [5000, 4600, 4900, 4950, 4850];
+    const sharedRange: [number, number] = [0, 12000];
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 16 }}>
+        <ChartCard title="China — BAU" onDownload={() => {}}>
+          <SyChart height={260} showLegend={false} yRange={sharedRange} series={[{ name: 'BAU', x: years, y: chinaBau, kind: 'line' }]} />
+        </ChartCard>
+        <ChartCard title="United States — BAU" onDownload={() => {}}>
+          <SyChart height={260} showLegend={false} yRange={sharedRange} series={[{ name: 'BAU', x: years, y: usBau, kind: 'line' }]} />
+        </ChartCard>
+      </div>
+    );
+  },
+};
+
+/** A custom annotation (e.g. "Global lockdowns") merged alongside the existing `referenceY` label annotation. */
+export const Annotations: Story = {
+  render: () => (
+    <ChartCard title="Historical CO₂ with a 2020 Annotation" onDownload={() => {}}>
+      <SyChart
+        height={300}
+        showLegend={false}
+        referenceY={{ value: 30000, label: '1990 level' }}
+        annotations={[{ x: '2020', y: 31500, text: 'Global lockdowns', showarrow: true }]}
+        series={[{
+          name: 'CO₂',
+          x: ['2018', '2019', '2020', '2021', '2022'],
+          y: [34500, 34800, 31200, 33600, 34900],
+          kind: 'line',
+        }]}
+      />
+    </ChartCard>
+  ),
+};

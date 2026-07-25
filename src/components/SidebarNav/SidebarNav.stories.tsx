@@ -39,3 +39,28 @@ export const BlueThemeNavigation: Story = {
     footerItems: [{ id: 'support', label: 'Customer Support', icon: 'info', hasFlyout: true }],
   },
 };
+
+export const LabeledGroups: Story = {
+  args: {
+    items: undefined,
+    groups: [
+      {
+        label: 'Exploration',
+        items: [
+          { id: 'overview', label: 'Overview', icon: 'home', active: true },
+          { id: 'historical', label: 'Historical Trends', icon: 'grid' },
+          { id: 'profile', label: 'Country Profile', icon: 'user' },
+          { id: 'explorer', label: 'Data Explorer', icon: 'document' },
+        ],
+      },
+      {
+        label: 'Projection',
+        items: [
+          { id: 'forecasts', label: 'Forecasts', icon: 'grid' },
+          { id: 'scenarios', label: 'Scenario Comparison', icon: 'document' },
+        ],
+      },
+    ],
+    footerItems: [{ id: 'about', label: 'About', icon: 'info' }],
+  },
+};
