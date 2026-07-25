@@ -45,6 +45,8 @@ export interface SyChartSeries {
    * back-transformed into real units rather than raw log values.
    */
   zLog?: boolean;
+  /** 'choropleth' only: unit label appended to the hover tooltip's value (e.g. 'MtCO₂') */
+  hoverUnit?: string;
   /** 'treemap' only: one label per tile */
   labels?: string[];
   /** 'treemap' only: parent label per tile; '' for a flat (non-hierarchical) treemap */
@@ -182,12 +184,28 @@ export function SyChart({
             locations: s.locations,
             locationmode: s.locationmode ?? 'ISO-3',
             z,
+            // The real (untransformed) value, even when zLog log10-transformed z for coloring --
+            // hovertemplate reads from here instead of the implicit %{z} fallback, which would
+            // otherwise show the raw log10 number rather than the actual MtCO2 figure.
+            customdata: s.colorValues,
+            hovertemplate: s.hoverUnit
+              ? `%{location}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
+              : '%{location}<br>%{customdata:,.0f}<extra></extra>',
             colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
             showscale: s.showColorbar ?? true,
             marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
+            // Horizontal, positioned below the map -- a vertical colorbar spans the full geo
+            // domain box, but the natural-earth projection is aspect-fit *within* that box and
+            // is often letterboxed shorter than it (worse at narrower widths), so a vertical
+            // colorbar reads visibly taller than the map itself. Horizontal sidesteps the
+            // mismatch entirely instead of tuning a `len` heuristic to compensate for it.
             colorbar: {
               title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
+              orientation: 'h',
               thickness: 14,
+              len: 0.8,
+              y: -0.05,
+              yanchor: 'top',
               outlinewidth: 0,
               tickfont: font,
               ...(logTicks ? { tickvals: logTicks.tickvals, ticktext: logTicks.ticktext } : {}),
@@ -310,8 +328,9 @@ export function SyChart({
       font,
       // Choropleths have no axis titles/ticks to reserve room for -- the default left
       // margin (sized for a y-axis title) would otherwise reduce usable map width and
-      // shift it off-center.
-      margin: hasChoropleth ? { l: 8, r: 8, t: 8, b: 8 } : { l: 48, r: 8, t: 8, b: 32 },
+      // shift it off-center. Bottom margin is sized for the horizontal colorbar (title +
+      // scale + tick labels) that now sits below the map rather than beside it.
+      margin: hasChoropleth ? { l: 8, r: 8, t: 8, b: 64 } : { l: 48, r: 8, t: 8, b: 32 },
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
       showlegend: showLegend,

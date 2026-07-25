@@ -169,7 +169,12 @@ export const ConfidenceBand: Story = {
   },
 };
 
-/** World map — 'choropleth' kind with a log-scaled colorbar (`zLog`) so mid-tier values remain distinguishable. */
+/**
+ * World map — 'choropleth' kind with a log-scaled colorbar (`zLog`) so mid-tier values remain
+ * distinguishable. Hover a country: the tooltip shows the real MtCO₂ figure (via `hoverUnit` +
+ * `customdata`), not the log10-transformed color value. The colorbar renders horizontally below
+ * the map rather than alongside it, so it never reads taller than the map itself.
+ */
 export const Choropleth: Story = {
   render: () => {
     const countries = ['CHN', 'USA', 'IND', 'RUS', 'JPN', 'DEU', 'BRA', 'GBR', 'ZAF', 'AUS', 'FRA', 'CAN', 'IDN', 'MEX'];
@@ -189,6 +194,7 @@ export const Choropleth: Story = {
             colorValues: co2,
             colorScale: [[0, '#fff2cc'], [0.5, '#f0a24a'], [1, '#7a1f1f']],
             colorbarTitle: 'MtCO₂',
+            hoverUnit: 'MtCO₂',
           }]}
         />
       </ChartCard>
