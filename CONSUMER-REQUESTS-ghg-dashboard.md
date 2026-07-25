@@ -1,6 +1,17 @@
 # Consumer Requests — GHG Emissions Dashboard
 
-Status: proposals only — nothing here is queued, same convention as `ENHANCEMENTS.md`.
+**Status: resolved.** All four items below shipped (`KpiStat`'s `good`/`bad`,
+`MultiSelect`'s clear-all spacing, `SidebarNav`'s `groups`, `SyChart`'s choropleth/
+treemap/`yRange`/`xRange`/annotations) as prerequisite PRs for the consumer's Release 3.
+Kept here as the historical record of the original findings, not updated further.
+
+`SyChart` in particular kept picking up consumer-driven fixes well past item 4's
+original scope — a choropleth hover/colorbar fix, a mobile-only chart-legend rendering
+bug, a diverging-colorscale auto-ranging bug, and a treemap hover enhancement, none of
+which are proposals recorded here first. This file was for original proposals before
+they were built, not an ongoing changelog — the consumer's own `ENHANCEMENTS.md`
+(Release 3.1 and its follow-up section) is the authoritative record of everything that
+shipped in `SyChart` after item 4, including the reasoning and verification for each.
 
 Separate from `ENHANCEMENTS.md`'s internal roadmap (that file tracks capability gaps
 found by auditing this system against production fg pages; this one tracks concrete
