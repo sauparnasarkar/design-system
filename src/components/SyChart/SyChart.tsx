@@ -282,12 +282,6 @@ export function SyChart({
       ];
     });
     const hasChoropleth = series.some((s) => s.kind === 'choropleth');
-    // Choropleth maps size themselves off their own container width rather than the fixed
-    // `height` prop -- a hardcoded height either leaves large empty side margins on wide
-    // desktop containers (Plotly is height-bound, so it centers a narrower map) or renders a
-    // tiny map lost in a mostly-empty box on narrow/mobile containers (still width-bound, but
-    // now against a height built for desktop). `height` is just the pre-measurement fallback
-    // for the very first paint, corrected via the ResizeObserver-driven relayout below.
     const referenceAnnotation = referenceY?.label
       ? [
           {
@@ -376,13 +370,16 @@ export function SyChart({
     };
     Plotly.react(el, data, layout, { displayModeBar: false, responsive: true });
 
-    // Corrects the initial fallback height once the container's real width is known, and
-    // keeps it in sync across resizes -- an imperative Plotly.relayout rather than a React
-    // state update feeding back into this same effect, since a rapid purge+react cycle
-    // immediately following the first one (which a state-driven re-render would cause, as
-    // ResizeObserver fires once immediately on observe()) raced Plotly's own internal async
-    // update pipeline in jsdom and threw. relayout is Plotly's own supported mechanism for
-    // exactly this kind of live resize and carries no such risk.
+    // Choropleth maps size themselves off their own container width rather than the fixed
+    // `height` prop -- a hardcoded height either leaves large empty side margins on wide
+    // desktop containers (Plotly is height-bound, so it centers a narrower map) or renders a
+    // tiny map lost in a mostly-empty box on narrow/mobile containers (still width-bound, but
+    // now against a height built for desktop). `height` above is just the pre-measurement
+    // fallback for the very first paint. Plotly.relayout is used rather than a React state
+    // update because a state-driven re-render would trigger a rapid purge+react cycle
+    // immediately following the first one (ResizeObserver fires once on observe()), which
+    // raced Plotly's internal async update pipeline in jsdom and threw. relayout is Plotly's
+    // own supported mechanism for exactly this kind of live resize and carries no such risk.
     let resizeObserver: ResizeObserver | undefined;
     if (hasChoropleth) {
       // Matches the natural-earth projection's own visible aspect ratio once cropped via
