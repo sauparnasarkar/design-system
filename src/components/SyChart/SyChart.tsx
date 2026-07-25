@@ -45,7 +45,7 @@ export interface SyChartSeries {
    * back-transformed into real units rather than raw log values.
    */
   zLog?: boolean;
-  /** 'choropleth' only: unit label appended to the hover tooltip's value (e.g. 'MtCO₂') */
+  /** 'choropleth'/'treemap' only: unit label appended to the hover tooltip's value(s) (e.g. 'MtCO₂') */
   hoverUnit?: string;
   /** 'treemap' only: one label per tile */
   labels?: string[];
@@ -53,6 +53,14 @@ export interface SyChartSeries {
   parents?: string[];
   /** 'treemap' only: tile size per entry */
   values?: number[];
+  /**
+   * 'treemap' only: label for the tile-size (`values`) metric in the hover tooltip (e.g.
+   * "Cumulative BAU"). Plotly's default treemap hover otherwise only shows the tile's label
+   * and its size, silently dropping the metric `colorValues` actually encodes even though
+   * that's what the tile's color represents. `colorbarTitle` is reused as the delta metric's
+   * own hover label, so both numbers driving the tile (size and color) are visible on hover.
+   */
+  valueLabel?: string;
 }
 
 export interface SyChartAnnotation {
@@ -214,6 +222,21 @@ export function SyChart({
         ];
       }
       if (s.kind === 'treemap') {
+        // Plotly's default treemap hover only shows the tile's label and its size (`values`)
+        // -- it silently drops the metric `colorValues` encodes even though that's what the
+        // tile's color represents, which is exactly the number a viewer wants after reading
+        // the color legend. customdata carries the real (unclamped) color values through so
+        // both the size and color metrics show on hover; valueLabel/colorbarTitle label each.
+        const unit = s.hoverUnit ? ` ${s.hoverUnit}` : '';
+        // Pre-formatted (not raw numbers) so the sign prefix is guaranteed -- Plotly's
+        // hovertemplate number formatting doesn't reliably support the "+" sign flag
+        // (`%{customdata:+,.0f}` silently fell back to an unformatted raw float when tested).
+        const formattedDeltas = s.colorValues?.map((v) =>
+          v == null ? null : `${v >= 0 ? '+' : ''}${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+        );
+        const hovertemplate = s.colorValues
+          ? `%{label}<br>${s.valueLabel ?? 'Value'}: %{value:,.0f}${unit}<br>${s.colorbarTitle ?? 'Color'}: %{customdata}${unit}<extra></extra>`
+          : undefined;
         return [
           {
             type: 'treemap',
@@ -221,6 +244,8 @@ export function SyChart({
             labels: s.labels,
             parents: s.parents,
             values: s.values,
+            customdata: formattedDeltas,
+            hovertemplate,
             textfont: font,
             marker: s.colorValues
               ? {
