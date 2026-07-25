@@ -134,3 +134,37 @@ export const MultiSeriesLine: Story = {
     );
   },
 };
+
+/** Shaded confidence-interval band, default vs. a lower `fillOpacity` for a less visually dominant CI. */
+export const ConfidenceBand: Story = {
+  render: () => {
+    const years = ['2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026', '2027', '2028'];
+    const central = [34500, 31200, 33600, 34900, 35100, 35400, 35700, 36000, 36300, 36600];
+    const upper = central.map((v, i) => v + 400 * (i + 1));
+    const lower = central.map((v, i) => v - 400 * (i + 1));
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 16 }}>
+        <ChartCard title="Default fillOpacity (0.25)" onDownload={() => {}}>
+          <SyChart
+            height={280}
+            showLegend={false}
+            series={[
+              { name: 'Central', x: years, y: central, kind: 'line' },
+              { name: '95% CI', x: years, y: upper, yLower: lower, kind: 'band' },
+            ]}
+          />
+        </ChartCard>
+        <ChartCard title="Reduced fillOpacity (0.12)" onDownload={() => {}}>
+          <SyChart
+            height={280}
+            showLegend={false}
+            series={[
+              { name: 'Central', x: years, y: central, kind: 'line' },
+              { name: '95% CI', x: years, y: upper, yLower: lower, kind: 'band', fillOpacity: 0.12 },
+            ]}
+          />
+        </ChartCard>
+      </div>
+    );
+  },
+};
