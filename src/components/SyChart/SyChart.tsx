@@ -4,10 +4,12 @@ import { cx } from '../../lib/cx';
 
 export interface SyChartSeries {
   name: string;
+  /** Unused for 'choropleth'/'treemap' — pass `[]` for those kinds. */
   x: Array<string | number>;
+  /** Unused for 'choropleth'/'treemap' — pass `[]` for those kinds. */
   y: Array<number | null>;
-  /** 'bar' (default), 'line', or 'band' (shaded range, e.g. a confidence interval) */
-  kind?: 'bar' | 'line' | 'band';
+  /** 'bar' (default), 'line', 'band' (shaded range, e.g. a confidence interval), 'choropleth', or 'treemap' */
+  kind?: 'bar' | 'line' | 'band' | 'choropleth' | 'treemap';
   /** Lower bound for kind 'band'; `y` is the upper bound */
   yLower?: Array<number | null>;
   /** Any CSS color; defaults to the categorical palette in order */
@@ -18,8 +20,8 @@ export interface SyChartSeries {
    */
   pointColors?: Array<string | undefined>;
   /**
-   * Continuous color scale for 'bar' series (e.g. a magnitude- or % change-driven gradient).
-   * Numeric values (typically the same as `y`) mapped through Plotly's native colorscale,
+   * Continuous color scale for 'bar'/'choropleth'/'treemap' series (e.g. a magnitude- or
+   * % change-driven gradient). Numeric values mapped through Plotly's native colorscale,
    * rendering a real colorbar legend. Takes precedence over `pointColors`/`color`.
    */
   colorValues?: Array<number | null>;
@@ -31,6 +33,30 @@ export interface SyChartSeries {
   colorbarTitle?: string;
   /** Dotted overlay line (as in Upgrade/Downgrade Ratio) */
   dashed?: boolean;
+  /** 'choropleth' only: one location code per data point (see `locationmode`) */
+  locations?: string[];
+  /** 'choropleth' only: Plotly location mode. Defaults to 'ISO-3'. */
+  locationmode?: string;
+  /**
+   * 'choropleth' only: log-transforms `colorValues` for the color scale. Plotly has no native
+   * log-scale colorbar, so this pre-transforms `z` and renders the colorbar's ticks
+   * back-transformed into real units rather than raw log values.
+   */
+  zLog?: boolean;
+  /** 'treemap' only: one label per tile */
+  labels?: string[];
+  /** 'treemap' only: parent label per tile; '' for a flat (non-hierarchical) treemap */
+  parents?: string[];
+  /** 'treemap' only: tile size per entry */
+  values?: number[];
+}
+
+export interface SyChartAnnotation {
+  x: string | number;
+  y: number;
+  text: string;
+  /** Draws an arrow pointing at (x, y). Defaults to true (Plotly's own default). */
+  showarrow?: boolean;
 }
 
 export interface SyChartProps {
@@ -47,6 +73,12 @@ export interface SyChartProps {
   yTickFormat?: string;
   /** Dashed horizontal reference line (e.g. "1990 level"). Drawn on the y-axis — intended for vertical charts; in 'h' mode y is the category axis. */
   referenceY?: { value: number; label?: string };
+  /** Fixes the y-axis range instead of Plotly's auto-range (e.g. to keep small-multiple charts visually comparable) */
+  yRange?: [number, number];
+  /** Fixes the x-axis range instead of Plotly's auto-range */
+  xRange?: [number | string, number | string];
+  /** Extra annotations, merged with (not replacing) the one derived from `referenceY.label` */
+  annotations?: SyChartAnnotation[];
   /**
    * Accessible text alternative — Plotly's chart is otherwise entirely
    * invisible to screen readers (canvas/SVG with no semantic content). A
@@ -86,6 +118,23 @@ function withAlpha(color: string, alpha: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }
 
+/** Round-number tick positions (in log10 space) spanning `values`, labeled with the real,
+ * back-transformed unit — Plotly's colorbar only ever shows the raw z values otherwise. */
+function logColorbarTicks(values: Array<number | null>): { tickvals: number[]; ticktext: string[] } {
+  const nums = values.filter((v): v is number => v != null && v > 0);
+  if (nums.length === 0) return { tickvals: [], ticktext: [] };
+  const minExp = Math.floor(Math.log10(Math.min(...nums)));
+  const maxExp = Math.ceil(Math.log10(Math.max(...nums)));
+  const tickvals: number[] = [];
+  const ticktext: string[] = [];
+  for (let exp = minExp; exp <= maxExp; exp++) {
+    const real = 10 ** exp;
+    tickvals.push(exp);
+    ticktext.push(real >= 1000 ? `${(real / 1000).toLocaleString()}k` : `${real}`);
+  }
+  return { tickvals, ticktext };
+}
+
 /**
  * Plotly chart in the `__s9cmpx-chart` / `__s9cmpx-chart-plotly` wrapper — the charting
  * stack used across data products. Shapes: single-series column,
@@ -102,6 +151,9 @@ export function SyChart({
   showLegend = true,
   yTickFormat,
   referenceY,
+  yRange,
+  xRange,
+  annotations,
   ariaLabel,
   className,
 }: SyChartProps) {
@@ -118,6 +170,54 @@ export function SyChart({
     };
     const data = series.flatMap((s, i): unknown[] => {
       const color = s.color ?? palette[i % palette.length];
+      if (s.kind === 'choropleth') {
+        const z = s.zLog ? (s.colorValues ?? []).map((v) => (v != null && v > 0 ? Math.log10(v) : null)) : s.colorValues;
+        const logTicks = s.zLog ? logColorbarTicks(s.colorValues ?? []) : undefined;
+        return [
+          {
+            type: 'choropleth',
+            name: s.name,
+            locations: s.locations,
+            locationmode: s.locationmode ?? 'ISO-3',
+            z,
+            colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+            showscale: s.showColorbar ?? true,
+            marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
+            colorbar: {
+              title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
+              thickness: 14,
+              outlinewidth: 0,
+              tickfont: font,
+              ...(logTicks ? { tickvals: logTicks.tickvals, ticktext: logTicks.ticktext } : {}),
+            },
+          },
+        ];
+      }
+      if (s.kind === 'treemap') {
+        return [
+          {
+            type: 'treemap',
+            name: s.name,
+            labels: s.labels,
+            parents: s.parents,
+            values: s.values,
+            textfont: font,
+            marker: s.colorValues
+              ? {
+                  colors: s.colorValues,
+                  colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+                  showscale: s.showColorbar ?? true,
+                  colorbar: {
+                    title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
+                    thickness: 14,
+                    outlinewidth: 0,
+                    tickfont: font,
+                  },
+                }
+              : undefined,
+          },
+        ];
+      }
       if (s.kind === 'band') {
         return [
           {
@@ -179,6 +279,29 @@ export function SyChart({
         },
       ];
     });
+    const hasChoropleth = series.some((s) => s.kind === 'choropleth');
+    const referenceAnnotation = referenceY?.label
+      ? [
+          {
+            xref: 'paper',
+            x: 1,
+            y: referenceY.value,
+            xanchor: 'right',
+            yanchor: 'bottom',
+            text: referenceY.label,
+            showarrow: false,
+            font: { ...font, size: 11 },
+          },
+        ]
+      : [];
+    const customAnnotations = (annotations ?? []).map((a) => ({
+      x: a.x,
+      y: a.y,
+      text: a.text,
+      showarrow: a.showarrow ?? true,
+      font: { ...font, size: 11 },
+    }));
+    const allAnnotations = [...referenceAnnotation, ...customAnnotations];
     const layout = {
       barmode,
       height,
@@ -195,6 +318,7 @@ export function SyChart({
         automargin: true,
         // yTickFormat formats the value axis; in horizontal mode values live on x
         tickformat: orientation === 'h' ? yTickFormat : undefined,
+        range: xRange,
         gridcolor: cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb'),
         zerolinecolor: cssVar(el, '--__s9cmpx-color-brand-200', '#e0e0e0'),
       },
@@ -204,9 +328,20 @@ export function SyChart({
         tickfont: font,
         automargin: true,
         tickformat: orientation === 'h' ? undefined : yTickFormat,
+        range: yRange,
         gridcolor: cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb'),
         zerolinecolor: cssVar(el, '--__s9cmpx-color-brand-200', '#e0e0e0'),
       },
+      geo: hasChoropleth
+        ? {
+            showframe: false,
+            showcoastlines: false,
+            projection: { type: 'natural earth' },
+            bgcolor: 'rgba(0,0,0,0)',
+            lakecolor: cssVar(el, '--__s9cmpx-static-layer-standard', '#1f1f1f'),
+            landcolor: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'),
+          }
+        : undefined,
       hovermode: 'x unified',
       shapes: referenceY
         ? [
@@ -221,26 +356,13 @@ export function SyChart({
             },
           ]
         : undefined,
-      annotations: referenceY?.label
-        ? [
-            {
-              xref: 'paper',
-              x: 1,
-              y: referenceY.value,
-              xanchor: 'right',
-              yanchor: 'bottom',
-              text: referenceY.label,
-              showarrow: false,
-              font: { ...font, size: 11 },
-            },
-          ]
-        : undefined,
+      annotations: allAnnotations.length > 0 ? allAnnotations : undefined,
     };
     Plotly.react(el, data, layout, { displayModeBar: false, responsive: true });
     return () => {
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations]);
 
   const fallbackDescription =
     [yTitle, xTitle ? `by ${xTitle}` : null, series.length ? `— ${series.map((s) => s.name).join(', ')}` : null]
