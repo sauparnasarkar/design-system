@@ -236,7 +236,12 @@ export const Choropleth: Story = {
   },
 };
 
-/** Flat, non-hierarchical treemap — 'treemap' kind sized by BAU cumulative total, colored by reduction upside. */
+/**
+ * Flat, non-hierarchical treemap — 'treemap' kind sized by BAU cumulative total, colored by
+ * reduction upside. Hover a tile: both the size metric (`values`, labeled via `valueLabel`) and
+ * the color metric (`colorValues`, labeled via `colorbarTitle`) show up, not just the tile's
+ * label and size the way Plotly's own default treemap hover would leave it.
+ */
 export const Treemap: Story = {
   render: () => {
     const countries = ['China', 'United States', 'India', 'Russia', 'Japan', 'Germany', 'Brazil', 'United Kingdom'];
@@ -255,6 +260,10 @@ export const Treemap: Story = {
             labels: countries,
             parents: countries.map(() => ''),
             values: bauTotal,
+            // No hoverUnit here -- unlike the real app's usage (where both the size and color
+            // metrics share MtCO₂), this story's color metric is a %, a different unit than the
+            // size metric's MtCO₂, and hoverUnit applies the same suffix to both.
+            valueLabel: 'Cumulative BAU',
             colorValues: reductionUpsidePct,
             colorScale: [[0, '#eaf7ea'], [1, '#1a7a3c']],
             colorbarTitle: '% Reduction Upside',
