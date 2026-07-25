@@ -194,7 +194,21 @@ export function MultiSelect({
               );
             })}
           </div>
-          <span className="__s9cmpx-dropdown-multi-select__indicator" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span
+            className="__s9cmpx-dropdown-multi-select__indicator"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              // Separates the clear-all button (and chevron) from the tag list as a
+              // visually distinct "control-level actions" group — without this, the
+              // clear-all "×" sits directly adjacent to the last tag's own remove-×,
+              // same icon/size, easily mistaken for one another.
+              marginLeft: 8,
+              paddingLeft: 8,
+              borderLeft: selected.length > 0 ? '1px solid var(--__s9cmpx-static-divider-weak, rgba(31,31,31,0.08))' : undefined,
+            }}
+          >
             {selected.length > 0 && !disabled && (
               <button
                 type="button"
