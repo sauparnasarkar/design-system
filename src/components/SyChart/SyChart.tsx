@@ -61,6 +61,14 @@ export interface SyChartSeries {
    * own hover label, so both numbers driving the tile (size and color) are visible on hover.
    */
   valueLabel?: string;
+  /**
+   * 'treemap' only: called with (pointNumber, label) when a tile is tapped/clicked, in place
+   * of Plotly's default click-to-zoom-in behavior (which this component always cancels for
+   * treemaps — see SPEC.md §5.10: with `parents` always flat/empty there's nothing to
+   * legitimately drill into, and the drilled state has no way back out on touch, since
+   * `pathbar` isn't shown and a second tap doesn't return to root).
+   */
+  onTileClick?: (pointNumber: number, label: string) => void;
 }
 
 export interface SyChartAnnotation {
@@ -170,6 +178,8 @@ export function SyChart({
   className,
 }: SyChartProps) {
   const ref = React.useRef<HTMLDivElement>(null);
+  const resetViewRef = React.useRef<(() => void) | null>(null);
+  const hasChoropleth = series.some((s) => s.kind === 'choropleth');
 
   React.useEffect(() => {
     const el = ref.current;
@@ -339,7 +349,6 @@ export function SyChart({
         },
       ];
     });
-    const hasChoropleth = series.some((s) => s.kind === 'choropleth');
     const referenceAnnotation = referenceY?.label
       ? [
           {
@@ -427,7 +436,41 @@ export function SyChart({
         : undefined,
       annotations: allAnnotations.length > 0 ? allAnnotations : undefined,
     };
-    Plotly.react(el, data, layout, { displayModeBar: false, responsive: true });
+    const config = { displayModeBar: false, responsive: true };
+    Plotly.react(el, data, layout, config);
+
+    // "Reset view" control (rendered below, choropleth only). Verified live (Storybook +
+    // direct Plotly state inspection) that re-supplying the original layout via Plotly.react
+    // does NOT reset an interactively-changed geo view -- react's diffing treats a
+    // geo.center/geo.projection.scale absent from the new spec as "leave whatever's already
+    // there," not "reset to default," once a separate relayout call (pinch/scroll-zoom) has
+    // set them. Explicitly relayout-ing scale back to 1 and center to null (letting Plotly
+    // recompute its own auto-fit center for the cropped lataxis range) is what actually
+    // resets it -- confirmed the recomputed center matches the lataxis midpoint exactly.
+    resetViewRef.current = hasChoropleth
+      ? () => Plotly.relayout(el, { 'geo.projection.scale': 1, 'geo.center': null })
+      : null;
+
+    // Treemap tiles are flat (parents always '' -- see SPEC.md §5.10), so Plotly's default
+    // click-to-zoom-in has nothing legitimate to drill into and no way back out on touch
+    // (no pathbar, a second tap doesn't return to root). Cancel the zoom (return false) and
+    // surface the tap via onTileClick instead, if the caller wants it.
+    if (series.some((s) => s.kind === 'treemap')) {
+      type TreemapClickEvent = { points?: Array<{ pointNumber: number; label: string }> };
+      type PlotlyGraphDiv = HTMLDivElement & {
+        on: (event: 'plotly_treemapclick', handler: (e: TreemapClickEvent) => boolean) => void;
+      };
+      (el as PlotlyGraphDiv).on('plotly_treemapclick', (event) => {
+        const point = event?.points?.[0];
+        // Assumes a single treemap series -- if a future chart ever needs two treemap
+        // traces at once, only the first one's onTileClick would fire on a tap.
+        const treemapSeries = series.find((s) => s.kind === 'treemap');
+        if (point && treemapSeries?.onTileClick) {
+          treemapSeries.onTileClick(point.pointNumber, point.label);
+        }
+        return false;
+      });
+    }
 
     // Choropleth maps size themselves off their own container width rather than the fixed
     // `height` prop -- a hardcoded height either leaves large empty side margins on wide
@@ -479,7 +522,7 @@ export function SyChart({
       resizeObserver?.disconnect();
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth]);
 
   const fallbackDescription =
     [yTitle, xTitle ? `by ${xTitle}` : null, series.length ? `— ${series.map((s) => s.name).join(', ')}` : null]
@@ -487,12 +530,37 @@ export function SyChart({
       .join(' ') || 'Chart';
 
   return (
-    <div
-      ref={ref}
-      role="img"
-      aria-label={ariaLabel ?? fallbackDescription}
-      className={cx('__s9cmpx-chart', '__s9cmpx-chart-plotly', className)}
-      style={{ width: '100%' }}
-    />
+    <div style={{ width: '100%', position: 'relative' }}>
+      <div
+        ref={ref}
+        role="img"
+        aria-label={ariaLabel ?? fallbackDescription}
+        className={cx('__s9cmpx-chart', '__s9cmpx-chart-plotly', className)}
+        style={{ width: '100%' }}
+      />
+      {hasChoropleth && (
+        <button
+          type="button"
+          onClick={() => resetViewRef.current?.()}
+          className="__s9cmpx-sychart-reset-view"
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 1,
+            padding: '4px 10px',
+            fontSize: 12,
+            fontFamily: 'var(--__s9cmpx-font-families-primary)',
+            color: 'var(--__s9cmpx-static-text-weak)',
+            background: 'var(--__s9cmpx-static-layer-standard)',
+            border: '1px solid var(--__s9cmpx-static-divider-weak)',
+            borderRadius: 4,
+            cursor: 'pointer',
+          }}
+        >
+          Reset view
+        </button>
+      )}
+    </div>
   );
 }
