@@ -136,7 +136,16 @@ export function SidebarNav({
         href={item.href ?? '#'}
         className={cx('__s9cmpx-sidebar-nav__sidebar-item-button', item.active && '__s9cmpx-sidebar-nav__sidebar-item-button--active', item.hasFlyout && '__s9cmpx-sidebar-nav__sidebar-item-button--flyout')}
         onClick={(e) => {
-          if (!item.href) e.preventDefault();
+          // Same pattern react-router's own <Link> uses: a real `href` (SPEC.md §5.10)
+          // gives modified clicks (ctrl/cmd/shift/alt -- "open in new tab/window") their
+          // native browser behavior, falling through without calling onItemClick, while a
+          // plain click is always intercepted for client-side routing regardless of
+          // whether `href` is set. Without this, giving every item a real href would have
+          // made a *plain* click also trigger the anchor's native full-page navigation
+          // alongside onItemClick's own SPA navigation.
+          const isModifiedClick = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+          if (item.href && isModifiedClick) return;
+          e.preventDefault();
           onItemClick?.(item.id);
           if (isMobile) setOpenState(false);
         }}
