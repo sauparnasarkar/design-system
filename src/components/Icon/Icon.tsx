@@ -48,6 +48,17 @@ const PATHS: Record<string, React.ReactNode> = {
   calendar: (
     <path d="M8 2v2h8V2h2v2h3v18H3V4h3V2h2zM5 9v11h14V9H5zm0-2h14V6H5v1zm3 5h3v3H8v-3z" />
   ),
+  // Four corner brackets hugging the true corners, opening toward the center -- the
+  // standard "fullscreen" convention. Pairs with 'collapse' below.
+  expand: (
+    <path d="M3 3h6v2h-4v4h-2v-6z M21 3h-6v2h4v4h2v-6z M21 21h-6v-2h4v-4h2v6z M3 21h6v-2h-4v-4h-2v6z" />
+  ),
+  // Same 4 brackets, pulled inward from the corners so their bend sits nearer the center
+  // and each arm points back out to the edge -- the standard "restore/exit fullscreen"
+  // counterpart to 'expand'.
+  collapse: (
+    <path d="M9 9h-6v-2h4v-4h2v6z M15 9h6v-2h-4v-4h-2v6z M15 15h6v2h-4v4h-2v-6z M9 15h-6v2h4v4h2v-6z" />
+  ),
 };
 
 export type IconName = keyof typeof PATHS;
