@@ -313,3 +313,31 @@ export const Annotations: Story = {
     </ChartCard>
   ),
 };
+
+/** `ChartCard`'s `expandable` control (SPEC.md §5.11) — click the expand icon to toggle a
+ * safe-area-aware fixed overlay; `children` as a function of `isExpanded` lets the chart grow
+ * with it, rather than just sitting in a bigger empty card. */
+export const Expandable: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 16 }}>
+      <ChartCard title="China — BAU" expandable>
+        {(isExpanded) => (
+          <SyChart
+            height={isExpanded ? 600 : 280}
+            showLegend={false}
+            series={[{ name: 'BAU', x: YEARS, y: [10200, 9800, 10500, 10800, 11200], kind: 'line' }]}
+          />
+        )}
+      </ChartCard>
+      <ChartCard title="United States — BAU" expandable>
+        {(isExpanded) => (
+          <SyChart
+            height={isExpanded ? 600 : 280}
+            showLegend={false}
+            series={[{ name: 'BAU', x: YEARS, y: [5000, 4600, 4900, 4950, 4850], kind: 'line' }]}
+          />
+        )}
+      </ChartCard>
+    </div>
+  ),
+};
