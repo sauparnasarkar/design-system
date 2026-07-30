@@ -47,19 +47,22 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
   // pattern that actually holds there.
   React.useEffect(() => {
     if (!expandable || !isExpanded) return;
+    const scrollX = window.scrollX;
     const scrollY = window.scrollY;
     const body = document.body.style;
-    const previous = { position: body.position, top: body.top, width: body.width, overflow: body.overflow };
+    const previous = { position: body.position, top: body.top, left: body.left, width: body.width, overflow: body.overflow };
     body.position = 'fixed';
     body.top = `-${scrollY}px`;
+    body.left = `-${scrollX}px`;
     body.width = '100%';
     body.overflow = 'hidden';
     return () => {
       body.position = previous.position;
       body.top = previous.top;
+      body.left = previous.left;
       body.width = previous.width;
       body.overflow = previous.overflow;
-      window.scrollTo(0, scrollY);
+      window.scrollTo(scrollX, scrollY);
     };
   }, [expandable, isExpanded]);
 
