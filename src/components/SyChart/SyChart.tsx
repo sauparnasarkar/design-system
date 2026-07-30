@@ -462,6 +462,8 @@ export function SyChart({
       };
       (el as PlotlyGraphDiv).on('plotly_treemapclick', (event) => {
         const point = event?.points?.[0];
+        // Assumes a single treemap series -- if a future chart ever needs two treemap
+        // traces at once, only the first one's onTileClick would fire on a tap.
         const treemapSeries = series.find((s) => s.kind === 'treemap');
         if (point && treemapSeries?.onTileClick) {
           treemapSeries.onTileClick(point.pointNumber, point.label);
