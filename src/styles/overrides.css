@@ -29,3 +29,18 @@
 .__s9cmpx-search-input--on-inverse .__s9cmpx-search-input__control {
   --__s9cmpx-c-search-input-control-background-color-default: transparent;
 }
+
+/* Vendor's own base `.__s9cmpx-tags__remove-button` rule is 24x24 (already meeting WCAG
+   2.2's 2.5.8 24x24 AA minimum), but two more-specific sibling-selector rules --
+   `.__s9cmpx-tags--small + ...` and `.__s9cmpx-tags--medium + ...` -- both shrink it to
+   20x20 for every sized tag (i.e. every tag MultiSelect actually renders, since it always
+   passes an explicit size). Restored to the same 24x24 the unsized/default variant already
+   uses, without changing the visible glyph size (Tag.tsx's own Icon size prop is untouched).
+   Not padded further to Apple/Google's 44x44 recommendation -- these buttons sit inline in a
+   compact multi-tag list, and 44px would visually overwhelm adjacent tags; 24x24 already
+   clears the AA bar and matches this component's own existing default. */
+.__s9cmpx-tags--small + .__s9cmpx-tags__remove-button,
+.__s9cmpx-tags--medium + .__s9cmpx-tags__remove-button {
+  height: 24px;
+  width: 24px;
+}

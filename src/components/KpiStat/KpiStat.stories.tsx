@@ -35,7 +35,8 @@ export const KpiRow: Story = {
  * `up`/`down` color by numeric sign — correct when a bigger number is inherently good
  * (revenue, attendance). `good`/`bad` color by outcome directly, for metrics where sign
  * and desirability point in opposite directions (e.g. an emissions increase is numerically
- * "up" but a bad outcome) — no chevron, since "good"/"bad" doesn't imply a direction arrow.
+ * "up" but a bad outcome) — no chevron, since "good"/"bad" doesn't imply a direction arrow;
+ * a check/warning glyph instead, so desirability isn't color-only (WCAG 1.4.1).
  */
 export const GoodBadVsUpDown: Story = {
   render: () => (
