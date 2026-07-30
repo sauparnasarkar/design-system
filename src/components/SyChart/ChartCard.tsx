@@ -36,6 +36,33 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
     return () => document.removeEventListener('keydown', onKey);
   }, [expandable, isExpanded]);
 
+  // Without this, the page behind the overlay stays scrollable -- confirmed live on iOS
+  // Safari (landscape especially, where the dynamic toolbar already eats a large share of
+  // the viewport) that a touch-drag meant for the overlay's own internal scroll can instead
+  // scroll the background page, leaving the expanded chart looking cut off/unreachable and
+  // letting background content (e.g. the treemap's own tapped-tile detail box) visibly
+  // scroll into view behind the overlay's edge. A plain `body { overflow: hidden }` is a
+  // known no-op against touch-driven scrolling on iOS Safari specifically -- pinning body
+  // with position:fixed at its current scroll offset (and restoring both on cleanup) is the
+  // pattern that actually holds there.
+  React.useEffect(() => {
+    if (!expandable || !isExpanded) return;
+    const scrollY = window.scrollY;
+    const body = document.body.style;
+    const previous = { position: body.position, top: body.top, width: body.width, overflow: body.overflow };
+    body.position = 'fixed';
+    body.top = `-${scrollY}px`;
+    body.width = '100%';
+    body.overflow = 'hidden';
+    return () => {
+      body.position = previous.position;
+      body.top = previous.top;
+      body.width = previous.width;
+      body.overflow = previous.overflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, [expandable, isExpanded]);
+
   const card = (
     <Card
       className={className}
@@ -92,14 +119,15 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
       tabIndex={-1}
       style={{
         position: 'fixed',
-        // A fixed-position overlay is positioned relative to the viewport, not any padded
-        // ancestor -- the app shell's own safe-area padding never applies here, so each side
-        // needs its own env(safe-area-inset-*) added on top of the 16px margin (confirmed live,
-        // Release 5 / SPEC.md §5.10).
-        top: 'calc(16px + env(safe-area-inset-top, 0px))',
-        right: 'calc(16px + env(safe-area-inset-right, 0px))',
-        bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
-        left: 'calc(16px + env(safe-area-inset-left, 0px))',
+        // `inset: 0` (always the full viewport) rather than `top/right/bottom/left: calc(16px
+        // + env(...))` -- confirmed live on iOS Safari (landscape especially) that computing
+        // the box from four separate viewport-relative offsets left it not reliably covering
+        // the full visual viewport, so the expanded chart looked cut off and its own
+        // overflow:auto couldn't be reached to scroll the rest into view. The equivalent
+        // margin is applied as padding instead, which only needs the box's own size, not a
+        // fresh distance-from-each-viewport-edge calculation.
+        inset: 0,
+        padding: 'calc(24px + env(safe-area-inset-top, 0px)) calc(24px + env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) calc(24px + env(safe-area-inset-left, 0px))',
         // Must clear the sidebar nav's own z-index (--__s9cmpx-c-sidebar-z-index, 310) --
         // confirmed live that a plain z-index:50 here left the sidebar painted on top of the
         // overlay's left edge, since position:fixed escapes the app shell's flex layout and
@@ -109,9 +137,7 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
         zIndex: 'var(--__s9cmpx-z-index-modal)',
         background: 'var(--__s9cmpx-static-background-weak)',
         overflow: 'auto',
-        padding: 8,
-        borderRadius: 8,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        boxSizing: 'border-box',
       }}
     >
       {card}
