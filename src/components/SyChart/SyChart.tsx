@@ -35,6 +35,13 @@ export interface SyChartSeries {
   colorbarTitle?: string;
   /** Dotted overlay line (as in Upgrade/Downgrade Ratio) */
   dashed?: boolean;
+  /**
+   * 'line' only: show a marker dot at every point. Defaults to `x.length < 10` — dense
+   * multi-country/multi-year series render as pure strokes (matches a reference dark-theme
+   * line chart's convention and avoids ~350 competing dots on a 35-point x 10-series chart),
+   * while sparse series keep markers, which genuinely aid reading at low point counts.
+   */
+  showMarkers?: boolean;
   /** 'choropleth' only: one location code per data point (see `locationmode`) */
   locations?: string[];
   /** 'choropleth' only: Plotly location mode. Defaults to 'ISO-3'. */
@@ -310,15 +317,16 @@ export function SyChart({
         ];
       }
       if (s.kind === 'line') {
+        const showMarkers = s.showMarkers ?? s.x.length < 10;
         return [
           {
             type: 'scatter',
-            mode: 'lines+markers',
+            mode: showMarkers ? 'lines+markers' : 'lines',
             name: s.name,
             x: s.x,
             y: s.y,
-            line: { color, width: 1.5, dash: s.dashed ? 'dot' : 'solid' },
-            marker: { color, size: 5 },
+            line: { color, width: 2.75, dash: s.dashed ? 'dot' : 'solid' },
+            ...(showMarkers ? { marker: { color, size: 5 } } : {}),
           },
         ];
       }
@@ -389,6 +397,11 @@ export function SyChart({
         fixedrange: true,
         tickfont: font,
         automargin: true,
+        // Gridlines stay on the value axis and drop from the category/index axis -- vertical
+        // gridlines on a time series add noise without aiding value comparison, but for a
+        // horizontal bar chart (orientation="h": categories on y, values on x, e.g. Forecasts'
+        // feature-importance chart) x IS the value axis, so this flips accordingly.
+        showgrid: orientation === 'h' ? undefined : false,
         // yTickFormat formats the value axis; in horizontal mode values live on x
         tickformat: orientation === 'h' ? yTickFormat : undefined,
         range: xRange,
@@ -400,6 +413,7 @@ export function SyChart({
         fixedrange: true,
         tickfont: font,
         automargin: true,
+        showgrid: orientation === 'h' ? false : undefined,
         tickformat: orientation === 'h' ? undefined : yTickFormat,
         range: yRange,
         gridcolor: cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb'),

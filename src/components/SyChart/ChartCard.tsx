@@ -70,6 +70,12 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
     <Card
       className={className}
       withBorder
+      // paper_bgcolor/plot_bgcolor in SyChart are transparent, so the chart inherits whatever's
+      // behind it -- the general card surface (--static-background-standard, #1e2f52) is one
+      // step lighter than the page (--static-background-weak, #121e35), costing contrast for
+      // free. Overriding just this one component-level CSS var (rather than adding a Card prop
+      // or a new token) darkens only chart-bearing cards to match the page (SPEC.md §5.12).
+      style={{ '--__s9cmpx-c-card-background-color-default': 'var(--__s9cmpx-static-background-weak)' } as React.CSSProperties}
       header={
         <CardHeader
           title={<span id={titleId}>{title}</span>}
