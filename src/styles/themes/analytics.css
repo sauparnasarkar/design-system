@@ -159,16 +159,25 @@
   --__s9cmpx-button-primary-pressed-border: #1f7590;
   --__s9cmpx-button-primary-pressed-label: #ffffff;
 
-  /* Series palette — SciChart-derived, validated on the #1e2f52 surface */
-  --__s9cmpx-chart-categorical-default-01: #2d9cbd;
-  --__s9cmpx-chart-categorical-default-02: #e06c1a;
-  --__s9cmpx-chart-categorical-default-03: #22a084;
-  --__s9cmpx-chart-categorical-default-04: #ec0f6c;
-  --__s9cmpx-chart-categorical-default-05: #b054c4;
-  --__s9cmpx-chart-categorical-default-06: #bd8a1d;
-  --__s9cmpx-chart-categorical-default-07: #9d7fe0;
-  --__s9cmpx-chart-categorical-default-08: #699e20;
-  --__s9cmpx-chart-categorical-default-09: #dc5959;
+  /* Series palette, validated on the #1e2f52 surface. Ordered brightest-first (by relative
+     luminance) so the first-assigned series in any chart are automatically most prominent --
+     mean luminance 0.529, mean contrast 7.31:1 vs. this surface (previous ramp: 0.253 / 3.83:1;
+     was saturated but occupied only a 0.098-wide luminance band, which reads as near-uniform
+     mid-grey on a dark ground where prominence tracks luminance, not saturation). -03 and -09
+     are intentionally NOT the hues a naive luminance-only reshuffle would pick (a green and a
+     red/pink) -- both are kept in a ~308deg orchid/magenta valley, ~40deg from every other hue
+     here, specifically so no categorical series can be mistaken for this app's
+     sentiment-positive/negative colors (green=decrease/good, red=increase/bad) elsewhere on the
+     same page. */
+  --__s9cmpx-chart-categorical-default-01: #ecf0f6;
+  --__s9cmpx-chart-categorical-default-02: #c3e86b;
+  --__s9cmpx-chart-categorical-default-03: #eab8e4;
+  --__s9cmpx-chart-categorical-default-04: #ffb454;
+  --__s9cmpx-chart-categorical-default-05: #5ecbf5;
+  --__s9cmpx-chart-categorical-default-06: #c89cff;
+  --__s9cmpx-chart-categorical-default-07: #ff8f6b;
+  --__s9cmpx-chart-categorical-default-08: #7aa5ff;
+  --__s9cmpx-chart-categorical-default-09: #ff4ae7;
 }
 
 /* The vendor reset/base CSS hardcodes `strong{color:#363636}` and

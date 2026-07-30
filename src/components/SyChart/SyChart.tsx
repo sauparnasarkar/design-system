@@ -35,6 +35,13 @@ export interface SyChartSeries {
   colorbarTitle?: string;
   /** Dotted overlay line (as in Upgrade/Downgrade Ratio) */
   dashed?: boolean;
+  /**
+   * 'line' only: show a marker dot at every point. Defaults to `x.length < 10` — dense
+   * multi-country/multi-year series render as pure strokes (matches a reference dark-theme
+   * line chart's convention and avoids ~350 competing dots on a 35-point x 10-series chart),
+   * while sparse series keep markers, which genuinely aid reading at low point counts.
+   */
+  showMarkers?: boolean;
   /** 'choropleth' only: one location code per data point (see `locationmode`) */
   locations?: string[];
   /** 'choropleth' only: Plotly location mode. Defaults to 'ISO-3'. */
@@ -310,15 +317,16 @@ export function SyChart({
         ];
       }
       if (s.kind === 'line') {
+        const showMarkers = s.showMarkers ?? s.x.length < 10;
         return [
           {
             type: 'scatter',
-            mode: 'lines+markers',
+            mode: showMarkers ? 'lines+markers' : 'lines',
             name: s.name,
             x: s.x,
             y: s.y,
-            line: { color, width: 1.5, dash: s.dashed ? 'dot' : 'solid' },
-            marker: { color, size: 5 },
+            line: { color, width: 2.75, dash: s.dashed ? 'dot' : 'solid' },
+            ...(showMarkers ? { marker: { color, size: 5 } } : {}),
           },
         ];
       }
@@ -389,6 +397,9 @@ export function SyChart({
         fixedrange: true,
         tickfont: font,
         automargin: true,
+        // Horizontal-only gridlines is the convention for time series -- vertical gridlines add
+        // noise without aiding value comparison. yaxis keeps Plotly's default (true) below.
+        showgrid: false,
         // yTickFormat formats the value axis; in horizontal mode values live on x
         tickformat: orientation === 'h' ? yTickFormat : undefined,
         range: xRange,
