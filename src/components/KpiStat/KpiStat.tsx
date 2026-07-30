@@ -38,7 +38,18 @@ export function KpiStat({
       : deltaDirection === 'down' || deltaDirection === 'bad'
         ? 'var(--__s9cmpx-static-text-sentiment-negative, #8d1a2a)'
         : 'var(--__s9cmpx-static-text-weak, #757575)';
-  const showChevron = deltaDirection === 'up' || deltaDirection === 'down';
+  // 'up'/'down' get a directional chevron; 'good'/'bad' get a non-directional check/warning
+  // glyph instead -- deliberately not a chevron, since good/bad doesn't inherently imply a
+  // numeric direction the way up/down does. Without this, the delta's desirability reading
+  // was color-only (borderline WCAG 1.4.1) -- partially mitigated already by the +/- sign
+  // callers typically include in `delta` itself, but a glyph makes it unambiguous even
+  // without color vision.
+  const deltaIcon =
+    deltaDirection === 'up' ? 'chevron-up'
+    : deltaDirection === 'down' ? 'chevron-down'
+    : deltaDirection === 'good' ? 'check'
+    : deltaDirection === 'bad' ? 'warning'
+    : undefined;
   return (
     <div
       className={cx('__s9cmpx-kpi-stat', card && '__s9cmpx-card __s9cmpx-card--with-border', className)}
@@ -49,9 +60,7 @@ export function KpiStat({
       <span className="__s9cmpx-headline4" style={{ lineHeight: 1.1 }}>{value}</span>
       {delta && (
         <span className="__s9cmpx-label2" style={{ color: deltaColor, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          {showChevron && (
-            <Icon name={deltaDirection === 'up' ? 'chevron-up' : 'chevron-down'} size={14} />
-          )}
+          {deltaIcon && <Icon name={deltaIcon} size={14} />}
           {delta}
         </span>
       )}
