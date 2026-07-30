@@ -397,9 +397,11 @@ export function SyChart({
         fixedrange: true,
         tickfont: font,
         automargin: true,
-        // Horizontal-only gridlines is the convention for time series -- vertical gridlines add
-        // noise without aiding value comparison. yaxis keeps Plotly's default (true) below.
-        showgrid: false,
+        // Gridlines stay on the value axis and drop from the category/index axis -- vertical
+        // gridlines on a time series add noise without aiding value comparison, but for a
+        // horizontal bar chart (orientation="h": categories on y, values on x, e.g. Forecasts'
+        // feature-importance chart) x IS the value axis, so this flips accordingly.
+        showgrid: orientation === 'h' ? undefined : false,
         // yTickFormat formats the value axis; in horizontal mode values live on x
         tickformat: orientation === 'h' ? yTickFormat : undefined,
         range: xRange,
@@ -411,6 +413,7 @@ export function SyChart({
         fixedrange: true,
         tickfont: font,
         automargin: true,
+        showgrid: orientation === 'h' ? false : undefined,
         tickformat: orientation === 'h' ? undefined : yTickFormat,
         range: yRange,
         gridcolor: cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb'),
