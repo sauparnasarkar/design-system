@@ -136,15 +136,21 @@ export function SidebarNav({
         href={item.href ?? '#'}
         className={cx('__s9cmpx-sidebar-nav__sidebar-item-button', item.active && '__s9cmpx-sidebar-nav__sidebar-item-button--active', item.hasFlyout && '__s9cmpx-sidebar-nav__sidebar-item-button--flyout')}
         onClick={(e) => {
-          // Same pattern react-router's own <Link> uses: a real `href` (SPEC.md §5.10)
-          // gives modified clicks (ctrl/cmd/shift/alt -- "open in new tab/window") their
-          // native browser behavior, falling through without calling onItemClick, while a
-          // plain click is always intercepted for client-side routing regardless of
-          // whether `href` is set. Without this, giving every item a real href would have
-          // made a *plain* click also trigger the anchor's native full-page navigation
-          // alongside onItemClick's own SPA navigation.
+          // Same pattern react-router's own <Link> uses (SPEC.md §5.10). Two cases where a
+          // plain click should NOT be intercepted, letting the anchor's own href navigation
+          // proceed natively instead:
+          //  - href is set but there's no SPA handler at all -- a consumer rendering a real
+          //    href with no onItemClick wants a plain semantic link, not a silently-inert
+          //    click (confirmed via Copilot review: the first cut of this fix always called
+          //    preventDefault on a plain click regardless of onItemClick, no-oping exactly
+          //    this case).
+          //  - a modified click (ctrl/cmd/shift/alt -- "open in new tab/window") or a
+          //    non-primary mouse button, mirroring react-router's own defensive check.
+          // A missing href (the '#' fallback) is always intercepted regardless, matching
+          // the original pre-§5.10 behavior for items with no real destination at all.
+          if (item.href && !onItemClick) return;
           const isModifiedClick = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
-          if (item.href && isModifiedClick) return;
+          if (item.href && (e.button !== 0 || isModifiedClick)) return;
           e.preventDefault();
           onItemClick?.(item.id);
           if (isMobile) setOpenState(false);
