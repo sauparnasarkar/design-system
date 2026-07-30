@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardHeader } from '../Card/Card';
 import { Icon } from '../Icon/Icon';
+import { useFocusTrap } from '../../lib/useFocusTrap';
 
 export interface ChartCardProps {
   title: React.ReactNode;
@@ -23,6 +24,17 @@ export interface ChartCardProps {
 export function ChartCard({ title, actions, onDownload, asOf, children, className, headingLevel, expandable = false }: ChartCardProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const content = typeof children === 'function' ? children(isExpanded) : children;
+  const overlayRef = useFocusTrap<HTMLDivElement>(expandable && isExpanded);
+  const titleId = React.useId();
+
+  React.useEffect(() => {
+    if (!expandable || !isExpanded) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsExpanded(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [expandable, isExpanded]);
 
   const card = (
     <Card
@@ -30,7 +42,7 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
       withBorder
       header={
         <CardHeader
-          title={title}
+          title={<span id={titleId}>{title}</span>}
           headingLevel={headingLevel}
           actions={
             <>
@@ -73,6 +85,11 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
 
   return (
     <div
+      ref={overlayRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      tabIndex={-1}
       style={{
         position: 'fixed',
         // A fixed-position overlay is positioned relative to the viewport, not any padded
