@@ -8,6 +8,7 @@ import '../src/styles/overrides.css';
 import '../src/styles/themes/green.css';
 import '../src/styles/themes/blue.css';
 import '../src/styles/themes/analytics.css';
+import '../src/styles/themes/climate-analytics.css';
 
 const preview: Preview = {
   globalTypes: {
@@ -21,6 +22,7 @@ const preview: Preview = {
           { value: 'green', title: 'Green theme' },
           { value: 'blue', title: 'Blue theme' },
           { value: 'analytics', title: 'Analytics theme' },
+          { value: 'climate-analytics', title: 'Climate Analytics theme' },
         ],
         dynamicTitle: true,
       },

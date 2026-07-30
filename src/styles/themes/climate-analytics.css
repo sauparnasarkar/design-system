@@ -1,0 +1,187 @@
+/*
+ * Climate Analytics theme
+ * A climate-specific variant of the Analytics theme (analytics.css), derived from Pentagram's
+ * Zeff brand system (Climate & Sustainability sector): earth-green surfaces, a seafoam/cooled-cyan
+ * accent, and a muted (desaturated) categorical chart ramp in place of Analytics' neon one.
+ *
+ * Ships as a SEPARATE theme rather than a redefinition of `analytics` -- analytics keeps its navy
+ * surfaces and its own categorical ramp untouched for other consumers; a consumer opts in via
+ * `data-theme="climate-analytics"`. This file only overrides what actually differs (~40 tokens);
+ * everything else (white/black-alpha tokens, amber "notice" sentiment, tertiary/ghost fills, etc.)
+ * is inherited from analytics.css's own shared selector -- see the note at the top of that file.
+ *
+ * Provenance, since this matters for anyone revisiting these values later:
+ *  - Surfaces/dividers/text/categorical ramp: given verbatim (consumer's own SPEC.md §5.13),
+ *    independently re-verified -- every relative-luminance/contrast figure recomputes exactly.
+ *  - --color-brand-100/200 (SyChart's gridline/zeroline) and the .ag-theme-s9cmpx block: the
+ *    request flagged both as needing confirmation rather than assumption. Derived by matching
+ *    each navy token's own contrast-against-background exactly, hue-rotated to this theme's
+ *    surface hue (~134deg, matching --static-divider-standard's own hue).
+ *  - The three "cooled" accent swatches (#9ae6e9/#60d8dc/#43d1d6, ~182deg) are given verbatim for
+ *    links/focus/buttons/icons -- applied to interactive-fill-primary, interactive-fill-link, and
+ *    interactive-outline-focus, the clearest matches for that role.
+ *  - Everything else that was a navy/cyan hue in analytics.css (brand ramp steps not otherwise
+ *    covered, secondary/overlay/outline-secondary fills, sentiment-info) is a straight hue rotation
+ *    (same saturation/lightness as navy, hue moved to 134deg or 182deg depending on which family
+ *    it belonged to) -- a systematic, lower-rigor pass flagged for visual review rather than
+ *    individually contrast-verified like the items above. Seafoam-verbatim (#9ae9db) for "large
+ *    fills" (hero panels, selected states, chart bands) is NOT wired up here -- there's no single
+ *    existing token in this theme that cleanly represents that role (chart bands are colored
+ *    per-series by the consuming app, not a global token), so this is left as an open question for
+ *    the visual review rather than guessed at.
+ */
+[data-theme="climate-analytics"] {
+  /* Brand ramp -- earth green (dark steps) -> seafoam/cooled cyan (bright steps), matching
+     analytics.css's own two-hue-family pattern (dark steps match the surface hue, bright steps
+     are the vivid accent). 100/200 are the two SyChart reads directly for gridline/zeroline. */
+  --__s9cmpx-color-brand-50: #0e2e15;
+  --__s9cmpx-color-brand-100: #24402a;
+  --__s9cmpx-color-brand-200: #334d39;
+  --__s9cmpx-color-brand-300: #3a8a4d;
+  --__s9cmpx-color-brand-400: #2c9fa3;
+  --__s9cmpx-color-brand-500: #2db8bd;
+  --__s9cmpx-color-brand-600: #50dbe0;
+  --__s9cmpx-color-brand-700: #7fe6ea;
+  --__s9cmpx-color-brand-800: #a9eff1;
+  --__s9cmpx-color-brand-900: #d0f7f8;
+  --__s9cmpx-color-brand-1000: #eafcfd;
+
+  /* Surfaces -- given verbatim, luminance-matched to navy (both within 0.0012, independently
+     re-verified): page canvas / cards+inputs / elevated */
+  --__s9cmpx-static-background-weak: #0d2212;
+  --__s9cmpx-static-background-standard: #15371d;
+  --__s9cmpx-static-background-strong: #1d4927;
+  --__s9cmpx-static-surface-weak: #0d2212;
+  --__s9cmpx-static-surface-standard: #15371d;
+  --__s9cmpx-static-surface-strong: #1d4927;
+  --__s9cmpx-static-layer-standard: #2b5535; /* menus, popovers, toasts */
+
+  /* Inverse surfaces flip to light (chips, tooltips, "dark" accents) */
+  --__s9cmpx-static-background-inverse-weak: #cbf9d8;
+  --__s9cmpx-static-background-inverse-standard: #d5e3d9;
+  --__s9cmpx-static-background-inverse-strong: #b4e4bf;
+
+  /* Ink -- text-weak/text-standard given verbatim */
+  --__s9cmpx-static-text-strong: #ffffff;
+  --__s9cmpx-static-text-standard: #d5e3d9;
+  --__s9cmpx-static-text-weak: #7dac88;
+  --__s9cmpx-static-text-inverse-strong: #0d2212;
+  --__s9cmpx-static-text-inverse-standard: #22452a;
+  --__s9cmpx-static-text-inverse-weak: #4a8558;
+
+  /* Hairlines & dividers -- given verbatim (weak/standard/strong) */
+  --__s9cmpx-static-divider-weak: #1c3f24;
+  --__s9cmpx-static-divider-standard: #22452a;
+  --__s9cmpx-static-divider-strong: #335e3d;
+  --__s9cmpx-static-divider-inverse-weak: #143c1d3d;
+  --__s9cmpx-static-divider-inverse-standard: #143c1d52;
+  --__s9cmpx-static-divider-inverse-strong: #143c1d7a;
+
+  /* Sentiment: only "info" and "neutral" touched (both reuse a blue/gray-blue hue in the navy
+     theme that would otherwise be the only thing left navy in an all-green theme). Positive/
+     negative/notice are untouched -- inherited from analytics.css -- since those are exactly the
+     reserved semantic colors this theme's categorical ramp was built to avoid colliding with. */
+  --__s9cmpx-static-background-sentiment-info: #1e5c5e;
+  --__s9cmpx-static-background-sentiment-neutral: #2c5536;
+  --__s9cmpx-static-text-sentiment-info: #7ff1f5;
+  --__s9cmpx-static-text-sentiment-neutral: #9dcfa9;
+  --__s9cmpx-static-text-sentiment-standard-info: #43d1d6;
+  --__s9cmpx-static-text-sentiment-standard-neutral: #7dac88;
+  --__s9cmpx-static-outline-sentiment-info: #6becf0;
+  --__s9cmpx-static-outline-sentiment-neutral: #7dac88;
+  --__s9cmpx-interactive-fill-sentiment-info: #6becf047;
+  --__s9cmpx-interactive-fill-sentiment-neutral: #7dac8847;
+
+  /* Primary interactive -- the given cooled-accent swatches (~182deg), for the roles the request
+     explicitly named: buttons, focus, links, icons. */
+  --__s9cmpx-interactive-fill-primary-default: #43d1d6;
+  --__s9cmpx-interactive-fill-primary-hover: #39b2b6;
+  --__s9cmpx-interactive-fill-primary-pressed: #2f9296;
+  --__s9cmpx-interactive-fill-primary-disabled: #43d1d626;
+  --__s9cmpx-interactive-fill-primary-onprimarydisabled: #7fb6b8;
+
+  /* Secondary (solid) buttons flip to light-on-dark -- hue-rotated */
+  --__s9cmpx-interactive-fill-secondary-default: #cbf9d8;
+  --__s9cmpx-interactive-fill-secondary-hover: #d5e3d9;
+  --__s9cmpx-interactive-fill-secondary-pressed: #b4e4bf;
+  --__s9cmpx-interactive-fill-secondary-onsecondary: #0d2212;
+  --__s9cmpx-interactive-fill-secondary-onsecondarydisabled: #6b9e77;
+
+  /* Links -- given cooled-accent swatches */
+  --__s9cmpx-interactive-fill-link-default: #60d8dc;
+  --__s9cmpx-interactive-fill-link-hover: #9ae6e9;
+  --__s9cmpx-interactive-fill-link-pressed: #c2f0f2;
+  --__s9cmpx-interactive-fill-link-disabled: #7dac887a;
+
+  /* Outlines -- secondary ladder + focus ring hue-rotated/given */
+  --__s9cmpx-interactive-outline-secondary-default: #265a32;
+  --__s9cmpx-interactive-outline-secondary-hover: #2e6f3d;
+  --__s9cmpx-interactive-outline-secondary-pressed: #378349;
+  --__s9cmpx-interactive-outline-secondary-disabled: #22452a;
+  --__s9cmpx-interactive-outline-focus: #43d1d6;
+
+  /* Hover/selection overlays -- solid "selected" chips, hue-rotated */
+  --__s9cmpx-interactive-overlay-primary-selected-default: #334d39;
+  --__s9cmpx-interactive-overlay-primary-selected-hover: #3c5c43;
+  --__s9cmpx-interactive-overlay-primary-selected-pressed: #3c6a47;
+  --__s9cmpx-interactive-overlay-secondary-selected-default: #334d39;
+  --__s9cmpx-interactive-overlay-secondary-selected-hover: #3c5c43;
+  --__s9cmpx-interactive-overlay-secondary-selected-pressed: #3c6a47;
+
+  --__s9cmpx-button-primary-default-background: #43d1d6;
+  --__s9cmpx-button-primary-default-border: #43d1d6;
+  --__s9cmpx-button-primary-hover-background: #39b2b6;
+  --__s9cmpx-button-primary-hover-border: #39b2b6;
+  --__s9cmpx-button-primary-focused-background: #43d1d6;
+  --__s9cmpx-button-primary-focused-border: #43d1d63d;
+  --__s9cmpx-button-primary-pressed-background: #2f9296;
+  --__s9cmpx-button-primary-pressed-border: #2f9296;
+
+  /* Categorical chart series -- given verbatim, muted/desaturated by design (0.38-0.62
+     saturation) so no series can be mistaken for the reserved sentiment green/red. Mean contrast
+     8.85:1 vs. this theme's page background (independently recomputed, matches exactly). */
+  --__s9cmpx-chart-categorical-default-01: #e7dc98;
+  --__s9cmpx-chart-categorical-default-02: #cddaa0;
+  --__s9cmpx-chart-categorical-default-03: #b5d0de;
+  --__s9cmpx-chart-categorical-default-04: #d8b579;
+  --__s9cmpx-chart-categorical-default-05: #caa8dc;
+  --__s9cmpx-chart-categorical-default-06: #a3aedc;
+  --__s9cmpx-chart-categorical-default-07: #d39cc8;
+  --__s9cmpx-chart-categorical-default-08: #d99c8c;
+  --__s9cmpx-chart-categorical-default-09: #d49a6e;
+}
+
+/* AG Grid (ag-theme-s9cmpx hardcodes light values, so this needs its own mirrored block --
+   see analytics.css's own note on why. Every value below is either a direct semantic-token
+   substitution (background/foreground/border roles that reuse an exact static-* hex) or the
+   closest-luminance cooled-accent swatch for anything derived from the interactive accent. */
+[data-theme="climate-analytics"] .ag-theme-s9cmpx {
+  --ag-alpine-active-color: #43d1d6;
+  --ag-background-color: #15371d;
+  --ag-foreground-color: #cbf9d8;
+  --ag-secondary-foreground-color: #d5e3d9;
+  --ag-data-color: #cbf9d8;
+  --ag-header-background-color: #0d2212;
+  --ag-header-foreground-color: #7dac88;
+  --ag-odd-row-background-color: #15371d;
+  --ag-border-color: #22452a;
+  --ag-secondary-border-color: #1c3f24;
+  --ag-row-border-color: #1c3f24;
+  --ag-row-hover-color: #43d1d614;
+  --ag-column-hover-color: #43d1d614;
+  --ag-selected-row-background-color: #43d1d62e;
+  --ag-range-selection-background-color: #43d1d633;
+  --ag-control-panel-background-color: #0e2914;
+  --ag-subheader-background-color: #15371d;
+  --ag-panel-background-color: #2b5535;
+  --ag-menu-background-color: #2b5535;
+  --ag-tooltip-background-color: #2b5535;
+  --ag-disabled-foreground-color: #cbf9d880;
+  --ag-chip-background-color: #ffffff12;
+  --ag-checkbox-unchecked-color: #7dac88;
+  --ag-input-border-color: #265a32;
+  --ag-input-focus-border-color: #43d1d666;
+  --ag-input-disabled-border-color: #22452a;
+  --ag-input-disabled-background-color: #0e2914;
+  --ag-card-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.4);
+}

@@ -10,8 +10,16 @@
  * interactive-*), so every component that consumes semantic tokens flips.
  * AG Grid needs its own --ag-* block at the bottom because ag-theme-s9cmpx
  * hardcodes light values rather than reading semantic tokens.
+ *
+ * [data-theme="climate-analytics"] (climate-analytics.css, loaded after this
+ * file) shares every selector here except the .ag-theme-s9cmpx block below --
+ * it overrides only the ~40 tokens that actually differ (surfaces, brand
+ * ramp, interactive/button/link colors, categorical ramp, its own AG Grid
+ * block), so any token added here in the future is inherited by both themes
+ * automatically rather than silently missing from climate-analytics.
  */
-[data-theme="analytics"] {
+[data-theme="analytics"],
+[data-theme="climate-analytics"] {
   /* Brand ramp — navy → cyan, dark-mode ordered (low steps surface-tinted;
      SyChart reads 100/200 as gridline/zeroline) */
   --__s9cmpx-color-brand-50: #0e1a2e;
@@ -183,10 +191,12 @@
 /* The vendor reset/base CSS hardcodes `strong{color:#363636}` and
    `table th{color:#363636}` (light-mode ink, not semantic tokens) — nearly
    invisible on this theme's dark surfaces, so override both here. */
-[data-theme="analytics"] strong {
+[data-theme="analytics"] strong,
+[data-theme="climate-analytics"] strong {
   color: var(--__s9cmpx-static-text-strong);
 }
-[data-theme="analytics"] table th {
+[data-theme="analytics"] table th,
+[data-theme="climate-analytics"] table th {
   color: var(--__s9cmpx-static-text-standard);
 }
 
@@ -197,7 +207,8 @@
    `body{color:#4a4a4a}`, nearly invisible against this theme's dark
    sidebar. Set color on the sidebar container itself so anything inside
    that doesn't set its own color inherits the theme's ink instead. */
-[data-theme="analytics"] .__s9cmpx-sidebar-nav__sidebar {
+[data-theme="analytics"] .__s9cmpx-sidebar-nav__sidebar,
+[data-theme="climate-analytics"] .__s9cmpx-sidebar-nav__sidebar {
   color: var(--__s9cmpx-static-text-strong);
 }
 
