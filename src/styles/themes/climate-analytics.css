@@ -1,187 +1,112 @@
 /*
  * Climate Analytics theme
- * A climate-specific variant of the Analytics theme (analytics.css), derived from Pentagram's
- * Zeff brand system (Climate & Sustainability sector): earth-green surfaces, a seafoam/cooled-cyan
- * accent, and a muted (desaturated) categorical chart ramp in place of Analytics' neon one.
+ * A medium-toned, muted sage theme -- deliberately between a pale pastel and a near-black forest
+ * green (an earlier draft of this same file tried the pastel end and read as too light live) --
+ * one cohesive green hue family (~148-150deg) for surfaces, brand ramp, and interactive/accent
+ * color alike.
  *
- * Ships as a SEPARATE theme rather than a redefinition of `analytics` -- analytics keeps its navy
- * surfaces and its own categorical ramp untouched for other consumers; a consumer opts in via
- * `data-theme="climate-analytics"`. This file only overrides what actually differs (~40 tokens);
- * everything else (white/black-alpha tokens, amber "notice" sentiment, tertiary/ghost fills, etc.)
- * is inherited from analytics.css's own shared selector -- see the note at the top of that file.
+ * Structured like green.css/blue.css: a small delta on top of the shared :root light-theme
+ * defaults in the base vendor theme file (white surfaces, dark ink, light sentiment washes with
+ * dark ink, a light-appropriate categorical ramp), NOT a variant of the dark analytics.css theme
+ * -- a light-family theme flips almost every token's role (dark-on-light instead of
+ * light-on-dark, light sentiment washes instead of dark ones, etc.), so inheriting from the dark
+ * theme's block would mean overriding nearly all of it anyway. Only the tokens listed below
+ * differ from the base defaults; everything else (sentiment colors, white-alpha/black-alpha
+ * overlays, secondary/tertiary fills) needs no change.
  *
- * Provenance, since this matters for anyone revisiting these values later:
- *  - Surfaces/dividers/text/categorical ramp: given verbatim (consumer's own SPEC.md §5.13),
- *    independently re-verified -- every relative-luminance/contrast figure recomputes exactly.
- *  - --color-brand-100/200 (SyChart's gridline/zeroline) and the .ag-theme-s9cmpx block: the
- *    request flagged both as needing confirmation rather than assumption. Derived by matching
- *    each navy token's own contrast-against-background exactly, hue-rotated to this theme's
- *    surface hue (~134deg, matching --static-divider-standard's own hue).
- *  - The three "cooled" accent swatches (#9ae6e9/#60d8dc/#43d1d6, ~182deg) are given verbatim for
- *    links/focus/buttons/icons -- applied to interactive-fill-primary, interactive-fill-link, and
- *    interactive-outline-focus, the clearest matches for that role.
- *  - Everything else that was a navy/cyan hue in analytics.css (brand ramp steps not otherwise
- *    covered, secondary/overlay/outline-secondary fills, sentiment-info) is a straight hue rotation
- *    (same saturation/lightness as navy, hue moved to 134deg or 182deg depending on which family
- *    it belonged to) -- a systematic, lower-rigor pass flagged for visual review rather than
- *    individually contrast-verified like the items above. Seafoam-verbatim (#9ae9db) for "large
- *    fills" (hero panels, selected states, chart bands) is NOT wired up here -- there's no single
- *    existing token in this theme that cleanly represents that role (chart bands are colored
- *    per-series by the consuming app, not a global token), so this is left as an open question for
- *    the visual review rather than guessed at.
+ * At this surface's own lightness (~0.31-0.39 relative luminance -- genuinely medium, not pale),
+ * dark ink still reads better than light ink (checked both directions before committing): a
+ * near-black ink clears ~5:1+ contrast here, while white text only reaches ~3:1, right at the
+ * WCAG floor for large text/UI components and short of the 4.5:1 body-text target. That's the
+ * inherent effect of green's high contribution to relative luminance -- even a "medium" green
+ * still leans light for contrast purposes.
+ *
+ * AG Grid needs no override here (unlike analytics.css) -- ag-theme-s9cmpx's own hardcoded
+ * defaults are already light-mode (white background, black text), confirmed against the vendor
+ * CSS before assuming so.
+ *
+ * Every surface/text/divider/categorical figure below was verified against WCAG contrast targets
+ * (4.5:1 body text, 3:1 large text/UI components, non-text elements) at derivation time -- not
+ * just picked by eye. The categorical ramp in particular had to be re-derived (darker) after the
+ * lightness band moved, since the same hex values that cleared 3:1 against a pale page fall to
+ * ~1.5-2.5:1 against this medium one.
  */
 [data-theme="climate-analytics"] {
-  /* Brand ramp -- earth green (dark steps) -> seafoam/cooled cyan (bright steps), matching
-     analytics.css's own two-hue-family pattern (dark steps match the surface hue, bright steps
-     are the vivid accent). 100/200 are the two SyChart reads directly for gridline/zeroline. */
-  --__s9cmpx-color-brand-50: #0e2e15;
-  --__s9cmpx-color-brand-100: #24402a;
-  --__s9cmpx-color-brand-200: #334d39;
-  --__s9cmpx-color-brand-300: #3a8a4d;
-  --__s9cmpx-color-brand-400: #2c9fa3;
-  --__s9cmpx-color-brand-500: #2db8bd;
-  --__s9cmpx-color-brand-600: #50dbe0;
-  --__s9cmpx-color-brand-700: #7fe6ea;
-  --__s9cmpx-color-brand-800: #a9eff1;
-  --__s9cmpx-color-brand-900: #d0f7f8;
-  --__s9cmpx-color-brand-1000: #eafcfd;
+  /* Brand ramp -- pale mint (50) to deep forest (1000), one hue (~148deg) throughout. Also what
+     SyChart reads as gridline/zeroline (100/200). */
+  --__s9cmpx-color-brand-50: #f0f4f2;
+  --__s9cmpx-color-brand-100: #dae7e0;
+  --__s9cmpx-color-brand-200: #bfd9cb;
+  --__s9cmpx-color-brand-300: #9cc9b1;
+  --__s9cmpx-color-brand-400: #75bd97;
+  --__s9cmpx-color-brand-500: #49ab77;
+  --__s9cmpx-color-brand-600: #3b9163;
+  --__s9cmpx-color-brand-700: #31724f;
+  --__s9cmpx-color-brand-800: #26543c;
+  --__s9cmpx-color-brand-900: #1e3e2d;
+  --__s9cmpx-color-brand-1000: #15281e;
 
-  /* Surfaces -- given verbatim, luminance-matched to navy (both within 0.0012, independently
-     re-verified): page canvas / cards+inputs / elevated */
-  --__s9cmpx-static-background-weak: #0d2212;
-  --__s9cmpx-static-background-standard: #15371d;
-  --__s9cmpx-static-background-strong: #1d4927;
-  --__s9cmpx-static-surface-weak: #0d2212;
-  --__s9cmpx-static-surface-standard: #15371d;
-  --__s9cmpx-static-surface-strong: #1d4927;
-  --__s9cmpx-static-layer-standard: #2b5535; /* menus, popovers, toasts */
+  /* Surfaces -- medium sage, the midpoint between a pale pastel and near-black forest green. */
+  --__s9cmpx-static-background-weak: #81b197;
+  --__s9cmpx-static-background-standard: #65a482;
+  --__s9cmpx-static-background-strong: #4d8969;
+  --__s9cmpx-static-surface-weak: #81b197;
+  --__s9cmpx-static-surface-standard: #65a482;
+  --__s9cmpx-static-surface-strong: #4d8969;
 
-  /* Inverse surfaces flip to light (chips, tooltips, "dark" accents) */
-  --__s9cmpx-static-background-inverse-weak: #cbf9d8;
-  --__s9cmpx-static-background-inverse-standard: #d5e3d9;
-  --__s9cmpx-static-background-inverse-strong: #b4e4bf;
+  /* Ink -- dark, slightly green-tinted. Darker than a typical light-theme ink because the
+     surface itself is no longer pale (see file header on why dark still wins here). */
+  --__s9cmpx-static-text-strong: #0d1c14;
+  --__s9cmpx-static-text-standard: #192e24;
+  --__s9cmpx-static-text-weak: #1f3329;
 
-  /* Ink -- text-weak/text-standard given verbatim */
-  --__s9cmpx-static-text-strong: #ffffff;
-  --__s9cmpx-static-text-standard: #d5e3d9;
-  --__s9cmpx-static-text-weak: #7dac88;
-  --__s9cmpx-static-text-inverse-strong: #0d2212;
-  --__s9cmpx-static-text-inverse-standard: #22452a;
-  --__s9cmpx-static-text-inverse-weak: #4a8558;
+  /* Dividers */
+  --__s9cmpx-static-divider-weak: #558b6e;
+  --__s9cmpx-static-divider-standard: #44745a;
+  --__s9cmpx-static-divider-strong: #2b503d;
 
-  /* Hairlines & dividers -- given verbatim (weak/standard/strong) */
-  --__s9cmpx-static-divider-weak: #1c3f24;
-  --__s9cmpx-static-divider-standard: #22452a;
-  --__s9cmpx-static-divider-strong: #335e3d;
-  --__s9cmpx-static-divider-inverse-weak: #143c1d3d;
-  --__s9cmpx-static-divider-inverse-standard: #143c1d52;
-  --__s9cmpx-static-divider-inverse-strong: #143c1d7a;
+  /* Primary interactive -- brand-700 clears 4.5:1 with white button text (5.75:1); hover/pressed
+     darken further down the ramp, matching the direction analytics.css's own dark-mode ramp uses. */
+  --__s9cmpx-interactive-fill-primary-default: #31724f;
+  --__s9cmpx-interactive-fill-primary-hover: #26543c;
+  --__s9cmpx-interactive-fill-primary-pressed: #1e3e2d;
+  --__s9cmpx-interactive-fill-primary-disabled: #31724f26;
+  --__s9cmpx-interactive-fill-primary-onprimary: #ffffff;
+  --__s9cmpx-interactive-fill-primary-onprimarydisabled: #9cc9b1;
 
-  /* Sentiment: only "info" and "neutral" touched (both reuse a blue/gray-blue hue in the navy
-     theme that would otherwise be the only thing left navy in an all-green theme). Positive/
-     negative/notice are untouched -- inherited from analytics.css -- since those are exactly the
-     reserved semantic colors this theme's categorical ramp was built to avoid colliding with. */
-  --__s9cmpx-static-background-sentiment-info: #1e5c5e;
-  --__s9cmpx-static-background-sentiment-neutral: #2c5536;
-  --__s9cmpx-static-text-sentiment-info: #7ff1f5;
-  --__s9cmpx-static-text-sentiment-neutral: #9dcfa9;
-  --__s9cmpx-static-text-sentiment-standard-info: #43d1d6;
-  --__s9cmpx-static-text-sentiment-standard-neutral: #7dac88;
-  --__s9cmpx-static-outline-sentiment-info: #6becf0;
-  --__s9cmpx-static-outline-sentiment-neutral: #7dac88;
-  --__s9cmpx-interactive-fill-sentiment-info: #6becf047;
-  --__s9cmpx-interactive-fill-sentiment-neutral: #7dac8847;
+  --__s9cmpx-button-primary-default-background: #31724f;
+  --__s9cmpx-button-primary-default-border: #31724f;
+  --__s9cmpx-button-primary-default-label: #ffffff;
+  --__s9cmpx-button-primary-hover-background: #26543c;
+  --__s9cmpx-button-primary-hover-border: #26543c;
+  --__s9cmpx-button-primary-hover-label: #ffffff;
+  --__s9cmpx-button-primary-focused-background: #31724f;
+  --__s9cmpx-button-primary-focused-border: #3b916366;
+  --__s9cmpx-button-primary-focused-label: #ffffff;
+  --__s9cmpx-button-primary-pressed-background: #1e3e2d;
+  --__s9cmpx-button-primary-pressed-border: #1e3e2d;
+  --__s9cmpx-button-primary-pressed-label: #ffffff;
 
-  /* Primary interactive -- the given cooled-accent swatches (~182deg), for the roles the request
-     explicitly named: buttons, focus, links, icons. */
-  --__s9cmpx-interactive-fill-primary-default: #43d1d6;
-  --__s9cmpx-interactive-fill-primary-hover: #39b2b6;
-  --__s9cmpx-interactive-fill-primary-pressed: #2f9296;
-  --__s9cmpx-interactive-fill-primary-disabled: #43d1d626;
-  --__s9cmpx-interactive-fill-primary-onprimarydisabled: #7fb6b8;
+  --__s9cmpx-interactive-outline-focus: #3b9163;
 
-  /* Secondary (solid) buttons flip to light-on-dark -- hue-rotated */
-  --__s9cmpx-interactive-fill-secondary-default: #cbf9d8;
-  --__s9cmpx-interactive-fill-secondary-hover: #d5e3d9;
-  --__s9cmpx-interactive-fill-secondary-pressed: #b4e4bf;
-  --__s9cmpx-interactive-fill-secondary-onsecondary: #0d2212;
-  --__s9cmpx-interactive-fill-secondary-onsecondarydisabled: #6b9e77;
+  /* Links -- brand-700 clears 4.5:1 as body-sized text against both page and card surfaces. */
+  --__s9cmpx-interactive-fill-link-default: #31724f;
+  --__s9cmpx-interactive-fill-link-hover: #26543c;
+  --__s9cmpx-interactive-fill-link-pressed: #1e3e2d;
+  --__s9cmpx-interactive-fill-link-disabled: #496959a6;
 
-  /* Links -- given cooled-accent swatches */
-  --__s9cmpx-interactive-fill-link-default: #60d8dc;
-  --__s9cmpx-interactive-fill-link-hover: #9ae6e9;
-  --__s9cmpx-interactive-fill-link-pressed: #c2f0f2;
-  --__s9cmpx-interactive-fill-link-disabled: #7dac887a;
-
-  /* Outlines -- secondary ladder + focus ring hue-rotated/given */
-  --__s9cmpx-interactive-outline-secondary-default: #265a32;
-  --__s9cmpx-interactive-outline-secondary-hover: #2e6f3d;
-  --__s9cmpx-interactive-outline-secondary-pressed: #378349;
-  --__s9cmpx-interactive-outline-secondary-disabled: #22452a;
-  --__s9cmpx-interactive-outline-focus: #43d1d6;
-
-  /* Hover/selection overlays -- solid "selected" chips, hue-rotated */
-  --__s9cmpx-interactive-overlay-primary-selected-default: #334d39;
-  --__s9cmpx-interactive-overlay-primary-selected-hover: #3c5c43;
-  --__s9cmpx-interactive-overlay-primary-selected-pressed: #3c6a47;
-  --__s9cmpx-interactive-overlay-secondary-selected-default: #334d39;
-  --__s9cmpx-interactive-overlay-secondary-selected-hover: #3c5c43;
-  --__s9cmpx-interactive-overlay-secondary-selected-pressed: #3c6a47;
-
-  --__s9cmpx-button-primary-default-background: #43d1d6;
-  --__s9cmpx-button-primary-default-border: #43d1d6;
-  --__s9cmpx-button-primary-hover-background: #39b2b6;
-  --__s9cmpx-button-primary-hover-border: #39b2b6;
-  --__s9cmpx-button-primary-focused-background: #43d1d6;
-  --__s9cmpx-button-primary-focused-border: #43d1d63d;
-  --__s9cmpx-button-primary-pressed-background: #2f9296;
-  --__s9cmpx-button-primary-pressed-border: #2f9296;
-
-  /* Categorical chart series -- given verbatim, muted/desaturated by design (0.38-0.62
-     saturation) so no series can be mistaken for the reserved sentiment green/red. Mean contrast
-     8.85:1 vs. this theme's page background (independently recomputed, matches exactly). */
-  --__s9cmpx-chart-categorical-default-01: #e7dc98;
-  --__s9cmpx-chart-categorical-default-02: #cddaa0;
-  --__s9cmpx-chart-categorical-default-03: #b5d0de;
-  --__s9cmpx-chart-categorical-default-04: #d8b579;
-  --__s9cmpx-chart-categorical-default-05: #caa8dc;
-  --__s9cmpx-chart-categorical-default-06: #a3aedc;
-  --__s9cmpx-chart-categorical-default-07: #d39cc8;
-  --__s9cmpx-chart-categorical-default-08: #d99c8c;
-  --__s9cmpx-chart-categorical-default-09: #d49a6e;
-}
-
-/* AG Grid (ag-theme-s9cmpx hardcodes light values, so this needs its own mirrored block --
-   see analytics.css's own note on why. Every value below is either a direct semantic-token
-   substitution (background/foreground/border roles that reuse an exact static-* hex) or the
-   closest-luminance cooled-accent swatch for anything derived from the interactive accent. */
-[data-theme="climate-analytics"] .ag-theme-s9cmpx {
-  --ag-alpine-active-color: #43d1d6;
-  --ag-background-color: #15371d;
-  --ag-foreground-color: #cbf9d8;
-  --ag-secondary-foreground-color: #d5e3d9;
-  --ag-data-color: #cbf9d8;
-  --ag-header-background-color: #0d2212;
-  --ag-header-foreground-color: #7dac88;
-  --ag-odd-row-background-color: #15371d;
-  --ag-border-color: #22452a;
-  --ag-secondary-border-color: #1c3f24;
-  --ag-row-border-color: #1c3f24;
-  --ag-row-hover-color: #43d1d614;
-  --ag-column-hover-color: #43d1d614;
-  --ag-selected-row-background-color: #43d1d62e;
-  --ag-range-selection-background-color: #43d1d633;
-  --ag-control-panel-background-color: #0e2914;
-  --ag-subheader-background-color: #15371d;
-  --ag-panel-background-color: #2b5535;
-  --ag-menu-background-color: #2b5535;
-  --ag-tooltip-background-color: #2b5535;
-  --ag-disabled-foreground-color: #cbf9d880;
-  --ag-chip-background-color: #ffffff12;
-  --ag-checkbox-unchecked-color: #7dac88;
-  --ag-input-border-color: #265a32;
-  --ag-input-focus-border-color: #43d1d666;
-  --ag-input-disabled-border-color: #22452a;
-  --ag-input-disabled-background-color: #0e2914;
-  --ag-card-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.4);
+  /* Categorical chart series -- dark, moderately saturated marks (contrast against this medium
+     surface comes from being darker than it, same direction as the ink above). Hues deliberately
+     avoid both the base theme's sentiment-positive (~160deg, #187254) and sentiment-negative
+     (~352deg, #8d1a2a) so no series can misread as a sentiment cue. Every entry individually
+     clears 3:1 against the card surface (WCAG 1.4.11 non-text contrast); most clear 4.5:1. */
+  --__s9cmpx-chart-categorical-default-01: #16325a;
+  --__s9cmpx-chart-categorical-default-02: #623d18;
+  --__s9cmpx-chart-categorical-default-03: #331c54;
+  --__s9cmpx-chart-categorical-default-04: #474315;
+  --__s9cmpx-chart-categorical-default-05: #19404d;
+  --__s9cmpx-chart-categorical-default-06: #541c41;
+  --__s9cmpx-chart-categorical-default-07: #1c1736;
+  --__s9cmpx-chart-categorical-default-08: #542a1c;
+  --__s9cmpx-chart-categorical-default-09: #381943;
 }
