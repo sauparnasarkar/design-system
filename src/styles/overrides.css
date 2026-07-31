@@ -45,7 +45,7 @@
   width: 24px;
 }
 
-/* SyChart's own fixed-position tooltip (rendered by React, see ChartCard/SyChart.tsx) replaces
+/* SyChart's own fixed-position tooltip (rendered by React, see SyChart/SyChart.tsx) replaces
    Plotly's native `hovermode: 'x unified'` label box for cartesian charts -- that box is
    positioned by Plotly near the topmost active trace's own y-pixel at the hovered x, which
    moves as that value moves across the series and can flip sides near the plot's edges
