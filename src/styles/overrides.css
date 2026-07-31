@@ -44,3 +44,16 @@
   height: 24px;
   width: 24px;
 }
+
+/* SyChart's own fixed-position tooltip (rendered by React, see ChartCard/SyChart.tsx) replaces
+   Plotly's native `hovermode: 'x unified'` label box for cartesian charts -- that box is
+   positioned by Plotly near the topmost active trace's own y-pixel at the hovered x, which
+   moves as that value moves across the series and can flip sides near the plot's edges
+   (confirmed live: 10-series charts on Scenario Comparison). Only the label box itself is
+   hidden here (Plotly renders it as a `.legend`-classed group inside `.hoverlayer`, confirmed
+   against the live DOM before assuming so) -- the `.spikeline` guideline Plotly draws in the
+   same layer stays visible, since it's still a useful "which x is hovered" cue and isn't part
+   of the box that was repositioning awkwardly. */
+.__s9cmpx-chart-plotly--custom-tooltip .hoverlayer > .legend {
+  display: none;
+}
