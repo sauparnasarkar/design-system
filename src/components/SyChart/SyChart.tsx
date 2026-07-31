@@ -506,7 +506,7 @@ export function SyChart({
       // event, since it doesn't depend on hover data) via the same cssVar/withAlpha pattern
       // already used for band-chart fill opacity above.
       if (tooltipRef.current) {
-        tooltipRef.current.style.background = withAlpha(cssVar(el, '--__s9cmpx-static-layer-standard', '#324c7c'), 0.85);
+        tooltipRef.current.style.background = withAlpha(cssVar(el, '--__s9cmpx-static-layer-standard', '#324c7c'), 0.65);
       }
       type HoverPoint = {
         x: number | string;
