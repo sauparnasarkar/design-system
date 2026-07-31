@@ -501,6 +501,13 @@ export function SyChart({
     // suppressed (via the `--custom-tooltip` CSS class below, targeting `.hoverlayer >
     // .legend` specifically), so the spike guideline it also draws stays visible.
     if (useFixedTooltip) {
+      // Translucent rather than the theme's flat layer-standard fill, so the chart lines
+      // underneath stay visible while the tooltip is up -- resolved once here (not per-hover
+      // event, since it doesn't depend on hover data) via the same cssVar/withAlpha pattern
+      // already used for band-chart fill opacity above.
+      if (tooltipRef.current) {
+        tooltipRef.current.style.background = withAlpha(cssVar(el, '--__s9cmpx-static-layer-standard', '#324c7c'), 0.85);
+      }
       type HoverPoint = {
         x: number | string;
         y: number | string;
@@ -664,7 +671,6 @@ export function SyChart({
             fontSize: 12,
             fontFamily: 'var(--__s9cmpx-font-families-primary)',
             color: 'var(--__s9cmpx-static-text-standard)',
-            background: 'var(--__s9cmpx-static-layer-standard)',
             border: '1px solid var(--__s9cmpx-static-divider-weak)',
             borderRadius: 4,
             boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
