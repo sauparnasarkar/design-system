@@ -185,8 +185,18 @@ export function SyChart({
   className,
 }: SyChartProps) {
   const ref = React.useRef<HTMLDivElement>(null);
+  const tooltipRef = React.useRef<HTMLDivElement>(null);
+  const hideTooltipTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetViewRef = React.useRef<(() => void) | null>(null);
   const hasChoropleth = series.some((s) => s.kind === 'choropleth');
+  const hasTreemap = series.some((s) => s.kind === 'treemap');
+  // hovermode: 'x unified' below renders one label box per hovered x, positioned by Plotly
+  // near the topmost active trace's own y-pixel at that x -- which moves as that value moves,
+  // and can flip from one side of the cursor to the other near the plot's edges (confirmed
+  // live: 10-series charts on Scenario Comparison). A custom tooltip pinned to a fixed
+  // position sidesteps that; only meaningful for cartesian (line/bar/band) charts, since
+  // choropleth/treemap hover is per-point/per-tile, not this unified box.
+  const useFixedTooltip = !hasChoropleth && !hasTreemap;
 
   React.useEffect(() => {
     const el = ref.current;
@@ -486,6 +496,79 @@ export function SyChart({
       });
     }
 
+    // Custom fixed-position tooltip (see useFixedTooltip above). Plotly's own hover event
+    // firing/hit-testing is left fully intact -- only its own label box's rendering is
+    // suppressed (via the `--custom-tooltip` CSS class below, targeting `.hoverlayer >
+    // .legend` specifically), so the spike guideline it also draws stays visible.
+    if (useFixedTooltip) {
+      type HoverPoint = {
+        x: number | string;
+        y: number | string;
+        data: { name: string };
+        fullData?: { line?: { color?: string }; marker?: { color?: string } };
+      };
+      type HoverEvent = { points: HoverPoint[]; event: MouseEvent };
+      type PlotlyHoverDiv = HTMLDivElement & {
+        on: (event: 'plotly_hover' | 'plotly_unhover', handler: (e?: HoverEvent) => void) => void;
+      };
+      (el as PlotlyHoverDiv).on('plotly_hover', (event) => {
+        const tooltip = tooltipRef.current;
+        if (!tooltip || !event?.points.length) return;
+        // Cancel any pending hide from a just-prior plotly_unhover -- see that handler below
+        // for why one can fire on the way to hovering the tooltip itself.
+        if (hideTooltipTimeoutRef.current) {
+          clearTimeout(hideTooltipTimeoutRef.current);
+          hideTooltipTimeoutRef.current = null;
+        }
+        const rect = el.getBoundingClientRect();
+        const mouseX = event.event.clientX - rect.left;
+        // Built via safe DOM APIs (createElement/textContent), not innerHTML -- series names
+        // and axis categories both ultimately come from caller-supplied data, which this
+        // general-purpose component has no way to guarantee is trusted/pre-sanitized HTML.
+        tooltip.replaceChildren();
+        const header = document.createElement('div');
+        header.style.cssText = 'font-weight:600;margin-bottom:4px;';
+        header.textContent = String(event.points[0].x);
+        tooltip.appendChild(header);
+        for (const p of event.points) {
+          const color = p.fullData?.line?.color ?? p.fullData?.marker?.color ?? cssVar(el, '--__s9cmpx-static-text-weak', '#757575');
+          const val = typeof p.y === 'number' ? p.y.toLocaleString(undefined, { maximumFractionDigits: 3 }) : String(p.y);
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;align-items:center;gap:6px;white-space:nowrap;';
+          const swatch = document.createElement('span');
+          swatch.style.cssText = `width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0;`;
+          const label = document.createElement('span');
+          label.textContent = `${p.data.name}: ${val}`;
+          row.append(swatch, label);
+          tooltip.appendChild(row);
+        }
+        tooltip.style.display = 'block';
+        // Horizontal position follows the cursor (still useful as an at-a-glance "which
+        // year" cue, and Plotly's spike line already does the same) -- clamped so the box
+        // never overflows the chart's own left/right edges.
+        const tooltipWidth = tooltip.offsetWidth || 160;
+        const left = Math.min(Math.max(mouseX + 12, 4), rect.width - tooltipWidth - 4);
+        tooltip.style.left = `${left}px`;
+      });
+      (el as PlotlyHoverDiv).on('plotly_unhover', () => {
+        // Plotly fires this the moment the pointer leaves ITS OWN hit-testing area -- which
+        // includes the moment the cursor moves onto the tooltip itself, since that's a sibling
+        // element painted on top (see pointerEvents/onMouseEnter+Leave on the tooltip below,
+        // which is why it needs pointer-events enabled at all: a series list taller than the
+        // chart needs to be scrollable, and pointer-events:none would make that impossible).
+        // A short delay (rather than hiding immediately) gives the browser time to deliver the
+        // tooltip's own onMouseEnter first when the cursor is actually headed there -- an
+        // immediate hide loses the race and the tooltip vanishes before a reaching cursor
+        // arrives (confirmed live: synchronous hide-on-unhover made the tooltip disappear the
+        // moment the pointer crossed into it). onMouseEnter below cancels this timeout.
+        if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
+        hideTooltipTimeoutRef.current = setTimeout(() => {
+          if (tooltipRef.current) tooltipRef.current.style.display = 'none';
+          hideTooltipTimeoutRef.current = null;
+        }, 150);
+      });
+    }
+
     // Choropleth maps size themselves off their own container width rather than the fixed
     // `height` prop -- a hardcoded height either leaves large empty side margins on wide
     // desktop containers (Plotly is height-bound, so it centers a narrower map) or renders a
@@ -534,9 +617,10 @@ export function SyChart({
 
     return () => {
       resizeObserver?.disconnect();
+      if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, useFixedTooltip]);
 
   const fallbackDescription =
     [yTitle, xTitle ? `by ${xTitle}` : null, series.length ? `— ${series.map((s) => s.name).join(', ')}` : null]
@@ -549,9 +633,44 @@ export function SyChart({
         ref={ref}
         role="img"
         aria-label={ariaLabel ?? fallbackDescription}
-        className={cx('__s9cmpx-chart', '__s9cmpx-chart-plotly', className)}
+        className={cx('__s9cmpx-chart', '__s9cmpx-chart-plotly', useFixedTooltip && '__s9cmpx-chart-plotly--custom-tooltip', className)}
         style={{ width: '100%' }}
       />
+      {useFixedTooltip && (
+        <div
+          ref={tooltipRef}
+          // Pointer events are on (not 'none') specifically so a series list taller than the
+          // chart can be scrolled -- see the grace-period comment on the plotly_unhover handler
+          // above for how that's kept from fighting Plotly's own hover detection (which
+          // otherwise loses the pointer the moment it reaches this box).
+          onMouseEnter={() => {
+            if (hideTooltipTimeoutRef.current) {
+              clearTimeout(hideTooltipTimeoutRef.current);
+              hideTooltipTimeoutRef.current = null;
+            }
+          }}
+          onMouseLeave={() => {
+            if (tooltipRef.current) tooltipRef.current.style.display = 'none';
+          }}
+          style={{
+            display: 'none',
+            position: 'absolute',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 2,
+            maxHeight: 'calc(100% - 16px)',
+            overflowY: 'auto',
+            padding: '8px 10px',
+            fontSize: 12,
+            fontFamily: 'var(--__s9cmpx-font-families-primary)',
+            color: 'var(--__s9cmpx-static-text-standard)',
+            background: 'var(--__s9cmpx-static-layer-standard)',
+            border: '1px solid var(--__s9cmpx-static-divider-weak)',
+            borderRadius: 4,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          }}
+        />
+      )}
       {hasChoropleth && (
         <button
           type="button"
