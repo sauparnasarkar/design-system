@@ -57,3 +57,22 @@
 .__s9cmpx-chart-plotly--custom-tooltip .hoverlayer > .legend {
   display: none;
 }
+
+/* AG Grid reuses the class name `ag-body-horizontal-scroll` for two different things: the
+   dedicated scrollbar-track element, and a *state* class it also stamps onto `.ag-root` itself
+   whenever the grid's content actually needs horizontal scrolling (confirmed live via the DOM --
+   `.ag-root`'s own classList includes it, distinct from the separate `.ag-body-horizontal-scroll
+   .ag-apple-scrollbar` div). The vendor CSS's `.ag-ltr .ag-body-horizontal-scroll` rule (meant
+   only for the scrollbar track, which does need `flex-direction: row`) has higher specificity
+   than the base `.ag-root { flex-direction: column }` rule, so it hijacks `.ag-root`'s own layout
+   the moment that state class is present -- the viewport and the horizontal-scroll strip end up
+   flex siblings in a row instead of stacked, and the scrollbar's forced `width: 100%` claims all
+   the row's space, squeezing the actual data viewport to `width: 0` (confirmed via computed
+   style). Result: headers and rows both present in the DOM with correct data, but genuinely
+   unpainted and un-hit-testable -- a totally blank table with no console error, on any table with
+   enough columns to need horizontal scrolling (reproduced live on Data Explorer, viewport-width
+   dependent -- narrower viewports where the columns fit without scrolling never trigger the state
+   class and never hit this).  Reasserted at higher specificity than the colliding vendor rule. */
+.ag-root.ag-layout-normal.ag-body-horizontal-scroll {
+  flex-direction: column;
+}
