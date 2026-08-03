@@ -1,6 +1,7 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
 import { Icon, type IconName } from '../Icon/Icon';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 const MOBILE_QUERY = '(max-width: 768px)';
 
@@ -167,8 +168,7 @@ export function SidebarNav({
     </li>
   );
 
-  const reduceMotion =
-    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduceMotion = useReducedMotion();
   const slideTransition = reduceMotion ? 'none' : 'transform 0.2s cubic-bezier(0.77, 0, 0.175, 1)';
   const widthTransition = reduceMotion ? 'none' : 'width 0.15s cubic-bezier(0.77, 0, 0.175, 1)';
 
