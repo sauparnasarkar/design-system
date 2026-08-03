@@ -36,7 +36,10 @@ export interface SyChartSeries {
    * a chart whose data changes over time (e.g. an animated choropleth stepping through years)
    * re-normalizes its color scale to each frame's own min/max, which hides real magnitude
    * change behind constant-looking colors. Applied as `zmin`/`zmax` + `zauto:false`
-   * (choropleth) or `cmin`/`cmax` (treemap/bar).
+   * (choropleth) or `cmin`/`cmax` (treemap/bar). When `zLog` is set, the lower bound must be
+   * a genuinely positive number — log10 of zero or a negative value is undefined, and while a
+   * non-positive bound is defensively floored rather than left `null`, the resulting range is
+   * degenerate (an extremely low, effectively meaningless floor), not a real fallback.
    */
   colorRange?: [number, number];
   /**
@@ -256,9 +259,17 @@ export function SyChart({
         const logTransform = (v: number) => (v > 0 ? Math.log10(v) : null);
         const z = s.zLog ? colorValues.map((v) => (v != null ? logTransform(v) : null)) : s.colorValues;
         const logTicks = s.zLog ? logColorbarTicks(colorValues) : undefined;
+        // Unlike logTransform above (where a non-positive data point legitimately has no
+        // color, i.e. null), a colorRange bound must always resolve to a real number --
+        // Plotly's behavior with zmin/zmax: null alongside zauto: false is undefined, and
+        // could silently fall back to auto-scaling, defeating the point of pinning the range
+        // at all (Copilot review, PR #28). Callers should pass a genuinely positive lower
+        // bound when zLog is set (see colorRange's own doc comment); this floor is a
+        // defensive fallback for one that doesn't, not the intended path.
+        const logTransformBound = (v: number) => (v > 0 ? Math.log10(v) : Math.log10(Number.MIN_VALUE));
         const [zmin, zmax] = s.colorRange
           ? s.zLog
-            ? [logTransform(s.colorRange[0]), logTransform(s.colorRange[1])]
+            ? [logTransformBound(s.colorRange[0]), logTransformBound(s.colorRange[1])]
             : s.colorRange
           : [undefined, undefined];
         const traces: unknown[] = [];
@@ -268,24 +279,31 @@ export function SyChart({
         // the gap visible and unambiguous. Recomputed from whichever colorValues are current,
         // since the animationFrame effect below re-derives this same set per frame (the no-data
         // set is not static: it shrinks as an animated choropleth steps through years).
+        //
+        // Always constructed -- even with zero locations -- rather than only when this
+        // render's colorValues happens to contain a null. traceIndexRef below is captured
+        // once, at this construction, and animationFrame's own effect never re-runs this
+        // construction; if the trace were only created when the *initial* frame had nulls, a
+        // caller whose first frame happened to be fully populated would permanently lose
+        // no-data highlighting for every later frame that does introduce one (Copilot review,
+        // PR #28) -- an empty-locations trace costs nothing and renders nothing, so there's no
+        // reason to make its existence conditional at all.
         const noDataLocations = (s.locations ?? []).filter((_, idx) => colorValues[idx] == null);
-        if (noDataLocations.length > 0) {
-          traces.push({
-            type: 'choropleth',
-            meta: 'sychart-choropleth-nodata',
-            name: `${s.name} (no data)`,
-            locations: noDataLocations,
-            locationmode: s.locationmode ?? 'ISO-3',
-            z: noDataLocations.map(() => 0),
-            colorscale: [
-              [0, s.noDataColor ?? '#4a4a4a'],
-              [1, s.noDataColor ?? '#4a4a4a'],
-            ],
-            showscale: false,
-            hoverinfo: 'skip',
-            marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
-          });
-        }
+        traces.push({
+          type: 'choropleth',
+          meta: 'sychart-choropleth-nodata',
+          name: `${s.name} (no data)`,
+          locations: noDataLocations,
+          locationmode: s.locationmode ?? 'ISO-3',
+          z: noDataLocations.map(() => 0),
+          colorscale: [
+            [0, s.noDataColor ?? '#4a4a4a'],
+            [1, s.noDataColor ?? '#4a4a4a'],
+          ],
+          showscale: false,
+          hoverinfo: 'skip',
+          marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
+        });
         traces.push({
           type: 'choropleth',
           meta: 'sychart-choropleth-data',
