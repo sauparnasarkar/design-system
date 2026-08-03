@@ -29,6 +29,27 @@ export interface SyChartSeries {
   colorValues?: Array<number | null>;
   /** Plotly colorscale — array of [stop 0–1, CSS color] pairs. Defaults to green→lightgrey→crimson. */
   colorScale?: Array<[number, string]>;
+  /**
+   * Pins the color axis to a fixed range (same units as `colorValues`, i.e. pre-log values
+   * when `zLog` is set — the log10 transform is applied to both bounds internally, same as
+   * `colorValues` itself) instead of Plotly's default per-render auto-scaling. Without this,
+   * a chart whose data changes over time (e.g. an animated choropleth stepping through years)
+   * re-normalizes its color scale to each frame's own min/max, which hides real magnitude
+   * change behind constant-looking colors. Applied as `zmin`/`zmax` + `zauto:false`
+   * (choropleth) or `cmin`/`cmax` (treemap/bar). When `zLog` is set, the lower bound must be
+   * a genuinely positive number — log10 of zero or a negative value is undefined, and while a
+   * non-positive bound is defensively floored rather than left `null`, the resulting range is
+   * degenerate (an extremely low, effectively meaningless floor), not a real fallback.
+   */
+  colorRange?: [number, number];
+  /**
+   * 'choropleth' only: fill color for locations whose `colorValues` entry is `null`. Without
+   * this, Plotly simply doesn't draw a location with no data, leaving the map's background
+   * showing through — which against a dark theme can read as ocean rather than "no data."
+   * Rendered as a second, flat-colored trace beneath the data trace. Defaults to a muted
+   * neutral clearly outside the data color scale.
+   */
+  noDataColor?: string;
   /** Show the colorbar legend for `colorValues`. Defaults to true when `colorValues` is set. */
   showColorbar?: boolean;
   /** Colorbar title, shown above the scale (e.g. "% Change in CO₂ (1990→2024)") */
@@ -107,6 +128,17 @@ export interface SyChartProps {
   /** Extra annotations, merged with (not replacing) the one derived from `referenceY.label` */
   annotations?: SyChartAnnotation[];
   /**
+   * 'choropleth' only: new color-value data for the existing choropleth trace(s), applied via
+   * a direct `Plotly.restyle` on every change rather than the full `Plotly.react` re-render
+   * every other prop change triggers. Confirmed live: `Plotly.restyle` preserves a user's
+   * current map zoom/pan exactly, while `Plotly.react` resets it — so a caller animating
+   * through frames (e.g. a year slider) should hold every *other* prop (especially `series`)
+   * fixed at its initial value and only change `animationFrame` per tick, or the animation
+   * both loses the user's zoom and pays the cost of a full re-render (hover handlers rebound,
+   * the choropleth's own resize `ResizeObserver` torn down/recreated) on every frame.
+   */
+  animationFrame?: { colorValues: Array<number | null> };
+  /**
    * Accessible text alternative — Plotly's chart is otherwise entirely
    * invisible to screen readers (canvas/SVG with no semantic content). A
    * concise, specific description (e.g. "Line chart of CO2 emissions for
@@ -181,6 +213,7 @@ export function SyChart({
   yRange,
   xRange,
   annotations,
+  animationFrame,
   ariaLabel,
   className,
 }: SyChartProps) {
@@ -188,6 +221,18 @@ export function SyChart({
   const tooltipRef = React.useRef<HTMLDivElement>(null);
   const hideTooltipTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetViewRef = React.useRef<(() => void) | null>(null);
+  // Set once the main effect below has drawn a plot; gates the animationFrame effect so it
+  // never fires against a not-yet-drawn (or already-purged) Plotly div.
+  const plotDrawnRef = React.useRef(false);
+  // Trace indices within the `data` array Plotly.react was last called with, so the
+  // animationFrame effect's Plotly.restyle calls target the right traces without re-deriving
+  // the whole array. Undefined when the corresponding trace doesn't exist this render (e.g. no
+  // no-data trace when nothing is null).
+  const traceIndexRef = React.useRef<{ data?: number; noData?: number }>({});
+  // The choropleth series' own locations/zLog, captured so the animationFrame effect can
+  // recompute the no-data trace's membership and apply the same log transform without needing
+  // the full `series` prop (which must stay referentially stable across animation frames).
+  const choroplethMetaRef = React.useRef<{ locations: string[]; zLog?: boolean }>({ locations: [] });
   const hasChoropleth = series.some((s) => s.kind === 'choropleth');
   const hasTreemap = series.some((s) => s.kind === 'treemap');
   // hovermode: 'x unified' below renders one label box per hovered x, positioned by Plotly
@@ -210,43 +255,91 @@ export function SyChart({
     const data = series.flatMap((s, i): unknown[] => {
       const color = s.color ?? palette[i % palette.length];
       if (s.kind === 'choropleth') {
-        const z = s.zLog ? (s.colorValues ?? []).map((v) => (v != null && v > 0 ? Math.log10(v) : null)) : s.colorValues;
-        const logTicks = s.zLog ? logColorbarTicks(s.colorValues ?? []) : undefined;
-        return [
-          {
-            type: 'choropleth',
-            name: s.name,
-            locations: s.locations,
-            locationmode: s.locationmode ?? 'ISO-3',
-            z,
-            // The real (untransformed) value, even when zLog log10-transformed z for coloring --
-            // hovertemplate reads from here instead of the implicit %{z} fallback, which would
-            // otherwise show the raw log10 number rather than the actual MtCO2 figure.
-            customdata: s.colorValues,
-            hovertemplate: s.hoverUnit
-              ? `%{location}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
-              : '%{location}<br>%{customdata:,.0f}<extra></extra>',
-            colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
-            showscale: s.showColorbar ?? true,
-            marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
-            // Horizontal, positioned below the map -- a vertical colorbar spans the full geo
-            // domain box, but the natural-earth projection is aspect-fit *within* that box and
-            // is often letterboxed shorter than it (worse at narrower widths), so a vertical
-            // colorbar reads visibly taller than the map itself. Horizontal sidesteps the
-            // mismatch entirely instead of tuning a `len` heuristic to compensate for it.
-            colorbar: {
-              title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
-              orientation: 'h',
-              thickness: 14,
-              len: 0.8,
-              y: -0.05,
-              yanchor: 'top',
-              outlinewidth: 0,
-              tickfont: font,
-              ...(logTicks ? { tickvals: logTicks.tickvals, ticktext: logTicks.ticktext } : {}),
-            },
+        const colorValues = s.colorValues ?? [];
+        const logTransform = (v: number) => (v > 0 ? Math.log10(v) : null);
+        const z = s.zLog ? colorValues.map((v) => (v != null ? logTransform(v) : null)) : s.colorValues;
+        const logTicks = s.zLog ? logColorbarTicks(colorValues) : undefined;
+        // Unlike logTransform above (where a non-positive data point legitimately has no
+        // color, i.e. null), a colorRange bound must always resolve to a real number --
+        // Plotly's behavior with zmin/zmax: null alongside zauto: false is undefined, and
+        // could silently fall back to auto-scaling, defeating the point of pinning the range
+        // at all (Copilot review, PR #28). Callers should pass a genuinely positive lower
+        // bound when zLog is set (see colorRange's own doc comment); this floor is a
+        // defensive fallback for one that doesn't, not the intended path.
+        const logTransformBound = (v: number) => (v > 0 ? Math.log10(v) : Math.log10(Number.MIN_VALUE));
+        const [zmin, zmax] = s.colorRange
+          ? s.zLog
+            ? [logTransformBound(s.colorRange[0]), logTransformBound(s.colorRange[1])]
+            : s.colorRange
+          : [undefined, undefined];
+        const traces: unknown[] = [];
+        // A location with a `null` colorValues entry is simply not drawn by Plotly, leaving
+        // the map background showing through -- against this app's dark theme that reads as
+        // ocean, not "no data." A second, flat-colored trace underneath the data trace makes
+        // the gap visible and unambiguous. Recomputed from whichever colorValues are current,
+        // since the animationFrame effect below re-derives this same set per frame (the no-data
+        // set is not static: it shrinks as an animated choropleth steps through years).
+        //
+        // Always constructed -- even with zero locations -- rather than only when this
+        // render's colorValues happens to contain a null. traceIndexRef below is captured
+        // once, at this construction, and animationFrame's own effect never re-runs this
+        // construction; if the trace were only created when the *initial* frame had nulls, a
+        // caller whose first frame happened to be fully populated would permanently lose
+        // no-data highlighting for every later frame that does introduce one (Copilot review,
+        // PR #28) -- an empty-locations trace costs nothing and renders nothing, so there's no
+        // reason to make its existence conditional at all.
+        const noDataLocations = (s.locations ?? []).filter((_, idx) => colorValues[idx] == null);
+        traces.push({
+          type: 'choropleth',
+          meta: 'sychart-choropleth-nodata',
+          name: `${s.name} (no data)`,
+          locations: noDataLocations,
+          locationmode: s.locationmode ?? 'ISO-3',
+          z: noDataLocations.map(() => 0),
+          colorscale: [
+            [0, s.noDataColor ?? '#4a4a4a'],
+            [1, s.noDataColor ?? '#4a4a4a'],
+          ],
+          showscale: false,
+          hoverinfo: 'skip',
+          marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
+        });
+        traces.push({
+          type: 'choropleth',
+          meta: 'sychart-choropleth-data',
+          name: s.name,
+          locations: s.locations,
+          locationmode: s.locationmode ?? 'ISO-3',
+          z,
+          ...(s.colorRange ? { zmin, zmax, zauto: false } : {}),
+          // The real (untransformed) value, even when zLog log10-transformed z for coloring --
+          // hovertemplate reads from here instead of the implicit %{z} fallback, which would
+          // otherwise show the raw log10 number rather than the actual MtCO2 figure.
+          customdata: s.colorValues,
+          hovertemplate: s.hoverUnit
+            ? `%{location}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
+            : '%{location}<br>%{customdata:,.0f}<extra></extra>',
+          colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+          showscale: s.showColorbar ?? true,
+          marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
+          // Horizontal, positioned below the map -- a vertical colorbar spans the full geo
+          // domain box, but the natural-earth projection is aspect-fit *within* that box and
+          // is often letterboxed shorter than it (worse at narrower widths), so a vertical
+          // colorbar reads visibly taller than the map itself. Horizontal sidesteps the
+          // mismatch entirely instead of tuning a `len` heuristic to compensate for it.
+          colorbar: {
+            title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
+            orientation: 'h',
+            thickness: 14,
+            len: 0.8,
+            y: -0.05,
+            yanchor: 'top',
+            outlinewidth: 0,
+            tickfont: font,
+            ...(logTicks ? { tickvals: logTicks.tickvals, ticktext: logTicks.ticktext } : {}),
           },
-        ];
+        });
+        return traces;
       }
       if (s.kind === 'treemap') {
         // Plotly's default treemap hover only shows the tile's label and its size (`values`)
@@ -290,6 +383,7 @@ export function SyChart({
                   // default scale -- a custom colorScale (e.g. a one-sided magnitude scale)
                   // may not have a meaningful zero crossing at all.
                   cmid: s.colorScale ? undefined : 0,
+                  ...(s.colorRange ? { cmin: s.colorRange[0], cmax: s.colorRange[1] } : {}),
                   showscale: s.showColorbar ?? true,
                   colorbar: {
                     title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
@@ -347,6 +441,7 @@ export function SyChart({
             // See the treemap branch's identical cmid comment above -- same auto-range skew
             // risk applies to bar's marker.color continuous scaling.
             cmid: s.colorScale ? undefined : 0,
+            ...(s.colorRange ? { cmin: s.colorRange[0], cmax: s.colorRange[1] } : {}),
             showscale: s.showColorbar ?? true,
             colorbar: {
               title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
@@ -462,6 +557,17 @@ export function SyChart({
     };
     const config = { displayModeBar: false, responsive: true };
     Plotly.react(el, data, layout, config);
+    plotDrawnRef.current = true;
+    const dataTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-data');
+    const noDataTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-nodata');
+    traceIndexRef.current = {
+      data: dataTraceIndex >= 0 ? dataTraceIndex : undefined,
+      noData: noDataTraceIndex >= 0 ? noDataTraceIndex : undefined,
+    };
+    // Assumes a single choropleth series -- same precedent as the treemap onTileClick handler
+    // below. animationFrame is a single (not per-series) prop for exactly this reason.
+    const choroplethSeries = series.find((s) => s.kind === 'choropleth');
+    choroplethMetaRef.current = { locations: choroplethSeries?.locations ?? [], zLog: choroplethSeries?.zLog };
 
     // "Reset view" control (rendered below, choropleth only). Verified live (Storybook +
     // direct Plotly state inspection) that re-supplying the original layout via Plotly.react
@@ -623,11 +729,33 @@ export function SyChart({
     }
 
     return () => {
+      plotDrawnRef.current = false;
       resizeObserver?.disconnect();
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
       Plotly.purge(el);
     };
   }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, useFixedTooltip]);
+
+  // Deliberately separate from the main effect above -- animationFrame is meant to update at
+  // high frequency (e.g. once per ~600ms animation tick) via a direct Plotly.restyle, which
+  // preserves the user's current map zoom/pan exactly (confirmed live). Joining it to the main
+  // effect's dependency array would instead trigger a full Plotly.react on every tick, which
+  // resets the zoom and pays for rebinding hover handlers / tearing down and recreating the
+  // choropleth's own resize ResizeObserver -- for no benefit, since only the color data changed.
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!animationFrame || !el || !plotDrawnRef.current) return;
+    const { locations, zLog } = choroplethMetaRef.current;
+    const colorValues = animationFrame.colorValues;
+    const z = zLog ? colorValues.map((v) => (v != null && v > 0 ? Math.log10(v) : null)) : colorValues;
+    if (traceIndexRef.current.data != null) {
+      Plotly.restyle(el, { z: [z], customdata: [colorValues] }, [traceIndexRef.current.data]);
+    }
+    if (traceIndexRef.current.noData != null) {
+      const noDataLocations = locations.filter((_, idx) => colorValues[idx] == null);
+      Plotly.restyle(el, { locations: [noDataLocations] }, [traceIndexRef.current.noData]);
+    }
+  }, [animationFrame]);
 
   const fallbackDescription =
     [yTitle, xTitle ? `by ${xTitle}` : null, series.length ? `— ${series.map((s) => s.name).join(', ')}` : null]

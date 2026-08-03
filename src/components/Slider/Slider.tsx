@@ -5,6 +5,8 @@ export interface SliderProps {
   min?: number;
   max?: number;
   step?: number;
+  /** Increment for Page Up/Page Down. Defaults to `step * 10`. */
+  pageStep?: number;
   value?: number;
   onChange?: (value: number) => void;
   disabled?: boolean;
@@ -20,6 +22,7 @@ export function Slider({
   min = 0,
   max = 100,
   step = 1,
+  pageStep,
   value,
   onChange,
   disabled = false,
@@ -57,9 +60,14 @@ export function Slider({
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return;
+    const page = pageStep ?? step * 10;
     let next = current;
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = Math.min(max, current + step);
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = Math.max(min, current - step);
+    else if (e.key === 'PageUp') next = Math.min(max, current + page);
+    else if (e.key === 'PageDown') next = Math.max(min, current - page);
+    else if (e.key === 'Home') next = min;
+    else if (e.key === 'End') next = max;
     else return;
     e.preventDefault();
     setInternal(next);

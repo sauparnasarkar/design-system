@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SyChart } from './SyChart';
 import { ChartCard } from './ChartCard';
@@ -231,6 +232,80 @@ export const Choropleth: Story = {
             hoverUnit: 'MtCO₂',
           }]}
         />
+      </ChartCard>
+    );
+  },
+};
+
+/**
+ * Animated choropleth — `colorRange` pins the color scale across frames (so a lower-magnitude
+ * year doesn't falsely read as "the same red" as a higher one), `animationFrame` drives per-tick
+ * color updates via a direct `Plotly.restyle` rather than a full re-render (confirmed live: zoom
+ * in on the map, then let it play — the zoom holds), and one country (`AUS`, only in frame 1) has
+ * no data in some frames, rendering in `noDataColor` instead of vanishing into the background.
+ * Built for SPEC.md §5.17 (Animated Choropleth Time-Series).
+ */
+export const ChoroplethAnimated: Story = {
+  render: () => {
+    const countries = ['CHN', 'USA', 'IND', 'RUS', 'JPN', 'DEU', 'BRA', 'GBR', 'ZAF', 'AUS'];
+    const frames = [
+      [8200, 4300, 900, 1500, 950, 580, 300, 400, 300, null],
+      [9600, 4700, 1400, 1600, 1000, 610, 380, 370, 380, 250],
+      [11900, 5000, 2900, 1700, 1050, 640, 470, 340, 440, 390],
+    ];
+    const YEARS = [1990, 2010, 2024];
+    const [frameIndex, setFrameIndex] = React.useState(0);
+    const [playing, setPlaying] = React.useState(false);
+    React.useEffect(() => {
+      if (!playing) return;
+      const id = setInterval(() => setFrameIndex((i) => (i + 1) % frames.length), 900);
+      return () => clearInterval(id);
+    }, [playing]);
+    // Pinned across all frames, computed once from every frame's real min/max -- not just the
+    // frame currently on screen. Never recomputed per tick.
+    const colorRange = React.useMemo<[number, number]>(() => {
+      const all = frames.flat().filter((v): v is number => v != null);
+      return [Math.min(...all), Math.max(...all)];
+    }, []);
+    // Memoized to mount only -- must never change reference as frameIndex advances, or SyChart's
+    // main effect re-runs and the animation loses the user's zoom (see animationFrame's own doc
+    // comment on SyChartProps).
+    const series = React.useMemo(
+      () => [
+        {
+          name: 'CO₂ (Mt)',
+          x: [],
+          y: [],
+          kind: 'choropleth' as const,
+          locations: countries,
+          zLog: true,
+          colorValues: frames[0],
+          colorRange,
+          colorScale: [[0, '#fff2cc'], [0.5, '#f0a24a'], [1, '#7a1f1f']] as Array<[number, string]>,
+          colorbarTitle: 'MtCO₂',
+          hoverUnit: 'MtCO₂',
+        },
+      ],
+      [colorRange],
+    );
+    return (
+      <ChartCard title={`CO₂ Emissions by Country (${YEARS[frameIndex]})`} onDownload={() => {}}>
+        <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button type="button" onClick={() => setPlaying((p) => !p)}>
+            {playing ? 'Pause' : 'Play'}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={frames.length - 1}
+            value={frameIndex}
+            onChange={(e) => {
+              setPlaying(false);
+              setFrameIndex(Number(e.target.value));
+            }}
+          />
+        </div>
+        <SyChart height={420} showLegend={false} series={series} animationFrame={{ colorValues: frames[frameIndex] }} />
       </ChartCard>
     );
   },
