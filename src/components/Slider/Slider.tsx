@@ -15,6 +15,16 @@ export interface SliderProps {
   label?: React.ReactNode;
   /** Show the current value next to the label */
   showValue?: boolean;
+  /** Show `min`/`max` as static labels at the track's two ends */
+  showRangeLabels?: boolean;
+  /**
+   * Show a small floating label directly above the thumb, tracking its position live as the
+   * value changes -- whether from dragging, keyboard input, or a programmatic value change
+   * (e.g. autoplay). Distinct from `showValue`, which is a static line above the track; this
+   * one moves with the thumb, useful when the track spans a wide range and a value at either
+   * end would otherwise sit far from the fixed showValue text.
+   */
+  showThumbValue?: boolean;
   className?: string;
 }
 
@@ -29,6 +39,8 @@ export function Slider({
   showTicks = false,
   label,
   showValue = true,
+  showRangeLabels = false,
+  showThumbValue = false,
   className,
 }: SliderProps) {
   const [internal, setInternal] = React.useState(min);
@@ -90,8 +102,30 @@ export function Slider({
         onPointerDown={onPointerDown}
         onPointerMove={(e) => e.buttons === 1 && !disabled && setFromClientX(e.clientX)}
       >
-        <div ref={trackRef} className="__s9cmpx-slider__track" style={{ width: '100%' }}>
+        <div ref={trackRef} className="__s9cmpx-slider__track" style={{ width: '100%', position: 'relative' }}>
           <div className="__s9cmpx-slider__track-fill" style={{ width: `${pct}%` }} />
+          {showThumbValue && (
+            <span
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                left: `${pct}%`,
+                top: 0,
+                transform: 'translate(-50%, calc(-100% - 10px))',
+                pointerEvents: 'none',
+                whiteSpace: 'nowrap',
+                padding: '2px 7px',
+                borderRadius: 4,
+                fontSize: 11,
+                fontFamily: 'var(--__s9cmpx-font-families-primary)',
+                color: 'var(--__s9cmpx-static-text-standard)',
+                background: 'var(--__s9cmpx-static-layer-standard)',
+                border: '1px solid var(--__s9cmpx-static-divider-weak)',
+              }}
+            >
+              {current}
+            </span>
+          )}
           {showTicks && tickCount > 1 && (
             <div className="__s9cmpx-slider__ticks" style={{ position: 'absolute', inset: 0 }}>
               {Array.from({ length: tickCount }, (_, i) => (
@@ -125,6 +159,12 @@ export function Slider({
           />
         </div>
       </div>
+      {showRangeLabels && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+          <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{min}</span>
+          <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>{max}</span>
+        </div>
+      )}
     </div>
   );
 }

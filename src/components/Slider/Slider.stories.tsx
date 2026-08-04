@@ -51,3 +51,31 @@ export const Disabled: Story = {
     await expect(canvas.getByRole('slider')).toHaveAttribute('tabindex', '-1');
   },
 };
+
+/**
+ * `showRangeLabels` marks the track's two ends (here, the animated-choropleth's 1990/2024
+ * bounds -- SPEC.md §5.17); `showThumbValue` floats a small label above the thumb that tracks
+ * its position live, useful on a wide range where the fixed showValue text sits far from
+ * wherever the thumb currently is. Both are additive to the existing showValue header line, not
+ * a replacement for it.
+ */
+export const YearRangeWithMovingLabel: Story = {
+  args: {
+    label: 'Year',
+    min: 1990,
+    max: 2024,
+    step: 1,
+    value: 2007,
+    showValue: true,
+    showRangeLabels: true,
+    showThumbValue: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('1990')).toBeInTheDocument();
+    await expect(canvas.getByText('2024')).toBeInTheDocument();
+    // "2007" appears twice -- once in the static showValue header, once in the moving
+    // showThumbValue bubble above the thumb.
+    await expect(canvas.getAllByText('2007')).toHaveLength(2);
+  },
+};
