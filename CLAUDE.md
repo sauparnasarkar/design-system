@@ -115,17 +115,30 @@ than every other component.
   `.storybook/preview.tsx` — a violation fails the test, not just reports
   it). This is the primary test coverage mechanism; most components have no
   dedicated test file, only stories.
-  - Interactive components (`Select`, `MultiSelect`, `Slider`, `RangeSlider`,
-    `Pagination`, `Tabs`, `Modal`, `Drawer`, `TableFilter`,
-    `NestedMultiSelect`, ...) have
-    `play` functions using `storybook/test` (`within`, `userEvent`,
-    `expect`) exercising keyboard interaction — arrow-key navigation, focus
-    traps, roving tabindex, tree navigation. Follow this pattern (see
-    `Select.stories.tsx`) when adding interaction coverage for a new
-    component rather than writing a separate test file.
+  - Interactive/logic-bearing components (`Select`, `MultiSelect`, `Slider`,
+    `RangeSlider`, `Pagination`, `Tabs`, `Modal`, `Drawer`, `TableFilter`,
+    `NestedMultiSelect`, `KrfSlider`, `Accordion`, `DropdownMenu`,
+    `DateRangeDropdown`, `Checkbox`, `Radio`, `Toggle`, `Input`,
+    `SegmentedControl`, `ChartTooltip`, `Gauge`, `Score`, `Progress`, ...)
+    have `play` functions using `storybook/test` (`within`, `userEvent`,
+    `expect`) exercising keyboard interaction, click behavior, and
+    clamping/state logic. Follow this pattern (see `Select.stories.tsx`)
+    when adding interaction coverage for a new component rather than
+    writing a separate test file. ~40 mostly-presentational components
+    (Divider, Typography, Spinner, ...) intentionally still rely on
+    mount+a11y alone — see ENHANCEMENTS.md Tier 1 item 1a before assuming
+    that's an oversight.
 - **`unit`** project — plain Node-environment tests matching
-  `src/**/*.test.ts` (not `.stories.tsx`), currently just
-  `no-vendor-strings.test.ts`.
+  `src/**/*.test.ts` (not `.stories.tsx`): `no-vendor-strings.test.ts`, plus
+  a couple of components (`SyChart`, `Score`) that extract pure logic into
+  exported functions and unit-test those directly rather than only through
+  a rendered story. `SyChart` in particular can't be imported at all from a
+  Node-environment test — it pulls in `plotly.js-dist-min` at module scope,
+  which references the browser-only global `self` — so its pure color/tick
+  math lives in a separate, Plotly-free sibling module
+  (`SyChart/chartMath.ts`) that `SyChart.tsx` imports from; follow that split
+  for any future pure logic worth unit-testing out of a Plotly-backed
+  component (`Gauge` included).
 
 When changing a color token, re-run the full suite — a11y contrast failures
 cascade across many stories at once (a single token fix once resolved 338 of

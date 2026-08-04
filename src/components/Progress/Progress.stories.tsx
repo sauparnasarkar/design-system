@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
 import { Progress } from './Progress';
 
 const meta: Meta<typeof Progress> = {
@@ -19,4 +20,35 @@ export const Playground: Story = {
       <Progress {...args} />
     </div>
   ),
+};
+
+export const ClampsAboveMax: Story = {
+  args: { value: 150, label: 'Over 100%' },
+  render: (args) => (
+    <div style={{ maxWidth: 360 }}>
+      <Progress {...args} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const bar = canvas.getByRole('progressbar');
+    await expect(bar).toHaveAttribute('aria-valuenow', '100');
+    // The visible % readout next to the label must reflect the same clamped value.
+    await expect(canvas.getByText('100%')).toBeInTheDocument();
+  },
+};
+
+export const ClampsBelowMin: Story = {
+  args: { value: -20, label: 'Negative value' },
+  render: (args) => (
+    <div style={{ maxWidth: 360 }}>
+      <Progress {...args} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const bar = canvas.getByRole('progressbar');
+    await expect(bar).toHaveAttribute('aria-valuenow', '0');
+    await expect(canvas.getByText('0%')).toBeInTheDocument();
+  },
 };

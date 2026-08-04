@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
 import { Gauge } from './Gauge';
 import { ChartCard } from '../SyChart/ChartCard';
 
@@ -27,4 +28,9 @@ export const Playground: Story = {
       </ChartCard>
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Plotly renders the indicator's number + suffix as SVG text — wait for its async draw.
+    await expect(canvas.findByText(/62\.8.*°F/)).resolves.toBeInTheDocument();
+  },
 };

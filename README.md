@@ -61,10 +61,18 @@ variables. Themes are small override files in `src/styles/themes/` scoped to
   keyboard interaction (arrow-key navigation, focus traps on Modal/Drawer,
   roving tabindex on Tabs, tree navigation on NestedMultiSelect, dual-thumb
   cross-clamping on RangeSlider, type-to-search filtering on MultiSelect).
-- **`unit`** — plain Node-environment tests, currently
-  `src/__tests__/no-vendor-strings.test.ts`, which fails if a hardcoded
-  `Syena`/`syena` string is reintroduced into non-story component source or
-  CSS.
+  `KrfSlider`, `Accordion`, `DropdownMenu`, `DateRangeDropdown`, `Checkbox`,
+  `Radio`, `Toggle`, `Input`, `SegmentedControl`, `ChartTooltip`, `Gauge`,
+  `Score`, and `Progress` additionally have `play`-function tests covering
+  their own logic/state (clamping, single-vs-multiple open state,
+  select-closes-menu, custom-range Apply gating, etc.) — see "Component-level
+  test coverage, round 2" in `PLAN.md` for the full list and rationale.
+- **`unit`** — plain Node-environment tests: `src/__tests__/no-vendor-strings.test.ts`
+  (fails if a hardcoded `Syena`/`syena` string is reintroduced into non-story
+  component source or CSS), plus `SyChart/chartMath.test.ts` and
+  `Score/Score.test.ts` unit-testing pure logic extracted out of those two
+  components (colorbar tick math / alpha-blend color math; ESG-score-to-ramp
+  mapping).
 
 `npm run test:watch` for interactive/watch mode.
 

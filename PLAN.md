@@ -390,3 +390,68 @@ existing control for it).
     an `aria-required-children` violation).
 - Current state: `npm test` → 70 files, 130 tests, all passing;
   `npm run build-storybook` still succeeds; `tsc -b` clean.
+
+## Component-level test coverage, round 2 (2026-08-03)
+- Prompted by a test-strategy note left in a consumer PR
+  (climate-emissions-analysis-project, ghg-emissions-analysis feature): "design-system
+  has no automated component-level tests today ... no SyChart.test.tsx/Slider.test.tsx."
+  Slider itself already had `play`-function keyboard-nav coverage by that point, but the
+  broader claim was right — most components still had only mount+a11y coverage from the
+  a11y-enforcement pass above, no assertions on their own interactive behavior.
+- Decision (explicit, discussed before implementing): extend the existing
+  story-embedded `play`-function convention rather than introduce separate
+  `*.test.tsx` files per component. Reasons: consistent with the 15
+  components that already had `play` coverage and with what CLAUDE.md
+  documents; interaction tests double as live Storybook documentation;
+  avoids a second, parallel test-authoring convention for ~60 components
+  going forward. The one exception: two components (`SyChart`, `Score`) had
+  genuine pure-function logic worth unit-testing directly, not just through
+  a rendered story.
+- Scope: 14 components with real untested logic/state, not a sweep of all
+  ~46 components lacking `play` functions — most of the rest are
+  presentational (Divider, Typography, Spinner, ...) where mount+a11y
+  already covers everything meaningful. The remaining ~40 are logged as a
+  deferred backlog item in `ENHANCEMENTS.md` (Tier 1, item 1a) rather than
+  silently dropped.
+- `SyChart.tsx` imports `plotly.js-dist-min` at module scope, which
+  references the browser-only global `self` — importing *anything* from
+  that file (even a pure, Plotly-free function) crashes immediately under
+  the `unit` Vitest project's Node environment. Fixed by extracting the two
+  pure functions (`withAlpha`, `logColorbarTicks`) into a new sibling module,
+  `chartMath.ts`, with zero Plotly dependency; `chartMath.test.ts` imports
+  from there. This is a reusable pattern: any future pure logic worth
+  unit-testing out of a Plotly-backed component (`Gauge` included) needs the
+  same split, not a direct export from the component file itself.
+- Score's ESG-step color mapping (value → 1..15 ramp step) was similarly
+  extracted into two exported pure functions, `clampScore`/`mapToEsgStep`,
+  and unit-tested directly — no Plotly involved here, just pulled out of the
+  render body for testability.
+- Two real bugs were caught in the *new tests themselves*, not the
+  components, while writing them — worth noting since they're an easy trap:
+  - `DateRangeDropdown`'s preset entries render as `<li role="option">`
+    wrapping a `<button>` — `getByRole('option', { name })` resolves to the
+    `<li>` (whose accessible name comes from its button child's text), but
+    the actual click handler lives on the `<button>`. A click dispatched at
+    the `<li>` never reaches it (the button is a descendant, not an
+    ancestor, so it's not on the native bubble path). Fixed by querying
+    `getByRole('button', { name })` instead.
+  - `Accordion`'s panel has a CSS `fadein` keyframe animation
+    (`opacity: 0 → 1` over 0.35s) — asserting `toBeVisible()` immediately
+    after the click that opens it races the animation's start (jest-dom's
+    visibility check treats `opacity: 0` as not-visible), and fails
+    intermittently depending on exactly when the assertion's computed-style
+    read lands relative to the animation clock. Fixed by asserting
+    `toBeInTheDocument()` instead — presence is what the test actually cares
+    about; visibility timing isn't the thing under test.
+  - Also fixed one small pre-existing a11y gap surfaced by an unrelated full
+    suite run: the "Choropleth Animated" SyChart story's frame-scrubber
+    `<input type="range">` had no accessible name (`aria-label="Animation
+    frame"` added) — pre-dated this pass, caught only because running the
+    complete suite (not just the new files) is part of verifying any change
+    per CLAUDE.md's testing guidance.
+- Current state: `npm test` → 72 files, 177 tests, all passing; `tsc -b`
+  clean; `npm run lint` unchanged (pre-existing errors on `main` untouched;
+  the only new lint output is two `only-export-components` warnings on
+  `Score.tsx` for its two newly-exported pure functions — same
+  non-blocking warning class already present on `Icon.tsx` and
+  `DataTable/presets.tsx`).

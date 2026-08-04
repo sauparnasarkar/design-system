@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { Input } from './Input';
 
 const meta: Meta<typeof Input> = {
@@ -20,7 +21,14 @@ const meta: Meta<typeof Input> = {
 export default meta;
 type Story = StoryObj<typeof Input>;
 
-export const Playground: Story = {};
+export const Playground: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = canvas.getByPlaceholderText('Search Research, Entities, Issues, and Sectors');
+    await userEvent.type(input, 'emissions');
+    await expect(input).toHaveValue('emissions');
+  },
+};
 
 export const States: Story = {
   render: () => (

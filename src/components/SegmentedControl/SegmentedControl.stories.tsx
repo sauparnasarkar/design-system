@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, userEvent, within } from 'storybook/test';
 import { SegmentedControl } from './SegmentedControl';
 
 const meta: Meta<typeof SegmentedControl> = {
@@ -23,7 +24,21 @@ const meta: Meta<typeof SegmentedControl> = {
 export default meta;
 type Story = StoryObj<typeof SegmentedControl>;
 
-export const Playground: Story = {};
+export const Playground: Story = {
+  args: { onChange: fn() },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const all = canvas.getByRole('radio', { name: 'All' });
+    const reports = canvas.getByRole('radio', { name: 'Reports' });
+    // Uncontrolled: the first item is selected by default.
+    await expect(all).toBeChecked();
+
+    await userEvent.click(reports);
+    await expect(reports).toBeChecked();
+    await expect(all).not.toBeChecked();
+    await expect(args.onChange).toHaveBeenCalledWith('reports');
+  },
+};
 
 export const IconSegments: Story = {
   args: {

@@ -296,6 +296,7 @@ export const ChoroplethAnimated: Story = {
           </button>
           <input
             type="range"
+            aria-label="Animation frame"
             min={0}
             max={frames.length - 1}
             value={frameIndex}

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
 import { ChartTooltip } from './ChartTooltip';
 
 const meta: Meta<typeof ChartTooltip> = {
@@ -20,8 +21,27 @@ const meta: Meta<typeof ChartTooltip> = {
 export default meta;
 type Story = StoryObj<typeof ChartTooltip>;
 
-export const Playground: Story = {};
+export const Playground: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByText('Jun 2026')).toBeInTheDocument();
+    await expect(canvas.getByText('GDP Growth')).toBeInTheDocument();
+    await expect(canvas.getByText('2.1%')).toBeInTheDocument();
+    await expect(canvas.getByText('Inflation')).toBeInTheDocument();
+    await expect(canvas.getByText('Policy Rate')).toBeInTheDocument();
+  },
+};
 
 export const Light: Story = {
   args: { variant: 'light' },
+};
+
+export const NoTitle: Story = {
+  args: { title: undefined },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByText('Jun 2026')).not.toBeInTheDocument();
+    // Rows still render without a title.
+    await expect(canvas.getByText('GDP Growth')).toBeInTheDocument();
+  },
 };

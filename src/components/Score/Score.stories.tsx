@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
 import { Score } from './Score';
 
 const meta: Meta<typeof Score> = {
@@ -38,4 +39,25 @@ export const AllValues: Story = {
 
 export const Vertical: Story = {
   args: { vertical: true, value: 3 },
+};
+
+export const OutOfRangeClamps: Story = {
+  args: { value: 9 },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // A value above max must clamp the meter's reported value to max, not overflow it.
+    const meter = canvas.getByRole('meter');
+    await expect(meter).toHaveAttribute('aria-valuenow', '5');
+    await expect(meter).toHaveAttribute('aria-valuemax', '5');
+  },
+};
+
+export const Empty: Story = {
+  args: { value: 0 },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const meter = canvas.getByRole('meter');
+    await expect(meter).toHaveAttribute('aria-valuenow', '0');
+    await expect(meter.className).toMatch(/__s9cmpx-score--empty/);
+  },
 };

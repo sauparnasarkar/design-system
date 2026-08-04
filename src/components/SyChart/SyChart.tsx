@@ -1,6 +1,7 @@
 import React from 'react';
 import Plotly from 'plotly.js-dist-min';
 import { cx } from '../../lib/cx';
+import { logColorbarTicks, withAlpha } from './chartMath';
 
 export interface SyChartSeries {
   name: string;
@@ -167,31 +168,6 @@ const DEFAULT_CONTINUOUS_SCALE: Array<[number, string]> = [
 
 function syPalette(el: Element): string[] {
   return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--__s9cmpx-chart-categorical-default-0${i + 1}`, fb));
-}
-
-function withAlpha(color: string, alpha: number): string {
-  // hex → rgba; anything else falls back to the raw color
-  const m = color.match(/^#([0-9a-f]{6})/i);
-  if (!m) return color;
-  const n = parseInt(m[1], 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
-}
-
-/** Round-number tick positions (in log10 space) spanning `values`, labeled with the real,
- * back-transformed unit — Plotly's colorbar only ever shows the raw z values otherwise. */
-function logColorbarTicks(values: Array<number | null>): { tickvals: number[]; ticktext: string[] } {
-  const nums = values.filter((v): v is number => v != null && v > 0);
-  if (nums.length === 0) return { tickvals: [], ticktext: [] };
-  const minExp = Math.floor(Math.log10(Math.min(...nums)));
-  const maxExp = Math.ceil(Math.log10(Math.max(...nums)));
-  const tickvals: number[] = [];
-  const ticktext: string[] = [];
-  for (let exp = minExp; exp <= maxExp; exp++) {
-    const real = 10 ** exp;
-    tickvals.push(exp);
-    ticktext.push(real >= 1000 ? `${(real / 1000).toLocaleString()}k` : `${real}`);
-  }
-  return { tickvals, ticktext };
 }
 
 /**

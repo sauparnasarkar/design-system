@@ -44,6 +44,32 @@ fg CSS v7.32.2, Storybook 10, all typechecked and visually verified.
    heading-order jump in the ClimateDashboard template, and stale demo-story
    colors from the white-label rework). `npm test` → 69 files, 121 tests,
    all passing. Details: "Interaction & a11y test pass" in `PLAN.md`.
+1a. **Component-level test coverage, round 2 — DONE 2026-08-03** (partial).
+    Prompted by a consumer note (climate-emissions-analysis-project) flagging
+    that most components had only mount+a11y coverage, not real interaction
+    tests. Added `play` functions to 14 more components with actual
+    untested logic/state: SyChart (colorbar tick math + alpha-blend color
+    math extracted into `chartMath.ts`, unit-tested directly — `SyChart.tsx`
+    itself can't be imported from a Node-environment test file, since
+    `plotly.js-dist-min` references `self` at module scope), Score (ESG-step
+    mapping extracted to `clampScore`/`mapToEsgStep`, unit-tested), Progress
+    (clamping), KrfSlider (arrow-key nav + click selection, mirroring
+    Slider's pattern), Accordion (single vs. `multiple` open-state
+    semantics), DropdownMenu (select-closes-menu + disabled-item guard),
+    DateRangeDropdown (preset selection, custom-range Apply gating),
+    Gauge, Checkbox, Radio, Toggle, Input, SegmentedControl, ChartTooltip.
+    `npm test` → 72 files, 177 tests (up from 69/121), all passing — no
+    convention change (still story-embedded `play` functions per CLAUDE.md,
+    not separate `*.test.tsx` files, except for the two Plotly-free pure-math
+    modules above which genuinely can't be tested any other way).
+    **Deferred, not done:** ~40 remaining components still have only
+    mount+a11y coverage and no dedicated `play` function — mostly
+    low-logic/presentational ones (Divider, Typography, Spinner, Tag,
+    Avatar, Breadcrumb, DotTyping, Section, Textarea, EmptyState, JumpLinks,
+    FileUpload, SearchInput, Table, Header, SidebarNav, SidebarNavFlyout,
+    ContactModule, and others) where mount+a11y already covers what little
+    behavior exists. Worth a future pass if any of these grow real
+    interaction logic; not worth doing preemptively for e.g. `Divider`.
 2. **Visual regression CI (Chromatic)** — `@chromatic-com/storybook` is
    already in the addons. Init a git repo, wire `build-storybook` + Chromatic
    in GitHub Actions, snapshot all stories in all 3 themes. This locks in the

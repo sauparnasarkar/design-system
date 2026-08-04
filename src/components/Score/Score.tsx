@@ -16,6 +16,20 @@ export interface ScoreProps {
   className?: string;
 }
 
+/** Clamps `value` to [0, max] — exported for unit testing (Score.test.ts). */
+export function clampScore(value: number, max: number): number {
+  return Math.max(0, Math.min(value, max));
+}
+
+/**
+ * Maps a clamped score (1..max, or 0 for empty) onto the 15-step
+ * --__s9cmpx-chart-esgscore ramp's step number (1 = green, 15 = red). Exported for unit
+ * testing (Score.test.ts) — the CSS var itself isn't resolvable outside a real DOM/theme.
+ */
+export function mapToEsgStep(clamped: number, max: number): number {
+  return max > 1 ? Math.round(((clamped - 1) / (max - 1)) * 14) + 1 : 1;
+}
+
 /**
  * ESG-style score bar. Filled boxes take the color of the score value mapped
  * onto the 15-step --__s9cmpx-chart-esgscore ramp (green 1 → red 15), matching how
@@ -30,8 +44,8 @@ export function Score({
   label = 'ESG Score',
   className,
 }: ScoreProps) {
-  const clamped = Math.max(0, Math.min(value, max));
-  const esgStep = max > 1 ? Math.round(((clamped - 1) / (max - 1)) * 14) + 1 : 1;
+  const clamped = clampScore(value, max);
+  const esgStep = mapToEsgStep(clamped, max);
   const fillColor = `var(--__s9cmpx-chart-esgscore-esg${esgStep})`;
   return (
     <div
