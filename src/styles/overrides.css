@@ -58,6 +58,28 @@
   display: none;
 }
 
+/* Confirmed via a live DOM measurement of Overview's year slider (SPEC.md §5.18.3): the
+   vendor CSS's .__s9cmpx-slider__thumb is 16x16 at rest and only 20x20 on :hover, both below
+   WCAG 2.2 2.5.8's 24x24 CSS px minimum -- and :hover doesn't help keyboard or touch users at
+   all, since neither can trigger it to reach even the still-failing 20px size. Raised the
+   resting size to 24x24 directly on the visible thumb rather than via a padded invisible hit
+   area (contrast with the .__s9cmpx-tags__remove-button fix above): this thumb sits alone on
+   an otherwise-open track, not crowded against sibling controls the way a tag's remove button
+   is, so there's no adjacent-element reason to keep the visible disc small. :hover is raised to
+   the same 24x24 (previously 20x20, which would otherwise render *smaller* than the new resting
+   size) so hover is a no-op rather than a shrink; :focus keeps its own outline/box-shadow, which
+   reads correctly at any thumb size since it's drawn outside the thumb's own box. The :after
+   inner dot stays at its original 4px/6px(:active) -- only the hit area grows, not the dot's
+   own visual weight, so the track doesn't read as suddenly heavier. */
+.__s9cmpx-slider__thumb {
+  height: 24px;
+  width: 24px;
+}
+.__s9cmpx-slider__thumb:hover {
+  height: 24px;
+  width: 24px;
+}
+
 /* AG Grid reuses the class name `ag-body-horizontal-scroll` for two different things: the
    dedicated scrollbar-track element, and a *state* class it also stamps onto `.ag-root` itself
    whenever the grid's content actually needs horizontal scrolling (confirmed live via the DOM --

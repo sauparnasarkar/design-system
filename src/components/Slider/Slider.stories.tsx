@@ -30,6 +30,13 @@ export const Playground: Story = {
 
     await userEvent.keyboard('{ArrowLeft}');
     await expect(thumb).toHaveAttribute('aria-valuenow', '2');
+
+    // WCAG 2.2 §2.5.8: the rendered touch target must be at least 24x24 CSS px.
+    // Runs in a real browser (not jsdom), so getBoundingClientRect() reflects the
+    // actual overrides.css fix rather than all-zero stub values.
+    const rect = thumb.getBoundingClientRect();
+    await expect(rect.width).toBeGreaterThanOrEqual(24);
+    await expect(rect.height).toBeGreaterThanOrEqual(24);
   },
 };
 

@@ -243,6 +243,8 @@ export const Choropleth: Story = {
  * color updates via a direct `Plotly.restyle` rather than a full re-render (confirmed live: zoom
  * in on the map, then let it play — the zoom holds), and one country (`AUS`, only in frame 1) has
  * no data in some frames, rendering in `noDataColor` instead of vanishing into the background.
+ * Hovering AUS in that frame shows the default "No data reported" tooltip (see
+ * `noDataHoverText` on `SyChartSeries` — SPEC.md §5.18.4) rather than no hover at all.
  * Built for SPEC.md §5.17 (Animated Choropleth Time-Series).
  */
 export const ChoroplethAnimated: Story = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { logColorbarTicks, withAlpha } from './chartMath';
+import { logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
 
 describe('withAlpha', () => {
   it('converts a 6-digit hex color to rgba with the given alpha', () => {
@@ -51,5 +51,17 @@ describe('logColorbarTicks', () => {
 
   it('handles a single value (degenerate single-point span)', () => {
     expect(logColorbarTicks([42])).toEqual({ tickvals: [1, 2], ticktext: ['10', '100'] });
+  });
+});
+
+describe('noDataHovertemplate', () => {
+  it('defaults to "No data reported" when no override is given', () => {
+    expect(noDataHovertemplate()).toBe('%{location}<br>No data reported<extra></extra>');
+  });
+
+  it('uses the caller-supplied text when provided', () => {
+    expect(noDataHovertemplate('Not yet reported')).toBe(
+      '%{location}<br>Not yet reported<extra></extra>',
+    );
   });
 });

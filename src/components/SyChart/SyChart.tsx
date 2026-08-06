@@ -1,7 +1,7 @@
 import React from 'react';
 import Plotly from 'plotly.js-dist-min';
 import { cx } from '../../lib/cx';
-import { logColorbarTicks, withAlpha } from './chartMath';
+import { logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
 
 export interface SyChartSeries {
   name: string;
@@ -51,6 +51,14 @@ export interface SyChartSeries {
    * neutral clearly outside the data color scale.
    */
   noDataColor?: string;
+  /**
+   * 'choropleth' only: hover tooltip text for locations with a `null` colorValues entry. Defaults
+   * to a generic "No data reported" so callers other than this app aren't required to supply one.
+   * Previously `hoverinfo: 'skip'` on this trace, which produced a completely silent hover --
+   * correct in that it avoided showing a false numeric value, but read as an unresponsive control
+   * rather than the actual, informative fact ("no data has been reported for this location").
+   */
+  noDataHoverText?: string;
   /** Show the colorbar legend for `colorValues`. Defaults to true when `colorValues` is set. */
   showColorbar?: boolean;
   /** Colorbar title, shown above the scale (e.g. "% Change in CO₂ (1990→2024)") */
@@ -277,7 +285,7 @@ export function SyChart({
             [1, s.noDataColor ?? '#4a4a4a'],
           ],
           showscale: false,
-          hoverinfo: 'skip',
+          hovertemplate: noDataHovertemplate(s.noDataHoverText),
           marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
         });
         traces.push({
