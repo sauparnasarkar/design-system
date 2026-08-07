@@ -52,6 +52,7 @@ export const ClickScrollsAndFocusesTarget: Story = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('link', { name: 'Research' }));
     await expect(canvas.getByText('Research section')).toHaveFocus();
+    await expect(window.location.hash).toBe('#research');
   },
 };
 

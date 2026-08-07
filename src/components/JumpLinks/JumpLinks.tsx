@@ -66,6 +66,9 @@ export function JumpLinks({ items, activeId, onSelect, vertical = false, classNa
     }
 
     scrollToJumpTarget(item.id, { reduceMotion });
+    if (window.location.hash !== `#${item.id}`) {
+      window.history.pushState(null, '', `#${item.id}`);
+    }
   };
 
   return (
