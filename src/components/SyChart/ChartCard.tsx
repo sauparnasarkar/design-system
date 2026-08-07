@@ -18,10 +18,14 @@ export interface ChartCardProps {
   /** Adds an expand/restore control to the header; while expanded, the card renders in a
    * safe-area-aware fixed overlay instead of its normal in-flow position (SPEC.md §5.11) */
   expandable?: boolean;
+  /** Applied to the outer Card element -- gives a same-page anchor link (e.g. JumpLinks,
+   * SPEC.md §5.19) something stable to scroll/focus to, independent of `title`'s own often-
+   * dynamic content. */
+  id?: string;
 }
 
 /** Chart panel chrome as used on the sector pages: Card header with controls + download, chart body, "Data as of" caption. */
-export function ChartCard({ title, actions, onDownload, asOf, children, className, headingLevel, expandable = false }: ChartCardProps) {
+export function ChartCard({ title, actions, onDownload, asOf, children, className, headingLevel, expandable = false, id }: ChartCardProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const content = typeof children === 'function' ? children(isExpanded) : children;
   const overlayRef = useFocusTrap<HTMLDivElement>(expandable && isExpanded);
@@ -68,6 +72,7 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
 
   const card = (
     <Card
+      id={id}
       className={className}
       withBorder
       // paper_bgcolor/plot_bgcolor in SyChart are transparent, so the chart inherits whatever's
