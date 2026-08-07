@@ -46,7 +46,7 @@ export { Textarea } from './components/Textarea/Textarea';
 export { Progress } from './components/Progress/Progress';
 export { Counter } from './components/Counter/Counter';
 export { EmptyState } from './components/EmptyState/EmptyState';
-export { JumpLinks } from './components/JumpLinks/JumpLinks';
+export { JumpLinks, scrollToJumpTarget } from './components/JumpLinks/JumpLinks';
 export { FileUpload } from './components/FileUpload/FileUpload';
 export { DataTable } from './components/DataTable/DataTable';
 export { TableFilter } from './components/TableFilter/TableFilter';
