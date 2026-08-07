@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, within } from 'storybook/test';
 import { SyChart } from './SyChart';
 import { ChartCard } from './ChartCard';
 import { Select } from '../Select/Select';
@@ -418,4 +419,20 @@ export const Expandable: Story = {
       </ChartCard>
     </div>
   ),
+};
+
+/** `id` passthrough to the outer Card element (SPEC.md §5.19) -- gives a same-page anchor link
+ * (JumpLinks) a stable target to scroll/focus to, independent of the card's own (often dynamic)
+ * title. */
+export const WithAnchorId: Story = {
+  render: () => (
+    <ChartCard id="ratings-distribution" title="Ratings Distribution" onDownload={() => {}}>
+      <SyChart height={280} series={[{ name: 'Entities', x: NOTCHES.slice(0, 6), y: [10, 14, 60, 950, 450, 120], color: '#1f1f1f' }]} />
+    </ChartCard>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const card = canvas.getByText('Ratings Distribution').closest('#ratings-distribution');
+    await expect(card).not.toBeNull();
+  },
 };

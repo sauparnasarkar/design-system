@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
 import { Accordion } from './Accordion';
@@ -68,5 +69,33 @@ export const DisabledItemDoesNotToggle: Story = {
     const canvas = within(canvasElement);
     const disabledSection = canvas.getByRole('button', { name: 'Disabled Section' });
     await expect(disabledSection).toBeDisabled();
+  },
+};
+
+/**
+ * Controlled `openIds`/`onOpenChange` (SPEC.md §5.19) -- lets a parent force a panel open (e.g. a
+ * same-page jump link landing on content inside a collapsed panel). Clicking still works exactly
+ * as in the uncontrolled stories above; the difference is the parent owns the open-id array.
+ */
+export const Controlled: Story = {
+  render: (args) => {
+    const [openIds, setOpenIds] = React.useState<string[]>(['1']);
+    return <Accordion {...args} openIds={openIds} onOpenChange={setOpenIds} />;
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const sector = canvas.getByRole('button', { name: 'Sector' });
+    const geography = canvas.getByRole('button', { name: 'Geography' });
+
+    // Starts open because the parent's initial state includes '1' -- proves external control,
+    // not just that the component still works when these props happen to be omitted.
+    await expect(sector).toHaveAttribute('aria-expanded', 'true');
+
+    await userEvent.click(geography);
+    await expect(geography).toHaveAttribute('aria-expanded', 'true');
+    await expect(sector).toHaveAttribute('aria-expanded', 'false');
+
+    await userEvent.click(geography);
+    await expect(geography).toHaveAttribute('aria-expanded', 'false');
   },
 };

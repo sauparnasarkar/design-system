@@ -19,6 +19,13 @@ export interface AccordionProps {
   /** Allow multiple panels open at once */
   multiple?: boolean;
   className?: string;
+  /** Controlled open-item ids -- when provided (together with `onOpenChange`), the accordion's
+   * open state is driven by this prop instead of its own internal state, letting a parent force
+   * a panel open (e.g. a same-page jump link landing on content inside a collapsed panel,
+   * SPEC.md §5.19 -- there's no other way to do that today, since a closed panel's content isn't
+   * even mounted, see below). Omit both to keep the existing fully-uncontrolled behavior. */
+  openIds?: string[];
+  onOpenChange?: (openIds: string[]) => void;
 }
 
 export function Accordion({
@@ -27,15 +34,19 @@ export function Accordion({
   size = 'l',
   multiple = false,
   className,
+  openIds: controlledOpenIds,
+  onOpenChange,
 }: AccordionProps) {
-  const [openIds, setOpenIds] = React.useState<Set<string>>(new Set());
-  const toggle = (id: string) =>
-    setOpenIds((prev) => {
-      const next = new Set(multiple ? prev : [...prev].filter((x) => x === id));
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const isControlled = controlledOpenIds !== undefined;
+  const [internalOpenIds, setInternalOpenIds] = React.useState<Set<string>>(new Set());
+  const openIds = isControlled ? new Set(controlledOpenIds) : internalOpenIds;
+  const toggle = (id: string) => {
+    const next = new Set(multiple ? openIds : [...openIds].filter((x) => x === id));
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    if (isControlled) onOpenChange?.([...next]);
+    else setInternalOpenIds(next);
+  };
 
   return (
     <div className={cx('__s9cmpx-accordion', `__s9cmpx-accordion--icon-${iconPosition}`, `__s9cmpx-accordion--${size}`, className)}>
