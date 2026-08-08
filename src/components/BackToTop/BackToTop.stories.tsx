@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
 import { BackToTop } from './BackToTop';
+import { scrollToJumpTarget } from '../JumpLinks/JumpLinks';
 
 const meta: Meta<typeof BackToTop> = {
   title: 'Components/BackToTop',
@@ -72,6 +73,43 @@ export const VisibleOnlyPastTheThreshold: Story = {
 
     window.scrollTo(0, 1000);
     window.dispatchEvent(new Event('scroll'));
+    await expect(await canvas.findByRole('button', { name: 'Back to top' })).toBeInTheDocument();
+  },
+};
+
+/**
+ * Regression test (SPEC.md §5.20 bug report): a JumpLinks click elsewhere on the same page (not
+ * BackToTop's own button) navigates via Element.scrollIntoView, which doesn't reliably fire a
+ * native 'scroll' event on window in every browser -- confirmed live, scrollY genuinely changed
+ * with zero 'scroll' events observed. BackToTop's passive scroll listener must still notice and
+ * become visible, which only works because scrollToJumpTarget itself now dispatches a synthetic
+ * 'scroll' event after scrolling (fixed in JumpLinks.tsx, not in BackToTop -- BackToTop has no
+ * special-case code for this at all).
+ *
+ * Caveat, confirmed by direct testing: this browser-mode test harness does not itself reproduce
+ * the missing-'scroll'-event bug (a raw scrollIntoView call here fires real 'scroll' events
+ * reliably), so this story passes whether or not the fix is present -- it documents the intended
+ * behavior and guards against a future regression in scrollToJumpTarget's dispatch code, but the
+ * bug itself was root-caused and the fix verified via a real browser session outside Storybook,
+ * not through this test.
+ */
+export const BecomesVisibleAfterAJumpLinksNavigationElsewhere: Story = {
+  render: (args) => (
+    <div>
+      <div style={{ height: 3000 }} />
+      <h2 id="section-two" tabIndex={-1}>Section two</h2>
+      <BackToTop {...args} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    window.scrollTo(0, 0);
+    window.dispatchEvent(new Event('scroll'));
+    await expect(canvas.queryByRole('button', { name: 'Back to top' })).not.toBeInTheDocument();
+
+    // Simulates a JumpLinks click targeting a section far below -- BackToTop itself is never
+    // clicked or involved in triggering this scroll.
+    scrollToJumpTarget('section-two', { reduceMotion: true });
     await expect(await canvas.findByRole('button', { name: 'Back to top' })).toBeInTheDocument();
   },
 };
