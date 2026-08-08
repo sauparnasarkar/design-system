@@ -32,6 +32,16 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }
   el.scrollIntoView({ behavior: opts?.reduceMotion ? 'auto' : 'smooth', block: 'start' });
   if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
   el.focus({ preventScroll: true });
+  // Element.scrollIntoView doesn't reliably fire a native 'scroll' event on window in every
+  // browser -- confirmed live (SPEC.md §5.20 bug report): scrollY genuinely changed but zero
+  // 'scroll' events fired, leaving passive scroll-position observers (BackToTop) stuck never
+  // becoming visible after a jump-nav click. Dispatch one synthetic event right away, which
+  // already covers the reduced-motion/'auto' case since the position is final by this point,
+  // and one more on 'scrollend' to cover the default smooth case once the animation genuinely
+  // settles -- 'scroll' listeners re-read window.scrollY fresh each time, so a synthetic event
+  // with no real position data is enough to make them re-check.
+  window.dispatchEvent(new Event('scroll'));
+  window.addEventListener('scrollend', () => window.dispatchEvent(new Event('scroll')), { once: true });
 }
 
 /** In-page anchor navigation (`__s9cmpx-jump-links`), e.g. section links on entity pages. Clicking
