@@ -29,9 +29,30 @@ export interface JumpLinksProps extends Omit<React.HTMLAttributes<HTMLElement>, 
 export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }): void {
   const el = document.getElementById(id);
   if (!el) return;
+
+  // If there isn't enough scrollable room below the target to bring it flush to the viewport's
+  // top, the browser silently clamps the scroll short of it -- confirmed live: on a page whose
+  // content ends soon after the target (e.g. Country Profile's Key Statistics, Data Explorer's
+  // Summary Statistics, Overview's % Change -- each the last jump target on its page), up to
+  // ~225px of the *previous* section stays visible above the intended target no matter how the
+  // scroll is triggered. A temporary, aria-hidden spacer appended after the target's own
+  // scrollIntoView call gives just enough extra room, removed once the scroll settles -- this
+  // never adds visible empty space during a normal scroll-down, only for the brief duration of
+  // an anchor jump that actually needs it.
+  const doc = document.documentElement;
+  const shortfall = el.offsetTop - (doc.scrollHeight - doc.clientHeight);
+  let spacer: HTMLDivElement | null = null;
+  if (shortfall > 0) {
+    spacer = document.createElement('div');
+    spacer.style.height = `${shortfall}px`;
+    spacer.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(spacer);
+  }
+
   el.scrollIntoView({ behavior: opts?.reduceMotion ? 'auto' : 'smooth', block: 'start' });
   if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
   el.focus({ preventScroll: true });
+
   // Element.scrollIntoView doesn't reliably fire a native 'scroll' event on window in every
   // browser -- confirmed live (SPEC.md §5.20 bug report): scrollY genuinely changed but zero
   // 'scroll' events fired, leaving passive scroll-position observers (BackToTop) stuck never
@@ -39,9 +60,20 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }
   // already covers the reduced-motion/'auto' case since the position is final by this point,
   // and one more on 'scrollend' to cover the default smooth case once the animation genuinely
   // settles -- 'scroll' listeners re-read window.scrollY fresh each time, so a synthetic event
-  // with no real position data is enough to make them re-check.
+  // with no real position data is enough to make them re-check. The same 'scrollend' also
+  // removes the spacer, if one was added.
   window.dispatchEvent(new Event('scroll'));
-  window.addEventListener('scrollend', () => window.dispatchEvent(new Event('scroll')), { once: true });
+  window.addEventListener(
+    'scrollend',
+    () => {
+      window.dispatchEvent(new Event('scroll'));
+      spacer?.remove();
+    },
+    { once: true },
+  );
+  // Fallback removal in case 'scrollend' never fires for this scroll (seen live in some browser
+  // contexts) -- generous enough not to clip a real smooth-scroll animation still in progress.
+  if (spacer) setTimeout(() => spacer?.remove(), 1000);
 }
 
 /** In-page anchor navigation (`__s9cmpx-jump-links`), e.g. section links on entity pages. Clicking
