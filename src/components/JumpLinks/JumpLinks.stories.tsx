@@ -116,7 +116,13 @@ export const ClickDoesNotScrollWhenTargetAlreadyVisible: Story = {
     if (rectBefore.top < 0 || rectBefore.bottom > window.innerHeight) return;
 
     const scrollYBefore = window.scrollY;
-    await userEvent.click(canvas.getByRole('link', { name: 'Overview' }));
+    // Use the anchor's native programmatic click rather than userEvent.click here: in the full
+    // Storybook browser suite, the shared page keeps earlier stories mounted, and Playwright may
+    // auto-scroll just to bring this link itself into an interactable position before clicking it.
+    // That harness-induced pre-click scroll changes window.scrollY for reasons unrelated to the
+    // JumpLinks handler this regression is actually checking. HTMLAnchorElement.click() still runs
+    // the real React onClick path without that extra "make the control reachable first" scroll.
+    canvas.getByRole('link', { name: 'Overview' }).click();
     await expect(canvas.getByText('Overview section')).toHaveFocus();
     await expect(window.scrollY).toBe(scrollYBefore);
   },
