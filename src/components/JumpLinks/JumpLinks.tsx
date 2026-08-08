@@ -31,13 +31,30 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }
   if (!el) return;
 
   const rect = el.getBoundingClientRect();
-  // If the target is already fully visible, scrolling to it would only push whatever's above it
-  // (e.g. the page's own <h1> and this very JumpLinks row) out of view without bringing anything
-  // new on screen -- reported directly: clicking a link for a target near the top of a page (like
-  // Country Profile's Emissions/Per Capita charts) still scrolled a little, hiding the jump nav
-  // itself for no benefit, since the target was on screen already. Only scroll when the target
-  // genuinely isn't already fully in the viewport.
-  if (rect.top < 0 || rect.bottom > window.innerHeight) {
+  // getBoundingClientRect().top + scrollY, not el.offsetTop -- offsetTop is relative to the
+  // element's offsetParent, which is only the document origin if no ancestor between el and
+  // <body> is positioned. This measures from the document origin regardless of DOM nesting, and
+  // -- unlike rect.top -- stays constant regardless of the page's current scroll position.
+  const targetY = rect.top + window.scrollY;
+  // "Top section": a target that sits within the page's very first screenful (visible with zero
+  // scrolling, e.g. right after the page's own <h1>/this JumpLinks row) -- not merely "whatever
+  // happens to be on screen right now", which also depends on wherever the page was scrolled to
+  // before the click. Confirmed via a follow-up report: the original fix below (skip scrolling
+  // when the target is already visible) was too broad -- it also suppressed the scroll for a
+  // *later* section (e.g. Country Profile's YoY Change, Historical Trends' GHG Share by Decade)
+  // whenever it merely happened to already be in view, making its jump link look broken (nothing
+  // visibly happened). Only a target that's inherently part of the page's top section -- true
+  // regardless of current scroll position -- should ever skip the scroll.
+  const isTopSection = targetY < window.innerHeight;
+  const alreadyFullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+  // If the target is a top-section target that's already fully visible, scrolling to it would
+  // only push whatever's above it (e.g. the page's own <h1> and this very JumpLinks row) out of
+  // view without bringing anything new on screen -- reported directly: clicking a link for a
+  // target near the top of a page (like Country Profile's Emissions/Per Capita charts) still
+  // scrolled a little, hiding the jump nav itself for no benefit, since the target was on screen
+  // already. Any other target -- further down the page -- always scrolls flush to the top when
+  // clicked, even if it's currently visible, so the jump link visibly does something.
+  if (!(isTopSection && alreadyFullyVisible)) {
     // If there isn't enough scrollable room below the target to bring it flush to the viewport's
     // top, the browser silently clamps the scroll short of it -- confirmed live: on a page whose
     // content ends soon after the target (e.g. Country Profile's Key Statistics, Data Explorer's
@@ -48,10 +65,6 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }
     // never adds visible empty space during a normal scroll-down, only for the brief duration of
     // an anchor jump that actually needs it.
     const doc = document.documentElement;
-    // getBoundingClientRect().top + scrollY, not el.offsetTop -- offsetTop is relative to the
-    // element's offsetParent, which is only the document origin if no ancestor between el and
-    // <body> is positioned. This measures from the document origin regardless of DOM nesting.
-    const targetY = rect.top + window.scrollY;
     const shortfall = targetY - (doc.scrollHeight - doc.clientHeight);
     let spacer: HTMLDivElement | null = null;
     if (shortfall > 0) {
