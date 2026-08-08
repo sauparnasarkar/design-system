@@ -20,6 +20,21 @@ const meta: Meta<typeof JumpLinks> = {
 export default meta;
 type Story = StoryObj<typeof JumpLinks>;
 
+let restoreReducedMotionStub: (() => void) | undefined;
+
+function installReducedMotionStub() {
+  const originalMatchMedia = window.matchMedia;
+  window.matchMedia = ((query: string) => ({
+    matches: query === '(prefers-reduced-motion: reduce)',
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  })) as typeof window.matchMedia;
+  return () => {
+    window.matchMedia = originalMatchMedia;
+  };
+}
+
 export const Playground: Story = {};
 
 export const Vertical: Story = {
@@ -261,6 +276,53 @@ export const ClickStaysFlushToTopAfterScrollSettles: Story = {
 
     await expect(el.getBoundingClientRect().top).toBeLessThan(10);
     await expect(document.querySelectorAll('div[aria-hidden="true"]').length).toBeGreaterThan(0);
+  },
+};
+
+/**
+ * Follow-up regression: once the user has actually scrolled back up to a position that was already
+ * reachable without the shortfall spacer, that spacer should be reclaimed so the page doesn't keep
+ * extra height indefinitely. The cleanup must happen only after the jump has settled and the user
+ * has genuinely moved away, not while the flush-to-top position still depends on the spacer.
+ */
+export const ReclaimsSpacerAfterUserScrollsAway: Story = {
+  beforeEach: async () => {
+    restoreReducedMotionStub = installReducedMotionStub();
+  },
+  afterEach: async () => {
+    restoreReducedMotionStub?.();
+    restoreReducedMotionStub = undefined;
+  },
+  render: (args) => (
+    <div>
+      <JumpLinks {...args} />
+      <div style={{ height: 800 }} />
+      <h2 id="research" tabIndex={-1}>Research section</h2>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const el = document.getElementById('research') as HTMLElement;
+    // Same cross-story cleanup issue as ClickDoesNotScrollWhenTargetAlreadyVisible above: this
+    // file's previous near-bottom stories can leave a spacer behind, which would inflate the
+    // baseline "no-spacer" max scroll this test is trying to measure.
+    document.querySelectorAll('div[aria-hidden="true"]').forEach((n) => n.remove());
+    const doc = document.documentElement;
+    const maxScrollWithoutSpacer = doc.scrollHeight - doc.clientHeight;
+    const shortfallBeforeFix = el.offsetTop - maxScrollWithoutSpacer;
+    await expect(shortfallBeforeFix).toBeGreaterThan(0);
+
+    await userEvent.click(canvas.getByRole('link', { name: 'Research' }));
+    await expect(canvas.getByText('Research section')).toHaveFocus();
+    await expect(document.querySelectorAll('div[aria-hidden="true"]').length).toBeGreaterThan(0);
+
+    window.scrollTo({ top: Math.max(0, maxScrollWithoutSpacer - 1), behavior: 'auto' });
+    // Some browser-mode environments don't surface a native window 'scroll' for programmatic
+    // scrollTo reliably, but the cleanup logic is intentionally driven by scrollY re-checks rather
+    // than event payload, so a synthetic scroll event is enough to exercise it.
+    window.dispatchEvent(new Event('scroll'));
+
+    await expect(document.querySelectorAll('div[aria-hidden="true"]').length).toBe(0);
   },
 };
 

@@ -21,10 +21,33 @@ export interface JumpLinksProps extends Omit<React.HTMLAttributes<HTMLElement>, 
   vertical?: boolean;
 }
 
+type ActiveSpacer = {
+  node: HTMLDivElement;
+  cleanupOnScroll?: () => void;
+  armCleanupOnScroll?: () => void;
+  cleanupArmTimeout?: ReturnType<typeof setTimeout>;
+};
+
 // Tracks the one spacer (if any) a previous scrollToJumpTarget call left in the DOM -- see the
-// comment where it's created below for why it's cleaned up here, at the start of the *next* jump,
-// rather than on its own timer.
-let activeSpacer: HTMLDivElement | null = null;
+// comment where it's created below for why it's cleaned up here, either after the user has
+// actually scrolled away from the anchored position or at the start of the next jump, rather than
+// on its own timer while that anchored position is still in use.
+let activeSpacer: ActiveSpacer | null = null;
+
+function removeActiveSpacer() {
+  if (!activeSpacer) return;
+  if (activeSpacer.cleanupOnScroll) {
+    window.removeEventListener('scroll', activeSpacer.cleanupOnScroll);
+  }
+  if (activeSpacer.armCleanupOnScroll) {
+    window.removeEventListener('scrollend', activeSpacer.armCleanupOnScroll);
+  }
+  if (activeSpacer.cleanupArmTimeout) {
+    clearTimeout(activeSpacer.cleanupArmTimeout);
+  }
+  activeSpacer.node.remove();
+  activeSpacer = null;
+}
 
 /** Scrolls to and focuses a jump target by id -- factored out of JumpLinks' own click handler so
  * a page can call the exact same logic on mount when the URL already carries a `#anchor` (a
@@ -39,8 +62,7 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; 
   // than on its own timer -- the user is already navigating away from wherever that spacer put
   // them, so a scroll adjustment as a side effect of this click isn't surprising the way it would
   // be if it happened on its own, later, for no visible reason.
-  activeSpacer?.remove();
-  activeSpacer = null;
+  removeActiveSpacer();
 
   const rect = el.getBoundingClientRect();
   const alreadyFullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
@@ -83,8 +105,9 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; 
     // targetY a reachable scroll position will *always* make the browser re-clamp scrollY back
     // down, however long you wait first, because scrollTop is continuously clamped to
     // [0, scrollHeight - clientHeight] as the document resizes. So instead of ever auto-removing
-    // it, this one spacer is reclaimed lazily -- at the very top of this function, on the *next*
-    // jump (activeSpacer above) -- once the user has already moved on from wherever it put them.
+    // it while that anchored position is still in use, this one spacer is reclaimed lazily --
+    // once the user has actually scrolled back up to a position that was already reachable
+    // without it, or at the very top of this function on the *next* jump (activeSpacer above).
     const doc = document.documentElement;
     const shortfall = targetY - (doc.scrollHeight - doc.clientHeight);
     if (shortfall > 0) {
@@ -92,7 +115,29 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; 
       spacer.style.height = `${shortfall}px`;
       spacer.setAttribute('aria-hidden', 'true');
       document.body.appendChild(spacer);
-      activeSpacer = spacer;
+      activeSpacer = { node: spacer };
+
+      // Once this jump has finished settling, reclaim the spacer only after the user has scrolled
+      // back up to a position that was already valid without it. At or above this scrollY, removing
+      // the spacer can't re-clamp the document back down because the no-spacer max scroll already
+      // reaches here.
+      const cleanupScrollY = targetY - shortfall;
+      const armCleanupOnScroll = () => {
+        if (activeSpacer?.node !== spacer || activeSpacer.cleanupOnScroll) return;
+        const cleanupOnScroll = () => {
+          if (window.scrollY <= cleanupScrollY) removeActiveSpacer();
+        };
+        activeSpacer.cleanupOnScroll = cleanupOnScroll;
+        window.addEventListener('scroll', cleanupOnScroll, { passive: true });
+      };
+
+      if (opts?.reduceMotion) {
+        armCleanupOnScroll();
+      } else {
+        activeSpacer.armCleanupOnScroll = armCleanupOnScroll;
+        window.addEventListener('scrollend', armCleanupOnScroll, { once: true });
+        activeSpacer.cleanupArmTimeout = setTimeout(armCleanupOnScroll, 1000);
+      }
     }
 
     const reduceMotion = opts?.reduceMotion;
