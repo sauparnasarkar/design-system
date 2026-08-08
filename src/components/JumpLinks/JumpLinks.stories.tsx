@@ -12,6 +12,14 @@ const ITEMS = [
   { id: 'instruments', label: 'Instruments', href: '#instruments' },
 ];
 
+// Marks 'ratings' (items[1], not items[0]) as a natural neighbor of the top section -- e.g.
+// Country Profile's "Per Capita" chart, stacked directly under "Emissions" (SPEC.md §5.20).
+const ITEMS_WITH_MARKED_TOP_SECTION = [
+  { id: 'overview', label: 'Overview', href: '#overview' },
+  { id: 'ratings', label: 'Ratings', href: '#ratings', topSection: true },
+  { id: 'research', label: 'Research', href: '#research' },
+];
+
 const meta: Meta<typeof JumpLinks> = {
   title: 'Components/JumpLinks',
   component: JumpLinks,
@@ -171,6 +179,90 @@ export const ClickScrollsNonTopSectionEvenWhenAlreadyVisible: Story = {
 
     await userEvent.click(canvas.getByRole('link', { name: 'Research' }));
     await expect(canvas.getByText('Research section')).toHaveFocus();
+    await expect(el.getBoundingClientRect().top).toBeLessThan(10);
+  },
+};
+
+/**
+ * Regression test (SPEC.md §5.20 fifth follow-up: "Per Capita is adjacent to Emissions, so it
+ * shouldn't scroll, depending on the viewport"). A non-first item explicitly marked
+ * `topSection: true` (JumpLinkItem.topSection) must skip its scroll when already fully visible,
+ * same as items[0] -- items[0]-only was too strict once a real page needed a *second* item to
+ * behave the same way. The "depending on the viewport" half is proven by
+ * ClickScrollsMarkedTopSectionWhenNotVisible below: the same marked item still scrolls normally
+ * once it's genuinely out of view (e.g. a narrower/shorter viewport, or simply scrolled away from)
+ * -- topSection only ever widens *eligibility* for the existing visibility check, it doesn't skip
+ * the check itself.
+ */
+export const ClickDoesNotScrollWhenMarkedTopSectionAndAlreadyVisible: Story = {
+  args: { items: ITEMS_WITH_MARKED_TOP_SECTION },
+  beforeEach: async () => {
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as typeof window.matchMedia;
+  },
+  render: (args) => (
+    <div>
+      <div style={{ height: 400 }} />
+      <JumpLinks {...args} />
+      <h2 id="ratings" tabIndex={-1}>Ratings section</h2>
+      <div style={{ height: 3000 }} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const el = document.getElementById('ratings') as HTMLElement;
+    document.querySelectorAll('div[aria-hidden="true"]').forEach((n) => n.remove());
+    el.scrollIntoView({ behavior: 'auto', block: 'center' });
+    const rectBefore = el.getBoundingClientRect();
+    if (rectBefore.top < 0 || rectBefore.bottom > window.innerHeight) return;
+
+    const scrollYBefore = window.scrollY;
+    canvas.getByRole('link', { name: 'Ratings' }).click();
+    await expect(canvas.getByText('Ratings section')).toHaveFocus();
+    await expect(window.scrollY).toBe(scrollYBefore);
+  },
+};
+
+/**
+ * Companion to the test above: the same `topSection: true` item must still scroll normally once
+ * it's genuinely not visible -- e.g. Country Profile's "Per Capita" on a narrow/short (mobile)
+ * viewport, where "Emissions" alone fills the screen and "Per Capita" is below the fold. Proves
+ * `topSection` only widens eligibility for the visibility check, it doesn't bypass it.
+ */
+export const ClickScrollsMarkedTopSectionWhenNotVisible: Story = {
+  args: { items: ITEMS_WITH_MARKED_TOP_SECTION },
+  beforeEach: async () => {
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as typeof window.matchMedia;
+  },
+  render: (args) => (
+    <div>
+      <JumpLinks {...args} />
+      {/* Deliberately tall enough that 'ratings' isn't visible without scrolling -- simulates a
+          short/mobile viewport where a marked top-section neighbor is genuinely below the fold. */}
+      <div style={{ height: 1600 }} />
+      <h2 id="ratings" tabIndex={-1}>Ratings section</h2>
+      <div style={{ height: 3000 }} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const el = document.getElementById('ratings') as HTMLElement;
+    window.scrollTo(0, 0);
+    const rectBefore = el.getBoundingClientRect();
+    // Only meaningful if the target genuinely isn't visible at scrollY 0 in this viewport.
+    if (rectBefore.top >= 0 && rectBefore.bottom <= window.innerHeight) return;
+
+    canvas.getByRole('link', { name: 'Ratings' }).click();
+    await expect(canvas.getByText('Ratings section')).toHaveFocus();
     await expect(el.getBoundingClientRect().top).toBeLessThan(10);
   },
 };
