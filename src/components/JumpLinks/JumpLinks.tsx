@@ -11,6 +11,20 @@ export interface JumpLinkItem {
    * resolves immediately. Only the items that actually need this (a minority in practice) pay
    * the extra settle-time cost below -- everything else scrolls immediately. */
   onBeforeJump?: () => void | Promise<void>;
+  /** Marks this item as part of the page's naturally-adjacent top cluster (SPEC.md §5.20) --
+   * eligible to skip its scroll when already fully visible, same as items[0] (which is always
+   * eligible regardless of this flag). Defaults to false for every item but items[0]. Only worth
+   * setting when a page author knows two sections sit close enough together that scrolling the
+   * second one to the top, while both are already on screen, would just hide the nav for no
+   * benefit -- e.g. Country Profile's "Per Capita" chart, stacked directly under "Emissions".
+   * This can't be inferred from viewport geometry alone: a target's raw document position varies
+   * by viewport size the same way regardless of whether it's a natural neighbor of the top
+   * section or a genuinely later one, confirmed live when a geometric attempt at this exact
+   * distinction wrongly classified a real later section as top-section on a wide viewport. Still
+   * viewport-dependent in effect, just not in how it's decided: the runtime "already visible"
+   * check still applies on top of this flag, so on a narrow/short viewport (e.g. mobile, where a
+   * marked item is genuinely below the fold) it scrolls normally regardless of the flag. */
+  topSection?: boolean;
 }
 
 export interface JumpLinksProps extends Omit<React.HTMLAttributes<HTMLElement>, 'onSelect'> {
@@ -44,21 +58,27 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; 
 
   const rect = el.getBoundingClientRect();
   const alreadyFullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
-  // "Top section" (opts.isTopSection, set by JumpLinks' own click handler below only for
-  // items[0] -- the literal first section on the page, right after the page's own <h1>/this
-  // JumpLinks row) is a caller-supplied fact, not something measured here from the viewport.
-  // An earlier attempt inferred it geometrically instead (targetY < window.innerHeight, i.e.
-  // "would this be visible with zero scrolling") -- confirmed live to be wrong: on a common
-  // 1920x963 desktop viewport, Country Profile's *third* jump item ("YoY Change", 604px down)
-  // still fell within that 963px window and got wrongly treated as top-section, reproducing the
-  // exact bug a follow-up report described (its link visibly did nothing). Both examples in that
-  // report -- YoY Change (Country Profile's 3rd of 4 items) and GHG Share by Decade (Historical
-  // Trends' *2nd and last* item) -- are non-first items that must always scroll regardless of
-  // whether they happen to fit in whatever viewport is open. Only items[0] is "the top section".
-  // Calls with no isTopSection (BackToTop's own click, and a page's hash-on-load handling) always
-  // scroll -- correct in both cases: BackToTop always means "go all the way", and a freshly
-  // loaded page with a #anchor already in the URL should just land on it, same as native
-  // browser hash-scroll would.
+  // "Top section" (opts.isTopSection, set by JumpLinks' own click handler below for items[0]
+  // unconditionally, or a later item if the page author marked it JumpLinkItem.topSection) is a
+  // caller-supplied fact, not something measured here from the viewport. An earlier attempt
+  // inferred it purely geometrically instead (targetY < window.innerHeight, i.e. "would this be
+  // visible with zero scrolling") -- confirmed live to be wrong: on a common 1920x963 desktop
+  // viewport, Country Profile's *third* jump item ("YoY Change", 604px down) still fell within
+  // that 963px window and got wrongly treated as top-section. Geometry alone can't tell "a later
+  // section that happens to fit this viewport" apart from "a natural neighbor of the top
+  // section" -- both are just a document position compared to a viewport height, and the same
+  // position either does or doesn't fit regardless of which case it actually is. So `topSection`
+  // is an explicit per-item opt-in instead (JumpLinkItem.topSection, JumpLinks.tsx), for the
+  // rarer case where a page author *does* know two sections are close enough neighbors that
+  // scrolling the second one away while both are already visible would only hide the nav for no
+  // benefit -- e.g. Country Profile's "Per Capita" chart, stacked directly under "Emissions".
+  // Still viewport-dependent in effect: the `alreadyFullyVisible` check below still gates it, so
+  // a marked item that's genuinely below the fold (e.g. on a narrow mobile viewport, where
+  // "Emissions" alone fills the screen) scrolls normally regardless of the flag. Calls with no
+  // isTopSection (BackToTop's own click, and a page's hash-on-load handling) always scroll --
+  // correct in both cases: BackToTop always means "go all the way", and a freshly loaded page
+  // with a #anchor already in the URL should just land on it, same as native browser hash-scroll
+  // would.
   if (!(opts?.isTopSection && alreadyFullyVisible)) {
     // getBoundingClientRect().top + scrollY, not el.offsetTop -- offsetTop is relative to the
     // element's offsetParent, which is only the document origin if no ancestor between el and
@@ -150,8 +170,9 @@ export function JumpLinks({ items, activeId, onSelect, vertical = false, classNa
       await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     }
 
-    // Only the very first item is "the top section" -- see scrollToJumpTarget's own comment.
-    scrollToJumpTarget(item.id, { reduceMotion, isTopSection: item.id === items[0]?.id });
+    // items[0] is always "the top section"; a later item only is if the page author explicitly
+    // marked it topSection -- see scrollToJumpTarget's own comment for why this isn't inferred.
+    scrollToJumpTarget(item.id, { reduceMotion, isTopSection: item.id === items[0]?.id || item.topSection === true });
     if (window.location.hash !== `#${item.id}`) {
       window.history.pushState(null, '', `#${item.id}`);
     }
