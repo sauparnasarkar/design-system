@@ -26,35 +26,32 @@ export interface JumpLinksProps extends Omit<React.HTMLAttributes<HTMLElement>, 
  * bookmarked/shared link), since the browser's one-shot native hash-scroll on page load often
  * fires before a data-loaded page's target section exists in the DOM yet. No-ops silently if the
  * target genuinely doesn't exist (e.g. the section is currently gated behind an empty selection). */
-export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }): void {
+export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; isTopSection?: boolean }): void {
   const el = document.getElementById(id);
   if (!el) return;
 
   const rect = el.getBoundingClientRect();
-  // getBoundingClientRect().top + scrollY, not el.offsetTop -- offsetTop is relative to the
-  // element's offsetParent, which is only the document origin if no ancestor between el and
-  // <body> is positioned. This measures from the document origin regardless of DOM nesting, and
-  // -- unlike rect.top -- stays constant regardless of the page's current scroll position.
-  const targetY = rect.top + window.scrollY;
-  // "Top section": a target that sits within the page's very first screenful (visible with zero
-  // scrolling, e.g. right after the page's own <h1>/this JumpLinks row) -- not merely "whatever
-  // happens to be on screen right now", which also depends on wherever the page was scrolled to
-  // before the click. Confirmed via a follow-up report: the original fix below (skip scrolling
-  // when the target is already visible) was too broad -- it also suppressed the scroll for a
-  // *later* section (e.g. Country Profile's YoY Change, Historical Trends' GHG Share by Decade)
-  // whenever it merely happened to already be in view, making its jump link look broken (nothing
-  // visibly happened). Only a target that's inherently part of the page's top section -- true
-  // regardless of current scroll position -- should ever skip the scroll.
-  const isTopSection = targetY < window.innerHeight;
   const alreadyFullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
-  // If the target is a top-section target that's already fully visible, scrolling to it would
-  // only push whatever's above it (e.g. the page's own <h1> and this very JumpLinks row) out of
-  // view without bringing anything new on screen -- reported directly: clicking a link for a
-  // target near the top of a page (like Country Profile's Emissions/Per Capita charts) still
-  // scrolled a little, hiding the jump nav itself for no benefit, since the target was on screen
-  // already. Any other target -- further down the page -- always scrolls flush to the top when
-  // clicked, even if it's currently visible, so the jump link visibly does something.
-  if (!(isTopSection && alreadyFullyVisible)) {
+  // "Top section" (opts.isTopSection, set by JumpLinks' own click handler below only for
+  // items[0] -- the literal first section on the page, right after the page's own <h1>/this
+  // JumpLinks row) is a caller-supplied fact, not something measured here from the viewport.
+  // An earlier attempt inferred it geometrically instead (targetY < window.innerHeight, i.e.
+  // "would this be visible with zero scrolling") -- confirmed live to be wrong: on a common
+  // 1920x963 desktop viewport, Country Profile's *third* jump item ("YoY Change", 604px down)
+  // still fell within that 963px window and got wrongly treated as top-section, reproducing the
+  // exact bug a follow-up report described (its link visibly did nothing). Both examples in that
+  // report -- YoY Change (Country Profile's 3rd of 4 items) and GHG Share by Decade (Historical
+  // Trends' *2nd and last* item) -- are non-first items that must always scroll regardless of
+  // whether they happen to fit in whatever viewport is open. Only items[0] is "the top section".
+  // Calls with no isTopSection (BackToTop's own click, and a page's hash-on-load handling) always
+  // scroll -- correct in both cases: BackToTop always means "go all the way", and a freshly
+  // loaded page with a #anchor already in the URL should just land on it, same as native
+  // browser hash-scroll would.
+  if (!(opts?.isTopSection && alreadyFullyVisible)) {
+    // getBoundingClientRect().top + scrollY, not el.offsetTop -- offsetTop is relative to the
+    // element's offsetParent, which is only the document origin if no ancestor between el and
+    // <body> is positioned. This measures from the document origin regardless of DOM nesting.
+    const targetY = rect.top + window.scrollY;
     // If there isn't enough scrollable room below the target to bring it flush to the viewport's
     // top, the browser silently clamps the scroll short of it -- confirmed live: on a page whose
     // content ends soon after the target (e.g. Country Profile's Key Statistics, Data Explorer's
@@ -145,7 +142,8 @@ export function JumpLinks({ items, activeId, onSelect, vertical = false, classNa
       await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     }
 
-    scrollToJumpTarget(item.id, { reduceMotion });
+    // Only the very first item is "the top section" -- see scrollToJumpTarget's own comment.
+    scrollToJumpTarget(item.id, { reduceMotion, isTopSection: item.id === items[0]?.id });
     if (window.location.hash !== `#${item.id}`) {
       window.history.pushState(null, '', `#${item.id}`);
     }
