@@ -10,6 +10,24 @@ const meta: Meta<typeof BackToTop> = {
 export default meta;
 type Story = StoryObj<typeof BackToTop>;
 
+// Forces window.scrollTo to apply synchronously (behavior: 'auto') and fire a real 'scroll'
+// event -- only needed for the no-targetId fallback path below, which calls window.scrollTo
+// directly. The targetId path (the one this app actually uses) goes through scrollToJumpTarget's
+// Element.scrollIntoView instead, confirmed live to behave reliably with 'auto'/instant behavior
+// regardless of this stub.
+function installScrollToStub() {
+  const originalScrollTo = window.scrollTo;
+  window.scrollTo = ((optionsOrX?: ScrollToOptions | number, y?: number) => {
+    const left = typeof optionsOrX === 'number' ? optionsOrX : optionsOrX?.left ?? window.scrollX;
+    const top = typeof optionsOrX === 'number' ? y ?? window.scrollY : optionsOrX?.top ?? window.scrollY;
+    originalScrollTo({ left, top, behavior: 'auto' });
+    window.dispatchEvent(new Event('scroll'));
+  }) as typeof window.scrollTo;
+  return () => {
+    window.scrollTo = originalScrollTo;
+  };
+}
+
 export const Playground: Story = {
   render: (args) => (
     <div>
@@ -75,5 +93,38 @@ export const ClickScrollsToTargetAndFocusesIt: Story = {
     await userEvent.click(button);
     await expect(canvas.getByText('Page target')).toHaveFocus();
     await expect(document.getElementById('page-target')?.getBoundingClientRect().top).toBeLessThan(10);
+  },
+};
+
+/**
+ * Activating the button via keyboard (not just a mouse click) and landing back near the top --
+ * past the visibility threshold -- must not unmount the button while it still holds focus, or a
+ * keyboard user's focus silently drops into the void. `focusWithin` keeps it mounted for exactly
+ * that case, confirmed here with the no-targetId fallback path (a plain instant
+ * window.scrollTo(0, 0), stubbed synchronous via installScrollToStub for a deterministic
+ * assertion) since it reliably crosses back below the threshold.
+ */
+export const KeyboardActivationKeepsFocusedButtonMounted: Story = {
+  render: (args) => (
+    <div>
+      <div style={{ height: 3000 }} />
+      <BackToTop {...args} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const restoreScrollTo = installScrollToStub();
+
+    try {
+      window.scrollTo(0, 1000);
+      const button = await canvas.findByRole('button', { name: 'Back to top' });
+      button.focus();
+      await userEvent.keyboard('{Enter}');
+      await expect(window.scrollY).toBe(0);
+      await expect(button).toHaveFocus();
+      await expect(button).toBeInTheDocument();
+    } finally {
+      restoreScrollTo();
+    }
   },
 };

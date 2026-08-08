@@ -23,6 +23,7 @@ export interface BackToTopProps {
  * shared app shell) rather than per page. */
 export function BackToTop({ threshold = 400, targetId, className }: BackToTopProps) {
   const [visible, setVisible] = React.useState(false);
+  const [focusWithin, setFocusWithin] = React.useState(false);
   const reduceMotion = useReducedMotion();
 
   React.useEffect(() => {
@@ -40,11 +41,15 @@ export function BackToTop({ threshold = 400, targetId, className }: BackToTopPro
     }
   };
 
-  if (!visible) return null;
+  if (!visible && !focusWithin) return null;
 
   return (
     <div
       className={cx('__s9cmpx-back-to-top', className)}
+      onFocusCapture={() => setFocusWithin(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusWithin(false);
+      }}
       style={{
         position: 'fixed',
         right: 'calc(24px + env(safe-area-inset-right, 0px))',
