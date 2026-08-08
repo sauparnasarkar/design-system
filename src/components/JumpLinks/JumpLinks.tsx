@@ -30,65 +30,75 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }
   const el = document.getElementById(id);
   if (!el) return;
 
-  // If there isn't enough scrollable room below the target to bring it flush to the viewport's
-  // top, the browser silently clamps the scroll short of it -- confirmed live: on a page whose
-  // content ends soon after the target (e.g. Country Profile's Key Statistics, Data Explorer's
-  // Summary Statistics, Overview's % Change -- each the last jump target on its page), up to
-  // ~225px of the *previous* section stays visible above the intended target no matter how the
-  // scroll is triggered. A temporary, aria-hidden spacer appended after the target's own
-  // scrollIntoView call gives just enough extra room, removed once the scroll settles -- this
-  // never adds visible empty space during a normal scroll-down, only for the brief duration of
-  // an anchor jump that actually needs it.
-  const doc = document.documentElement;
-  // getBoundingClientRect().top + scrollY, not el.offsetTop -- offsetTop is relative to the
-  // element's offsetParent, which is only the document origin if no ancestor between el and
-  // <body> is positioned. This measures from the document origin regardless of DOM nesting.
-  const targetY = el.getBoundingClientRect().top + window.scrollY;
-  const shortfall = targetY - (doc.scrollHeight - doc.clientHeight);
-  let spacer: HTMLDivElement | null = null;
-  if (shortfall > 0) {
-    spacer = document.createElement('div');
-    spacer.style.height = `${shortfall}px`;
-    spacer.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(spacer);
+  const rect = el.getBoundingClientRect();
+  // If the target is already fully visible, scrolling to it would only push whatever's above it
+  // (e.g. the page's own <h1> and this very JumpLinks row) out of view without bringing anything
+  // new on screen -- reported directly: clicking a link for a target near the top of a page (like
+  // Country Profile's Emissions/Per Capita charts) still scrolled a little, hiding the jump nav
+  // itself for no benefit, since the target was on screen already. Only scroll when the target
+  // genuinely isn't already fully in the viewport.
+  if (rect.top < 0 || rect.bottom > window.innerHeight) {
+    // If there isn't enough scrollable room below the target to bring it flush to the viewport's
+    // top, the browser silently clamps the scroll short of it -- confirmed live: on a page whose
+    // content ends soon after the target (e.g. Country Profile's Key Statistics, Data Explorer's
+    // Summary Statistics, Overview's % Change -- each the last jump target on its page), up to
+    // ~225px of the *previous* section stays visible above the intended target no matter how the
+    // scroll is triggered. A temporary, aria-hidden spacer appended after the target's own
+    // scrollIntoView call gives just enough extra room, removed once the scroll settles -- this
+    // never adds visible empty space during a normal scroll-down, only for the brief duration of
+    // an anchor jump that actually needs it.
+    const doc = document.documentElement;
+    // getBoundingClientRect().top + scrollY, not el.offsetTop -- offsetTop is relative to the
+    // element's offsetParent, which is only the document origin if no ancestor between el and
+    // <body> is positioned. This measures from the document origin regardless of DOM nesting.
+    const targetY = rect.top + window.scrollY;
+    const shortfall = targetY - (doc.scrollHeight - doc.clientHeight);
+    let spacer: HTMLDivElement | null = null;
+    if (shortfall > 0) {
+      spacer = document.createElement('div');
+      spacer.style.height = `${shortfall}px`;
+      spacer.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(spacer);
+    }
+
+    const reduceMotion = opts?.reduceMotion;
+    el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+
+    // Element.scrollIntoView doesn't reliably fire a native 'scroll' event on window in every
+    // browser -- confirmed live (SPEC.md §5.20 bug report): scrollY genuinely changed but zero
+    // 'scroll' events fired, leaving passive scroll-position observers (BackToTop) stuck never
+    // becoming visible after a jump-nav click. Dispatch one synthetic event right away, which
+    // already covers the reduced-motion/'auto' case since the position is final by this point,
+    // and one more on 'scrollend' to cover the default smooth case once the animation genuinely
+    // settles -- 'scroll' listeners re-read window.scrollY fresh each time, so a synthetic event
+    // with no real position data is enough to make them re-check.
+    window.dispatchEvent(new Event('scroll'));
+    if (reduceMotion) {
+      // Instant scroll: 'scrollend' is unreliable (browser-dependent) for behavior: 'auto', so
+      // don't wait for it -- but don't remove the spacer in this same synchronous tick either,
+      // since scrollIntoView's layout/scroll-position update isn't guaranteed to have actually
+      // applied yet (removing the extra room too early can let the browser re-clamp the scroll
+      // using the now-shorter document height, undoing the fix). A double rAF -- this codebase's
+      // established "wait for the next paint after a change" pattern -- is enough of a wait
+      // without the full 1s fallback the smooth case below needs.
+      requestAnimationFrame(() => requestAnimationFrame(() => spacer?.remove()));
+    } else {
+      window.addEventListener(
+        'scrollend',
+        () => {
+          window.dispatchEvent(new Event('scroll'));
+          spacer?.remove();
+        },
+        { once: true },
+      );
+      // Fallback removal in case 'scrollend' never fires for this scroll (seen live in some
+      // browser contexts) -- generous enough not to clip a real smooth-scroll animation in progress.
+      if (spacer) setTimeout(() => spacer?.remove(), 1000);
+    }
   }
 
-  const reduceMotion = opts?.reduceMotion;
-  el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
   el.focus({ preventScroll: true });
-
-  // Element.scrollIntoView doesn't reliably fire a native 'scroll' event on window in every
-  // browser -- confirmed live (SPEC.md §5.20 bug report): scrollY genuinely changed but zero
-  // 'scroll' events fired, leaving passive scroll-position observers (BackToTop) stuck never
-  // becoming visible after a jump-nav click. Dispatch one synthetic event right away, which
-  // already covers the reduced-motion/'auto' case since the position is final by this point,
-  // and one more on 'scrollend' to cover the default smooth case once the animation genuinely
-  // settles -- 'scroll' listeners re-read window.scrollY fresh each time, so a synthetic event
-  // with no real position data is enough to make them re-check.
-  window.dispatchEvent(new Event('scroll'));
-  if (reduceMotion) {
-    // Instant scroll: 'scrollend' is unreliable (browser-dependent) for behavior: 'auto', so
-    // don't wait for it -- but don't remove the spacer in this same synchronous tick either,
-    // since scrollIntoView's layout/scroll-position update isn't guaranteed to have actually
-    // applied yet (removing the extra room too early can let the browser re-clamp the scroll
-    // using the now-shorter document height, undoing the fix). A double rAF -- this codebase's
-    // established "wait for the next paint after a change" pattern -- is enough of a wait
-    // without the full 1s fallback the smooth case below needs.
-    requestAnimationFrame(() => requestAnimationFrame(() => spacer?.remove()));
-  } else {
-    window.addEventListener(
-      'scrollend',
-      () => {
-        window.dispatchEvent(new Event('scroll'));
-        spacer?.remove();
-      },
-      { once: true },
-    );
-    // Fallback removal in case 'scrollend' never fires for this scroll (seen live in some
-    // browser contexts) -- generous enough not to clip a real smooth-scroll animation in progress.
-    if (spacer) setTimeout(() => spacer?.remove(), 1000);
-  }
 }
 
 /** In-page anchor navigation (`__s9cmpx-jump-links`), e.g. section links on entity pages. Clicking

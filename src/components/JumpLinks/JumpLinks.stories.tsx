@@ -57,6 +57,61 @@ export const ClickScrollsAndFocusesTarget: Story = {
 };
 
 /**
+ * Regression test (SPEC.md §5.20 second follow-up bug report): a target already fully visible in
+ * the viewport must not be scrolled at all -- scrolling it to the very top would only push
+ * whatever's above it (e.g. this JumpLinks row itself) out of view, for no benefit, since the
+ * target was already on screen. Reported directly: clicking a link for a near-top target still
+ * scrolled a little and hid the jump nav itself.
+ */
+export const ClickDoesNotScrollWhenTargetAlreadyVisible: Story = {
+  // Forces reduced motion so the scroll (if the bug is present) is instant, not animated -- keeps
+  // this assertion independent of real scroll-animation timing, same as the other position-
+  // asserting stories below.
+  beforeEach: async () => {
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })) as typeof window.matchMedia;
+  },
+  render: (args) => (
+    <div>
+      {/* Deliberate room above and below the nav/target -- gives the setup scroll below
+          somewhere to actually center the target away from the very top. */}
+      <div style={{ height: 400 }} />
+      <JumpLinks {...args} />
+      <h2 id="research" tabIndex={-1}>Research section</h2>
+      <div style={{ height: 3000 }} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const el = document.getElementById('research') as HTMLElement;
+    // This test harness doesn't unmount previous stories between play-function runs within the
+    // same file, so document.body accumulates every preceding story's own rendered content --
+    // nothing genuinely starts "at the top of the page" by default. Establish the actual
+    // precondition this test needs (the target already fully in view) explicitly, via a raw
+    // native scrollIntoView, rather than relying on natural initial scroll position.
+    // block: 'center', not 'start' -- positions the target away from the very top (with room
+    // both above and below), so a genuine bug (scrolling it to the top anyway, hiding whatever
+    // was above it) is actually distinguishable from the fix (leaving it where it already was).
+    // Using 'start' here would make el's position after setup identical to what a buggy click
+    // handler would also produce, unable to tell the two apart.
+    el.scrollIntoView({ behavior: 'auto', block: 'center' });
+    const rectBefore = el.getBoundingClientRect();
+    // Confirms the precondition actually holds in this viewport rather than assuming it -- skip
+    // rather than pass vacuously if it doesn't.
+    if (rectBefore.top < 0 || rectBefore.bottom > window.innerHeight) return;
+
+    const scrollYBefore = window.scrollY;
+    await userEvent.click(canvas.getByRole('link', { name: 'Research' }));
+    await expect(canvas.getByText('Research section')).toHaveFocus();
+    await expect(window.scrollY).toBe(scrollYBefore);
+  },
+};
+
+/**
  * Regression test (SPEC.md §5.20 follow-up bug report): a target near the very end of a page,
  * shorter than the viewport, has no scrollable room below it to reach the top -- confirmed live,
  * up to ~225px of the previous section stayed visible above targets like this (Country Profile's
