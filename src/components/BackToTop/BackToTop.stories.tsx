@@ -10,6 +10,21 @@ const meta: Meta<typeof BackToTop> = {
 export default meta;
 type Story = StoryObj<typeof BackToTop>;
 
+let restoreReducedMotionStub: (() => void) | undefined;
+
+function installReducedMotionStub() {
+  const originalMatchMedia = window.matchMedia;
+  window.matchMedia = ((query: string) => ({
+    matches: query === '(prefers-reduced-motion: reduce)',
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  })) as typeof window.matchMedia;
+  return () => {
+    window.matchMedia = originalMatchMedia;
+  };
+}
+
 // Forces window.scrollTo to apply synchronously (behavior: 'auto') and fire a real 'scroll'
 // event -- only needed for the no-targetId fallback path below, which calls window.scrollTo
 // directly. The targetId path (the one this app actually uses) goes through scrollToJumpTarget's
@@ -69,21 +84,20 @@ export const VisibleOnlyPastTheThreshold: Story = {
  * instant, not animated -- keeps this assertion independent of real scroll-animation timing.
  */
 export const ClickScrollsToTargetAndFocusesIt: Story = {
-  render: (args) => {
-    window.matchMedia = ((query: string) => ({
-      matches: query === '(prefers-reduced-motion: reduce)',
-      media: query,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    })) as typeof window.matchMedia;
-    return (
-      <div>
-        <h2 id="page-target" tabIndex={-1}>Page target</h2>
-        <div style={{ height: 3000 }} />
-        <BackToTop {...args} targetId="page-target" />
-      </div>
-    );
+  beforeEach: async () => {
+    restoreReducedMotionStub = installReducedMotionStub();
   },
+  afterEach: async () => {
+    restoreReducedMotionStub?.();
+    restoreReducedMotionStub = undefined;
+  },
+  render: (args) => (
+    <div>
+      <h2 id="page-target" tabIndex={-1}>Page target</h2>
+      <div style={{ height: 3000 }} />
+      <BackToTop {...args} targetId="page-target" />
+    </div>
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     window.scrollTo(0, 1000);
