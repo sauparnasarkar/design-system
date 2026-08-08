@@ -21,6 +21,11 @@ export interface JumpLinksProps extends Omit<React.HTMLAttributes<HTMLElement>, 
   vertical?: boolean;
 }
 
+// Tracks the one spacer (if any) a previous scrollToJumpTarget call left in the DOM -- see the
+// comment where it's created below for why it's cleaned up here, at the start of the *next* jump,
+// rather than on its own timer.
+let activeSpacer: HTMLDivElement | null = null;
+
 /** Scrolls to and focuses a jump target by id -- factored out of JumpLinks' own click handler so
  * a page can call the exact same logic on mount when the URL already carries a `#anchor` (a
  * bookmarked/shared link), since the browser's one-shot native hash-scroll on page load often
@@ -29,6 +34,13 @@ export interface JumpLinksProps extends Omit<React.HTMLAttributes<HTMLElement>, 
 export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; isTopSection?: boolean }): void {
   const el = document.getElementById(id);
   if (!el) return;
+
+  // Reclaims the space from an earlier jump's spacer now, at the start of this new jump, rather
+  // than on its own timer -- the user is already navigating away from wherever that spacer put
+  // them, so a scroll adjustment as a side effect of this click isn't surprising the way it would
+  // be if it happened on its own, later, for no visible reason.
+  activeSpacer?.remove();
+  activeSpacer = null;
 
   const rect = el.getBoundingClientRect();
   const alreadyFullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
@@ -57,18 +69,30 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; 
     // content ends soon after the target (e.g. Country Profile's Key Statistics, Data Explorer's
     // Summary Statistics, Overview's % Change -- each the last jump target on its page), up to
     // ~225px of the *previous* section stays visible above the intended target no matter how the
-    // scroll is triggered. A temporary, aria-hidden spacer appended after the target's own
-    // scrollIntoView call gives just enough extra room, removed once the scroll settles -- this
-    // never adds visible empty space during a normal scroll-down, only for the brief duration of
-    // an anchor jump that actually needs it.
+    // scroll is triggered. An aria-hidden spacer appended after the target's own scrollIntoView
+    // call gives just enough extra room.
+    //
+    // This spacer is deliberately never removed on a timer/event once added -- an earlier version
+    // did (on 'scrollend', or a double rAF for the reduced-motion path), which looked correct in
+    // Storybook's test environment only because the test's own assertion happened to run before
+    // the removal fired. Confirmed live it's actually broken: on Historical Trends' "GHG Share by
+    // Decade" (the page's last, shortest section), scrollY reached 671 with the spacer in place,
+    // then snapped back to 255 the instant the spacer was removed -- reproducing the exact "~225px
+    // of the previous section stays visible" bug this spacer exists to fix. This isn't a timing
+    // race to fix with a different delay: removing a spacer that's currently the only thing making
+    // targetY a reachable scroll position will *always* make the browser re-clamp scrollY back
+    // down, however long you wait first, because scrollTop is continuously clamped to
+    // [0, scrollHeight - clientHeight] as the document resizes. So instead of ever auto-removing
+    // it, this one spacer is reclaimed lazily -- at the very top of this function, on the *next*
+    // jump (activeSpacer above) -- once the user has already moved on from wherever it put them.
     const doc = document.documentElement;
     const shortfall = targetY - (doc.scrollHeight - doc.clientHeight);
-    let spacer: HTMLDivElement | null = null;
     if (shortfall > 0) {
-      spacer = document.createElement('div');
+      const spacer = document.createElement('div');
       spacer.style.height = `${shortfall}px`;
       spacer.setAttribute('aria-hidden', 'true');
       document.body.appendChild(spacer);
+      activeSpacer = spacer;
     }
 
     const reduceMotion = opts?.reduceMotion;
@@ -79,31 +103,15 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; 
     // 'scroll' events fired, leaving passive scroll-position observers (BackToTop) stuck never
     // becoming visible after a jump-nav click. Dispatch one synthetic event right away, which
     // already covers the reduced-motion/'auto' case since the position is final by this point,
-    // and one more on 'scrollend' to cover the default smooth case once the animation genuinely
-    // settles -- 'scroll' listeners re-read window.scrollY fresh each time, so a synthetic event
-    // with no real position data is enough to make them re-check.
+    // and one more on 'scrollend' (with a timeout fallback in case it never fires) to cover the
+    // default smooth case once the animation genuinely settles -- 'scroll' listeners re-read
+    // window.scrollY fresh each time, so a synthetic event with no real position data is enough
+    // to make them re-check.
     window.dispatchEvent(new Event('scroll'));
-    if (reduceMotion) {
-      // Instant scroll: 'scrollend' is unreliable (browser-dependent) for behavior: 'auto', so
-      // don't wait for it -- but don't remove the spacer in this same synchronous tick either,
-      // since scrollIntoView's layout/scroll-position update isn't guaranteed to have actually
-      // applied yet (removing the extra room too early can let the browser re-clamp the scroll
-      // using the now-shorter document height, undoing the fix). A double rAF -- this codebase's
-      // established "wait for the next paint after a change" pattern -- is enough of a wait
-      // without the full 1s fallback the smooth case below needs.
-      requestAnimationFrame(() => requestAnimationFrame(() => spacer?.remove()));
-    } else {
-      window.addEventListener(
-        'scrollend',
-        () => {
-          window.dispatchEvent(new Event('scroll'));
-          spacer?.remove();
-        },
-        { once: true },
-      );
-      // Fallback removal in case 'scrollend' never fires for this scroll (seen live in some
-      // browser contexts) -- generous enough not to clip a real smooth-scroll animation in progress.
-      if (spacer) setTimeout(() => spacer?.remove(), 1000);
+    if (!reduceMotion) {
+      const redispatch = () => window.dispatchEvent(new Event('scroll'));
+      window.addEventListener('scrollend', redispatch, { once: true });
+      setTimeout(redispatch, 1000);
     }
   }
 

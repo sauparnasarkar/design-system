@@ -89,6 +89,13 @@ export const ClickDoesNotScrollWhenTargetAlreadyVisible: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const el = document.getElementById('overview') as HTMLElement;
+    // A preceding story in this same file (e.g. ClickScrollsAndFocusesTarget) can leave a
+    // shortfall spacer in the DOM -- scrollToJumpTarget now only reclaims that space lazily, at
+    // the start of the *next* jump (see its own comment), so without this cleanup that removal
+    // would happen *during* this test's own click below and shift scrollY as a side effect,
+    // unrelated to what this test actually checks. Strips it explicitly first so scrollYBefore
+    // reflects a clean baseline.
+    document.querySelectorAll('div[aria-hidden="true"]').forEach((n) => n.remove());
     // This test harness doesn't unmount previous stories between play-function runs within the
     // same file, so document.body accumulates every preceding story's own rendered content --
     // nothing genuinely starts "at the top of the page" by default. Establish the actual
@@ -203,6 +210,57 @@ export const ClickScrollsFullyToTopEvenNearPageBottom: Story = {
     await userEvent.click(canvas.getByRole('link', { name: 'Research' }));
     await expect(canvas.getByText('Research section')).toHaveFocus();
     await expect(el.getBoundingClientRect().top).toBeLessThan(10);
+    // Confirms the spacer that made this position reachable is still in the DOM, not just that
+    // the position happens to be right at this exact moment -- see
+    // ClickStaysFlushToTopAfterScrollSettles below for why asserting only immediately after the
+    // click isn't enough to catch a regression here.
+    await expect(document.querySelectorAll('div[aria-hidden="true"]').length).toBeGreaterThan(0);
+  },
+};
+
+/**
+ * Regression test (SPEC.md §5.20 fourth follow-up bug report): the shortfall spacer above must
+ * still be in place -- and the target still flush to the top -- well after the click, not just in
+ * the instant right after it. An earlier version removed the spacer once the scroll settled (on
+ * 'scrollend', or a double rAF for the reduced-motion path); that looked correct in this exact
+ * test file only because the previous version of this assertion ran before the removal fired.
+ * Confirmed live it was actually broken: on Historical Trends' "GHG Share by Decade", scrollY
+ * reached the intended position with the spacer in place, then snapped back down the instant the
+ * spacer was removed -- reproducing the exact "previous section stays visible" bug the spacer
+ * exists to fix. Removing a spacer that's the only thing making a position reachable always
+ * re-clamps scrollY back down, however long you wait first -- not a timing race, so this test
+ * dispatches a real 'scrollend' and waits past the old 1s fallback window to prove the fix holds
+ * over time, not just for one lucky instant.
+ */
+export const ClickStaysFlushToTopAfterScrollSettles: Story = {
+  render: (args) => (
+    <div>
+      <JumpLinks {...args} />
+      <div style={{ height: 800 }} />
+      <h2 id="research" tabIndex={-1}>Research section</h2>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const el = document.getElementById('research') as HTMLElement;
+    const doc = document.documentElement;
+    const shortfallBeforeFix = el.offsetTop - (doc.scrollHeight - doc.clientHeight);
+    if (shortfallBeforeFix <= 0) return;
+
+    // Not forcing reduced motion here -- this exercises the default smooth-scroll path
+    // specifically, the one that relied on a real 'scrollend' event to clean up.
+    await userEvent.click(canvas.getByRole('link', { name: 'Research' }));
+    await expect(canvas.getByText('Research section')).toHaveFocus();
+    // Simulates the browser's real 'scrollend' firing once its smooth-scroll animation
+    // genuinely finishes -- this test environment's programmatic scrollIntoView may not fire one
+    // reliably on its own, but the fix must behave identically whether or not it does.
+    window.dispatchEvent(new Event('scrollend'));
+    // Waits past the old 1s fallback-removal window too, so this test would have caught the
+    // regression under either of the old cleanup paths, not just the 'scrollend' one.
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+
+    await expect(el.getBoundingClientRect().top).toBeLessThan(10);
+    await expect(document.querySelectorAll('div[aria-hidden="true"]').length).toBeGreaterThan(0);
   },
 };
 
