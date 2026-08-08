@@ -40,7 +40,11 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }
   // never adds visible empty space during a normal scroll-down, only for the brief duration of
   // an anchor jump that actually needs it.
   const doc = document.documentElement;
-  const shortfall = el.offsetTop - (doc.scrollHeight - doc.clientHeight);
+  // getBoundingClientRect().top + scrollY, not el.offsetTop -- offsetTop is relative to the
+  // element's offsetParent, which is only the document origin if no ancestor between el and
+  // <body> is positioned. This measures from the document origin regardless of DOM nesting.
+  const targetY = el.getBoundingClientRect().top + window.scrollY;
+  const shortfall = targetY - (doc.scrollHeight - doc.clientHeight);
   let spacer: HTMLDivElement | null = null;
   if (shortfall > 0) {
     spacer = document.createElement('div');
@@ -49,7 +53,8 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }
     document.body.appendChild(spacer);
   }
 
-  el.scrollIntoView({ behavior: opts?.reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  const reduceMotion = opts?.reduceMotion;
+  el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
   el.focus({ preventScroll: true });
 
@@ -60,20 +65,30 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean }
   // already covers the reduced-motion/'auto' case since the position is final by this point,
   // and one more on 'scrollend' to cover the default smooth case once the animation genuinely
   // settles -- 'scroll' listeners re-read window.scrollY fresh each time, so a synthetic event
-  // with no real position data is enough to make them re-check. The same 'scrollend' also
-  // removes the spacer, if one was added.
+  // with no real position data is enough to make them re-check.
   window.dispatchEvent(new Event('scroll'));
-  window.addEventListener(
-    'scrollend',
-    () => {
-      window.dispatchEvent(new Event('scroll'));
-      spacer?.remove();
-    },
-    { once: true },
-  );
-  // Fallback removal in case 'scrollend' never fires for this scroll (seen live in some browser
-  // contexts) -- generous enough not to clip a real smooth-scroll animation still in progress.
-  if (spacer) setTimeout(() => spacer?.remove(), 1000);
+  if (reduceMotion) {
+    // Instant scroll: 'scrollend' is unreliable (browser-dependent) for behavior: 'auto', so
+    // don't wait for it -- but don't remove the spacer in this same synchronous tick either,
+    // since scrollIntoView's layout/scroll-position update isn't guaranteed to have actually
+    // applied yet (removing the extra room too early can let the browser re-clamp the scroll
+    // using the now-shorter document height, undoing the fix). A double rAF -- this codebase's
+    // established "wait for the next paint after a change" pattern -- is enough of a wait
+    // without the full 1s fallback the smooth case below needs.
+    requestAnimationFrame(() => requestAnimationFrame(() => spacer?.remove()));
+  } else {
+    window.addEventListener(
+      'scrollend',
+      () => {
+        window.dispatchEvent(new Event('scroll'));
+        spacer?.remove();
+      },
+      { once: true },
+    );
+    // Fallback removal in case 'scrollend' never fires for this scroll (seen live in some
+    // browser contexts) -- generous enough not to clip a real smooth-scroll animation in progress.
+    if (spacer) setTimeout(() => spacer?.remove(), 1000);
+  }
 }
 
 /** In-page anchor navigation (`__s9cmpx-jump-links`), e.g. section links on entity pages. Clicking
