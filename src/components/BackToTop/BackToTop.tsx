@@ -2,13 +2,18 @@ import React from 'react';
 import { cx } from '../../lib/cx';
 import { Button } from '../Button/Button';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { scrollToJumpTarget } from '../JumpLinks/JumpLinks';
 
 export interface BackToTopProps {
   /** Scroll distance (px) past which the button becomes visible. */
   threshold?: number;
-  /** Element id to focus once the page has scrolled back to the top -- mirrors
-   * scrollToJumpTarget's (JumpLinks, SPEC.md §5.19) own scroll-then-focus convention rather than
-   * leaving focus wherever the click happened to land. Omit to skip focus management. */
+  /** Element id to scroll into view and focus on click -- e.g. a page's <main> landmark, so
+   * "back to top" also lands focus somewhere meaningful rather than just repainting under a
+   * keyboard/screen-reader user. Reuses scrollToJumpTarget (JumpLinks, SPEC.md §5.19) itself:
+   * confirmed live that a smooth `window.scrollTo` never actually animates in some browser
+   * contexts this app runs in, while `Element.scrollIntoView` reliably does, so this deliberately
+   * doesn't scroll the window directly. Omitted, falls back to an instant (non-smooth)
+   * `window.scrollTo(0, 0)` with no focus change. */
   targetId?: string;
   className?: string;
 }
@@ -28,11 +33,10 @@ export function BackToTop({ threshold = 400, targetId, className }: BackToTopPro
   }, [threshold]);
 
   const handleClick = () => {
-    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
-    const el = targetId ? document.getElementById(targetId) : null;
-    if (el) {
-      if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
-      el.focus({ preventScroll: true });
+    if (targetId) {
+      scrollToJumpTarget(targetId, { reduceMotion });
+    } else {
+      window.scrollTo(0, 0);
     }
   };
 

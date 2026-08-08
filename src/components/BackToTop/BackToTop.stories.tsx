@@ -44,12 +44,13 @@ export const VisibleOnlyPastTheThreshold: Story = {
 };
 
 /**
- * Clicking the button returns to the top of the page and, given a `targetId`, moves focus there
- * -- mirroring JumpLinks' scrollToJumpTarget (SPEC.md §5.19) rather than leaving focus wherever
- * the click happened to land. Forces reduced motion before mount so the scroll is instant, not
- * animated -- keeps this assertion independent of real scroll-animation timing.
+ * Clicking the button scrolls `targetId` into view and focuses it (via scrollToJumpTarget,
+ * JumpLinks, SPEC.md §5.19) rather than leaving focus wherever the click happened to land --
+ * lands wherever that element sits (e.g. an app's <main> landmark near the top of the page), not
+ * necessarily window.scrollY === 0 itself. Forces reduced motion before mount so the scroll is
+ * instant, not animated -- keeps this assertion independent of real scroll-animation timing.
  */
-export const ClickScrollsToTopAndFocusesTarget: Story = {
+export const ClickScrollsToTargetAndFocusesIt: Story = {
   render: (args) => {
     window.matchMedia = ((query: string) => ({
       matches: query === '(prefers-reduced-motion: reduce)',
@@ -59,8 +60,8 @@ export const ClickScrollsToTopAndFocusesTarget: Story = {
     })) as typeof window.matchMedia;
     return (
       <div>
-        <div style={{ height: 3000 }} />
         <h2 id="page-target" tabIndex={-1}>Page target</h2>
+        <div style={{ height: 3000 }} />
         <BackToTop {...args} targetId="page-target" />
       </div>
     );
@@ -72,7 +73,7 @@ export const ClickScrollsToTopAndFocusesTarget: Story = {
     const button = await canvas.findByRole('button', { name: 'Back to top' });
 
     await userEvent.click(button);
-    await expect(window.scrollY).toBe(0);
     await expect(canvas.getByText('Page target')).toHaveFocus();
+    await expect(document.getElementById('page-target')?.getBoundingClientRect().top).toBeLessThan(10);
   },
 };
