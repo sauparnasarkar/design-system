@@ -15,6 +15,7 @@ export { BannerAlert } from './components/BannerAlert/BannerAlert';
 export { Card, CardHeader } from './components/Card/Card';
 export { Tile } from './components/Tile/Tile';
 export { Accordion } from './components/Accordion/Accordion';
+export { BackToTop } from './components/BackToTop/BackToTop';
 export { Breadcrumb } from './components/Breadcrumb/Breadcrumb';
 export { Table } from './components/Table/Table';
 export { Icon } from './components/Icon/Icon';
