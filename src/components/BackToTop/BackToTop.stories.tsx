@@ -156,8 +156,8 @@ export const ClickScrollsToTargetAndFocusesIt: Story = {
  * Reported directly: scrolling into that gap left the button rendering at its normal
  * viewport-anchored spot regardless, stranded deep inside the empty space, visibly detached from
  * (and appearing well below) the page's actual footer. With `avoidSelector` pointing at the
- * footer, the button's bottom edge must never render below the footer's top edge once the footer
- * has risen into view from below.
+ * footer, the button's bottom edge must dock just above the footer once the footer has risen into
+ * the button's normal bottom-offset zone from below, not jump an extra 24px higher than that.
  */
 export const DocksAboveAvoidedElementWhenScrolledPastIt: Story = {
   render: (args) => (
@@ -179,6 +179,9 @@ export const DocksAboveAvoidedElementWhenScrolledPastIt: Story = {
     const button = await canvas.findByRole('button', { name: 'Back to top' });
     const footer = canvasElement.querySelector('[data-avoid-target="docks-above"]') as HTMLElement;
     await expect(button.getBoundingClientRect().bottom).toBeLessThanOrEqual(footer.getBoundingClientRect().top);
+    // The docked gap is 16px in the component; allow 1px of layout rounding slack here while
+    // still catching the original 24px double-counting regression.
+    await expect(footer.getBoundingClientRect().top - button.getBoundingClientRect().bottom).toBeLessThan(18);
   },
 };
 

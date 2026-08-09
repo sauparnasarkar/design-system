@@ -4,9 +4,9 @@ import { Button } from '../Button/Button';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { scrollToJumpTarget } from '../JumpLinks/JumpLinks';
 
+const BASE_BOTTOM_OFFSET_PX = 24;
 // Gap left between the button's bottom edge and the docked-against element's top edge, once
-// docking is active -- same visual breathing room the button's own base bottom/right offset
-// already gives the viewport edge, just applied against the docked element instead.
+// that element has risen high enough to intrude into the button's normal bottom offset zone.
 const DOCK_GAP_PX = 16;
 
 export interface BackToTopProps {
@@ -58,7 +58,7 @@ export function BackToTop({ threshold = 400, targetId, avoidSelector, className 
         return;
       }
       const avoidRectTop = avoidEl.getBoundingClientRect().top;
-      setDockOffset(Math.max(0, window.innerHeight - avoidRectTop + DOCK_GAP_PX));
+      setDockOffset(Math.max(0, window.innerHeight - avoidRectTop + DOCK_GAP_PX - BASE_BOTTOM_OFFSET_PX));
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -85,7 +85,7 @@ export function BackToTop({ threshold = 400, targetId, avoidSelector, className 
       style={{
         position: 'fixed',
         right: 'calc(24px + env(safe-area-inset-right, 0px))',
-        bottom: `calc(${24 + dockOffset}px + env(safe-area-inset-bottom, 0px))`,
+        bottom: `calc(${BASE_BOTTOM_OFFSET_PX + dockOffset}px + env(safe-area-inset-bottom, 0px))`,
         // Must clear the sidebar nav's own z-index (--__s9cmpx-c-sidebar-z-index, 310) --
         // same fix ChartCard's expand overlay already needed for the same reason.
         zIndex: 'var(--__s9cmpx-z-index-modal)',
