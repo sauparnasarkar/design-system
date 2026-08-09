@@ -20,6 +20,11 @@ Switch themes with the **Theme** dropdown in the Storybook toolbar:
 
 ## Architecture
 
+See `DESIGN.md` for the full reference: token architecture, theming model,
+the `__s9cmpx-` namespace rules, and the component catalog with established
+conventions (story-embedded `play`-function testing, pure-logic extraction
+for Plotly-backed components).
+
 Everything is token-driven. `src/styles/vendor/syena-default-theme.css`
 defines ~1,100 `--__s9cmpx-*` CSS custom properties (17 color ramps, semantic
 colors, a full type scale, per-component tokens, 3 chart palettes);
