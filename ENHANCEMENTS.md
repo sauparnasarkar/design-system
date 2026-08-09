@@ -15,7 +15,8 @@
 > `PLAN.md`.
 
 Status: proposals only — nothing here is queued. Say the word and any item
-becomes a task. Current state for context: 59 components, 3 themes, vendored
+becomes a task. Current state for context: 63 components (`BackToTop` added
+since this note was last touched, SPEC.md §5.20), 3 themes, vendored
 fg CSS v7.32.2, Storybook 10, all typechecked and visually verified.
 
 ## Tier 1 — highest value next
@@ -65,11 +66,15 @@ fg CSS v7.32.2, Storybook 10, all typechecked and visually verified.
     **Deferred, not done:** ~40 remaining components still have only
     mount+a11y coverage and no dedicated `play` function — mostly
     low-logic/presentational ones (Divider, Typography, Spinner, Tag,
-    Avatar, Breadcrumb, DotTyping, Section, Textarea, EmptyState, JumpLinks,
+    Avatar, Breadcrumb, DotTyping, Section, Textarea, EmptyState,
     FileUpload, SearchInput, Table, Header, SidebarNav, SidebarNavFlyout,
     ContactModule, and others) where mount+a11y already covers what little
     behavior exists. Worth a future pass if any of these grow real
     interaction logic; not worth doing preemptively for e.g. `Divider`.
+    (`JumpLinks` no longer belongs on this list — SPEC.md §5.19/§5.20's
+    scroll/focus logic grew substantial `play`-function regression coverage
+    across several post-ship fixes; `BackToTop`, added after this note was
+    written, has its own coverage too.)
 2. **Visual regression CI (Chromatic)** — `@chromatic-com/storybook` is
    already in the addons. Init a git repo, wire `build-storybook` + Chromatic
    in GitHub Actions, snapshot all stories in all 3 themes. This locks in the

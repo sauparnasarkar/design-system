@@ -76,7 +76,7 @@ variables. Themes are small override files in `src/styles/themes/` scoped to
 
 `npm run test:watch` for interactive/watch mode.
 
-## Component inventory (62)
+## Component inventory (63)
 
 Button, Typography, Link, Tag, Chip, Tabs, TabsWrapper, SegmentedControl,
 Checkbox, Radio, Toggle, Input, Select, MultiSelect (dropdown menu opens with
@@ -91,7 +91,7 @@ ChartTooltip, SyChart (Plotly: column / stacked+line / grouped / multi-line)
 + ChartCard, Slider, RangeSlider (dual-thumb, cross-clamped, APG multi-thumb
 slider pattern — for continuous ranges, e.g. a year filter), KrfSlider,
 Score, Progress, Spinner, DotTyping, Divider,
-Section, Textarea, Counter, EmptyState, JumpLinks, FileUpload, KpiStat, Gauge, News,
+Section, Textarea, Counter, EmptyState, JumpLinks, BackToTop, FileUpload, KpiStat, Gauge, News,
 MediaObject, CardCarousel, ContactItem, ContactModule, Chatbot (generic
 title/messages, no hardcoded assistant name),
 and the app shell (Header, SidebarNav, SidebarNavFlyout, AppSwitcher, Footer)
