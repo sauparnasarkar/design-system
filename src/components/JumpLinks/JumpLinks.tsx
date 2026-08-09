@@ -35,11 +35,6 @@ export interface JumpLinksProps extends Omit<React.HTMLAttributes<HTMLElement>, 
   vertical?: boolean;
 }
 
-// Tracks the one spacer (if any) a previous scrollToJumpTarget call left in the DOM -- see the
-// comment where it's created below for why it's cleaned up here, at the start of the *next* jump,
-// rather than on its own timer.
-let activeSpacer: HTMLDivElement | null = null;
-
 /** Scrolls to and focuses a jump target by id -- factored out of JumpLinks' own click handler so
  * a page can call the exact same logic on mount when the URL already carries a `#anchor` (a
  * bookmarked/shared link), since the browser's one-shot native hash-scroll on page load often
@@ -48,13 +43,6 @@ let activeSpacer: HTMLDivElement | null = null;
 export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; isTopSection?: boolean }): void {
   const el = document.getElementById(id);
   if (!el) return;
-
-  // Reclaims the space from an earlier jump's spacer now, at the start of this new jump, rather
-  // than on its own timer -- the user is already navigating away from wherever that spacer put
-  // them, so a scroll adjustment as a side effect of this click isn't surprising the way it would
-  // be if it happened on its own, later, for no visible reason.
-  activeSpacer?.remove();
-  activeSpacer = null;
 
   const rect = el.getBoundingClientRect();
   const alreadyFullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
@@ -80,41 +68,21 @@ export function scrollToJumpTarget(id: string, opts?: { reduceMotion?: boolean; 
   // with a #anchor already in the URL should just land on it, same as native browser hash-scroll
   // would.
   if (!(opts?.isTopSection && alreadyFullyVisible)) {
-    // getBoundingClientRect().top + scrollY, not el.offsetTop -- offsetTop is relative to the
-    // element's offsetParent, which is only the document origin if no ancestor between el and
-    // <body> is positioned. This measures from the document origin regardless of DOM nesting.
-    const targetY = rect.top + window.scrollY;
-    // If there isn't enough scrollable room below the target to bring it flush to the viewport's
-    // top, the browser silently clamps the scroll short of it -- confirmed live: on a page whose
-    // content ends soon after the target (e.g. Country Profile's Key Statistics, Data Explorer's
-    // Summary Statistics, Overview's % Change -- each the last jump target on its page), up to
-    // ~225px of the *previous* section stays visible above the intended target no matter how the
-    // scroll is triggered. An aria-hidden spacer appended after the target's own scrollIntoView
-    // call gives just enough extra room.
-    //
-    // This spacer is deliberately never removed on a timer/event once added -- an earlier version
-    // did (on 'scrollend', or a double rAF for the reduced-motion path), which looked correct in
-    // Storybook's test environment only because the test's own assertion happened to run before
-    // the removal fired. Confirmed live it's actually broken: on Historical Trends' "GHG Share by
-    // Decade" (the page's last, shortest section), scrollY reached 671 with the spacer in place,
-    // then snapped back to 255 the instant the spacer was removed -- reproducing the exact "~225px
-    // of the previous section stays visible" bug this spacer exists to fix. This isn't a timing
-    // race to fix with a different delay: removing a spacer that's currently the only thing making
-    // targetY a reachable scroll position will *always* make the browser re-clamp scrollY back
-    // down, however long you wait first, because scrollTop is continuously clamped to
-    // [0, scrollHeight - clientHeight] as the document resizes. So instead of ever auto-removing
-    // it, this one spacer is reclaimed lazily -- at the very top of this function, on the *next*
-    // jump (activeSpacer above) -- once the user has already moved on from wherever it put them.
-    const doc = document.documentElement;
-    const shortfall = targetY - (doc.scrollHeight - doc.clientHeight);
-    if (shortfall > 0) {
-      const spacer = document.createElement('div');
-      spacer.style.height = `${shortfall}px`;
-      spacer.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(spacer);
-      activeSpacer = spacer;
-    }
-
+    // Scrolls the target flush to the top of the viewport when there's enough real page content
+    // below it to reach that far -- but never further than the document's own natural end, so a
+    // short page's last section can't be forced past its real content (e.g. the app's footer)
+    // into blank space. An earlier version defeated the browser's own clamp on purpose, with a
+    // temporary spacer appended after the target so it could always reach exactly flush-to-top
+    // even on a page too short to naturally support that -- reported directly, with screenshots:
+    // that left a large blank gap below the footer whenever a short page's last section was
+    // jumped to, with the footer (and this session's BackToTop.avoidSelector fix docking above
+    // it) scrolled far out of view above that gap. `scrollTop` is already continuously clamped to
+    // [0, scrollHeight - clientHeight] by the browser -- once nothing artificially extends
+    // scrollHeight, that native clamp *is* the desired behavior, so the spacer is removed
+    // entirely here rather than trying to cap its size. Accepted tradeoff: a short page's last
+    // section may not land perfectly flush at the very top (part of the previous section can
+    // remain visible above it) -- preferred over ever showing blank space past the page's real
+    // content.
     const reduceMotion = opts?.reduceMotion;
     el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
 

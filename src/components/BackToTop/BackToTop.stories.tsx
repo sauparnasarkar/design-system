@@ -149,15 +149,18 @@ export const ClickScrollsToTargetAndFocusesIt: Story = {
 };
 
 /**
- * Regression test (SPEC.md §5.20 sixth follow-up bug report, with screenshots): a JumpLinks
- * target near the end of a short page can leave a large scrollable gap below the real content --
- * the shortfall spacer scrollToJumpTarget uses to bring a target flush to the top is deliberately
- * never auto-removed (see its own comment), so that gap can persist well past the jump itself.
- * Reported directly: scrolling into that gap left the button rendering at its normal
- * viewport-anchored spot regardless, stranded deep inside the empty space, visibly detached from
- * (and appearing well below) the page's actual footer. With `avoidSelector` pointing at the
- * footer, the button's bottom edge must dock just above the footer once the footer has risen into
- * the button's normal bottom-offset zone from below, not jump an extra 24px higher than that.
+ * Regression test (SPEC.md §5.20 follow-up bug report, with screenshots): originally reported
+ * against a JumpLinks target near the end of a short page, which at the time could leave a large
+ * scrollable gap below the real content (a since-removed shortfall spacer -- see
+ * scrollToJumpTarget's own comment -- used to force a target flush to the top even on pages too
+ * short to naturally support that). The button rendered at its normal viewport-anchored spot
+ * regardless, stranded deep inside that gap, visibly detached from the page's actual footer.
+ * `avoidSelector` remains independently useful even with the gap-creating mechanism gone -- it's
+ * general "dock above the footer" behavior for any deep scroll, not specific to that one bug --
+ * so this test simulates a plain deep scroll rather than a JumpLinks-driven one. With
+ * `avoidSelector` pointing at the footer, the button's bottom edge must dock just above it once
+ * the footer has risen into the button's normal bottom-offset zone from below, not jump an extra
+ * 24px higher than that.
  */
 export const DocksAboveAvoidedElementWhenScrolledPastIt: Story = {
   render: (args) => (
@@ -172,8 +175,7 @@ export const DocksAboveAvoidedElementWhenScrolledPastIt: Story = {
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    // Scrolls far enough that the footer is fully in view -- simulates scrolling into the gap a
-    // shortfall spacer can leave below it.
+    // Scrolls far enough that the footer is fully in view.
     window.scrollTo(0, 3000);
     window.dispatchEvent(new Event('scroll'));
     const button = await canvas.findByRole('button', { name: 'Back to top' });

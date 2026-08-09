@@ -97,13 +97,6 @@ export const ClickDoesNotScrollWhenTargetAlreadyVisible: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const el = document.getElementById('overview') as HTMLElement;
-    // A preceding story in this same file (e.g. ClickScrollsAndFocusesTarget) can leave a
-    // shortfall spacer in the DOM -- scrollToJumpTarget now only reclaims that space lazily, at
-    // the start of the *next* jump (see its own comment), so without this cleanup that removal
-    // would happen *during* this test's own click below and shift scrollY as a side effect,
-    // unrelated to what this test actually checks. Strips it explicitly first so scrollYBefore
-    // reflects a clean baseline.
-    document.querySelectorAll('div[aria-hidden="true"]').forEach((n) => n.remove());
     // This test harness doesn't unmount previous stories between play-function runs within the
     // same file, so document.body accumulates every preceding story's own rendered content --
     // nothing genuinely starts "at the top of the page" by default. Establish the actual
@@ -215,7 +208,6 @@ export const ClickDoesNotScrollWhenMarkedTopSectionAndAlreadyVisible: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const el = document.getElementById('ratings') as HTMLElement;
-    document.querySelectorAll('div[aria-hidden="true"]').forEach((n) => n.remove());
     el.scrollIntoView({ behavior: 'auto', block: 'center' });
     const rectBefore = el.getBoundingClientRect();
     if (rectBefore.top < 0 || rectBefore.bottom > window.innerHeight) return;
@@ -268,17 +260,20 @@ export const ClickScrollsMarkedTopSectionWhenNotVisible: Story = {
 };
 
 /**
- * Regression test (SPEC.md §5.20 follow-up bug report): a target near the very end of a page,
- * shorter than the viewport, has no scrollable room below it to reach the top -- confirmed live,
- * up to ~225px of the previous section stayed visible above targets like this (Country Profile's
- * Key Statistics, Data Explorer's Summary Statistics, Overview's % Change). scrollToJumpTarget's
- * temporary spacer must give it just enough extra room.
+ * Regression test (SPEC.md §5.20 follow-up bug report, with screenshots): scrolling to a target
+ * near the very end of a short page must never scroll past the document's own natural end.
+ * Reported directly: an earlier version forced the target flush to the very top even on a page
+ * too short to naturally support that, via a temporary spacer appended below the real content --
+ * that left a large blank gap below the page's actual last content (e.g. the app's footer)
+ * whenever a short page's last section was jumped to, with the footer scrolled far out of view
+ * above the gap. The browser's own scroll clamp (`scrollTop` bounded to
+ * `[0, scrollHeight - clientHeight]`) is the desired behavior once nothing artificially extends
+ * `scrollHeight` -- confirms the click never scrolls past that natural bound, and that nothing
+ * gets added to the DOM to extend it.
  */
-export const ClickScrollsFullyToTopEvenNearPageBottom: Story = {
+export const ClickNeverScrollsPastTheDocumentsNaturalEnd: Story = {
   // Forces reduced motion so the scroll is instant, not animated -- keeps the position assertion
-  // below independent of real scroll-animation timing (unlike ClickScrollsAndFocusesTarget above,
-  // which only asserts focus/hash, this one asserts final scroll position and needs the scroll to
-  // have actually completed by the time it runs).
+  // below independent of real scroll-animation timing.
   beforeEach: async () => {
     window.matchMedia = ((query: string) => ({
       matches: query === '(prefers-reduced-motion: reduce)',
@@ -292,73 +287,25 @@ export const ClickScrollsFullyToTopEvenNearPageBottom: Story = {
       <JumpLinks {...args} />
       <div style={{ height: 800 }} />
       {/* Deliberately the very last thing on the page and shorter than the viewport -- nothing
-          below it to provide scrollable room. */}
+          below it to provide scrollable room, so there's a genuine shortfall to clamp against. */}
       <h2 id="research" tabIndex={-1}>Research section</h2>
     </div>
   ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const el = document.getElementById('research') as HTMLElement;
     const doc = document.documentElement;
-    const shortfallBeforeFix = el.offsetTop - (doc.scrollHeight - doc.clientHeight);
+    const targetBeforeClick = document.getElementById('research') as HTMLElement;
+    const shortfall = targetBeforeClick.offsetTop - (doc.scrollHeight - doc.clientHeight);
     // Only a meaningful regression test if this layout actually reproduces a real shortfall in
     // this test environment's own viewport -- if it doesn't, skip rather than pass vacuously.
-    if (shortfallBeforeFix <= 0) return;
+    if (shortfall <= 0) return;
 
     await userEvent.click(canvas.getByRole('link', { name: 'Research' }));
     await expect(canvas.getByText('Research section')).toHaveFocus();
-    await expect(el.getBoundingClientRect().top).toBeLessThan(10);
-    // Confirms the spacer that made this position reachable is still in the DOM, not just that
-    // the position happens to be right at this exact moment -- see
-    // ClickStaysFlushToTopAfterScrollSettles below for why asserting only immediately after the
-    // click isn't enough to catch a regression here.
-    await expect(document.querySelectorAll('div[aria-hidden="true"]').length).toBeGreaterThan(0);
-  },
-};
-
-/**
- * Regression test (SPEC.md §5.20 fourth follow-up bug report): the shortfall spacer above must
- * still be in place -- and the target still flush to the top -- well after the click, not just in
- * the instant right after it. An earlier version removed the spacer once the scroll settled (on
- * 'scrollend', or a double rAF for the reduced-motion path); that looked correct in this exact
- * test file only because the previous version of this assertion ran before the removal fired.
- * Confirmed live it was actually broken: on Historical Trends' "GHG Share by Decade", scrollY
- * reached the intended position with the spacer in place, then snapped back down the instant the
- * spacer was removed -- reproducing the exact "previous section stays visible" bug the spacer
- * exists to fix. Removing a spacer that's the only thing making a position reachable always
- * re-clamps scrollY back down, however long you wait first -- not a timing race, so this test
- * dispatches a real 'scrollend' and waits past the old 1s fallback window to prove the fix holds
- * over time, not just for one lucky instant.
- */
-export const ClickStaysFlushToTopAfterScrollSettles: Story = {
-  render: (args) => (
-    <div>
-      <JumpLinks {...args} />
-      <div style={{ height: 800 }} />
-      <h2 id="research" tabIndex={-1}>Research section</h2>
-    </div>
-  ),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const el = document.getElementById('research') as HTMLElement;
-    const doc = document.documentElement;
-    const shortfallBeforeFix = el.offsetTop - (doc.scrollHeight - doc.clientHeight);
-    if (shortfallBeforeFix <= 0) return;
-
-    // Not forcing reduced motion here -- this exercises the default smooth-scroll path
-    // specifically, the one that relied on a real 'scrollend' event to clean up.
-    await userEvent.click(canvas.getByRole('link', { name: 'Research' }));
-    await expect(canvas.getByText('Research section')).toHaveFocus();
-    // Simulates the browser's real 'scrollend' firing once its smooth-scroll animation
-    // genuinely finishes -- this test environment's programmatic scrollIntoView may not fire one
-    // reliably on its own, but the fix must behave identically whether or not it does.
-    window.dispatchEvent(new Event('scrollend'));
-    // Waits past the old 1s fallback-removal window too, so this test would have caught the
-    // regression under either of the old cleanup paths, not just the 'scrollend' one.
-    await new Promise((resolve) => setTimeout(resolve, 1100));
-
-    await expect(el.getBoundingClientRect().top).toBeLessThan(10);
-    await expect(document.querySelectorAll('div[aria-hidden="true"]').length).toBeGreaterThan(0);
+    await expect(window.scrollY).toBeLessThanOrEqual(doc.scrollHeight - doc.clientHeight);
+    // Nothing should have been added to the DOM to artificially extend scrollHeight -- confirms
+    // the earlier spacer mechanism was removed entirely, not just made smaller.
+    await expect(document.querySelectorAll('div[aria-hidden="true"]').length).toBe(0);
   },
 };
 
