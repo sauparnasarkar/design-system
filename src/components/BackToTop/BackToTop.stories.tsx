@@ -149,6 +149,70 @@ export const ClickScrollsToTargetAndFocusesIt: Story = {
 };
 
 /**
+ * Regression test (SPEC.md §5.20 sixth follow-up bug report, with screenshots): a JumpLinks
+ * target near the end of a short page can leave a large scrollable gap below the real content --
+ * the shortfall spacer scrollToJumpTarget uses to bring a target flush to the top is deliberately
+ * never auto-removed (see its own comment), so that gap can persist well past the jump itself.
+ * Reported directly: scrolling into that gap left the button rendering at its normal
+ * viewport-anchored spot regardless, stranded deep inside the empty space, visibly detached from
+ * (and appearing well below) the page's actual footer. With `avoidSelector` pointing at the
+ * footer, the button's bottom edge must dock just above the footer once the footer has risen into
+ * the button's normal bottom-offset zone from below, not jump an extra 24px higher than that.
+ */
+export const DocksAboveAvoidedElementWhenScrolledPastIt: Story = {
+  render: (args) => (
+    <div>
+      <div style={{ height: 3000 }} />
+      {/* A unique selector, not the bare 'footer' tag -- this test harness doesn't unmount
+          previous stories between play-function runs in the same file, so a generic tag selector
+          could match an earlier story's own leftover footer instead of this one's. */}
+      <footer data-avoid-target="docks-above" style={{ height: 80 }}>Page footer</footer>
+      <BackToTop {...args} avoidSelector="[data-avoid-target='docks-above']" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Scrolls far enough that the footer is fully in view -- simulates scrolling into the gap a
+    // shortfall spacer can leave below it.
+    window.scrollTo(0, 3000);
+    window.dispatchEvent(new Event('scroll'));
+    const button = await canvas.findByRole('button', { name: 'Back to top' });
+    const footer = canvasElement.querySelector('[data-avoid-target="docks-above"]') as HTMLElement;
+    await expect(button.getBoundingClientRect().bottom).toBeLessThanOrEqual(footer.getBoundingClientRect().top);
+    // The docked gap is 16px in the component; allow 1px of layout rounding slack here while
+    // still catching the original 24px double-counting regression.
+    await expect(footer.getBoundingClientRect().top - button.getBoundingClientRect().bottom).toBeLessThan(18);
+  },
+};
+
+/**
+ * Companion to the test above: with the avoided element nowhere near the viewport yet, the button
+ * must stay at its normal, viewport-anchored position -- `avoidSelector` only ever pulls the
+ * button *up*, it never affects it while there's nothing to avoid on screen.
+ */
+export const DoesNotDockWhenAvoidedElementNotYetInView: Story = {
+  render: (args) => (
+    <div>
+      <div style={{ height: 3000 }} />
+      <footer data-avoid-target="not-yet-in-view" style={{ height: 80 }}>Page footer</footer>
+      <div style={{ height: 3000 }} />
+      <BackToTop {...args} avoidSelector="[data-avoid-target='not-yet-in-view']" />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Past the visibility threshold, but the footer (well after another 3000px of content) is
+    // nowhere near the viewport yet.
+    window.scrollTo(0, 1000);
+    window.dispatchEvent(new Event('scroll'));
+    const button = await canvas.findByRole('button', { name: 'Back to top' });
+    // Base position is 24px from the viewport's bottom edge -- some slack for the container's own
+    // border-box/rounding, but nowhere near the size a real dock offset would produce.
+    await expect(window.innerHeight - button.getBoundingClientRect().bottom).toBeLessThan(40);
+  },
+};
+
+/**
  * Activating the button via keyboard (not just a mouse click) and landing back near the top --
  * past the visibility threshold -- must not unmount the button while it still holds focus, or a
  * keyboard user's focus silently drops into the void. `focusWithin` keeps it mounted for exactly
