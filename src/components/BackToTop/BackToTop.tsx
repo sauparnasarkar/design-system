@@ -47,7 +47,18 @@ export function BackToTop({ threshold = 400, targetId, avoidSelector, className 
 
   React.useEffect(() => {
     const onScroll = () => {
-      setVisible(window.scrollY > threshold);
+      // A page short enough that its entire natural scroll range sits under `threshold` would
+      // otherwise never show this button at all, no matter how the page is scrolled -- reported
+      // directly: Historical Trends' natural scroll range is only ~294px, under the 400px
+      // default threshold, so the button never appeared even after a JumpLinks click landed the
+      // user at the page's genuine last section. "At the natural bottom" is treated as an
+      // alternate trigger alongside the raw pixel threshold, not a replacement for it -- 1px
+      // tolerance for the same sub-pixel layout rounding already seen elsewhere in this file
+      // (avoidSelector's own ~8px footer-docking gap).
+      const doc = document.documentElement;
+      const naturalMaxScroll = doc.scrollHeight - doc.clientHeight;
+      const atNaturalBottom = naturalMaxScroll > 0 && window.scrollY >= naturalMaxScroll - 1;
+      setVisible(window.scrollY > threshold || atNaturalBottom);
       // Recomputed on every scroll tick, same listener as the visibility check above -- matches
       // this component's own established preference (see the file-level history/SPEC.md §5.20)
       // for a plain scroll listener over a rAF-throttled one, since rAF callbacks were confirmed

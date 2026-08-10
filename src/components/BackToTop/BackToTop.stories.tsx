@@ -78,6 +78,48 @@ export const VisibleOnlyPastTheThreshold: Story = {
 };
 
 /**
+ * Regression test (SPEC.md §5.20 follow-up bug report): on a page short enough that its entire
+ * natural scroll range sits under `threshold`, the button must still appear once the page is
+ * scrolled to its genuine bottom -- reported directly: Historical Trends' natural scroll range
+ * (~294px) sits under the 400px default threshold, so the button never appeared even after a
+ * JumpLinks click landed the user at the page's actual last section (§5.20's eighth fix removed
+ * the shortfall spacer that used to inflate `scrollY` well past the threshold on short pages).
+ * `threshold` is set deliberately unreachable (100000) here so this test isolates the new "at
+ * natural bottom" trigger specifically -- if the button appears, it can only be because of that,
+ * not the raw pixel check, regardless of how much content this Storybook file's own DOM-
+ * accumulation quirk (see other stories' comments) happens to have piled up by the time this runs.
+ */
+export const VisibleAtNaturalBottomEvenUnderThreshold: Story = {
+  // threshold is deliberately unreachable, so the *size* of the natural overflow below doesn't
+  // need to precisely mimic a real short page -- any nonzero overflow is enough to isolate the
+  // "at natural bottom" trigger from the raw pixel one.
+  args: { threshold: 100000 },
+  render: (args) => (
+    <div>
+      <div style={{ height: 1500 }} />
+      <BackToTop {...args} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const doc = document.documentElement;
+
+    window.scrollTo(0, 0);
+    window.dispatchEvent(new Event('scroll'));
+    await expect(canvas.queryByRole('button', { name: 'Back to top' })).not.toBeInTheDocument();
+
+    const naturalMaxScroll = doc.scrollHeight - doc.clientHeight;
+    // Only meaningful if this test environment's own viewport actually leaves real scrollable
+    // room -- skip rather than pass vacuously if it doesn't.
+    if (naturalMaxScroll <= 0) return;
+
+    window.scrollTo(0, naturalMaxScroll);
+    window.dispatchEvent(new Event('scroll'));
+    await expect(await canvas.findByRole('button', { name: 'Back to top' })).toBeInTheDocument();
+  },
+};
+
+/**
  * Regression test (SPEC.md §5.20 bug report): a JumpLinks click elsewhere on the same page (not
  * BackToTop's own button) navigates via Element.scrollIntoView, which doesn't reliably fire a
  * native 'scroll' event on window in every browser -- confirmed live, scrollY genuinely changed
