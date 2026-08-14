@@ -4,24 +4,21 @@ import { cx } from '../../lib/cx';
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: boolean;
   label?: React.ReactNode;
-  /** Ref to the underlying <textarea> element. */
-  ref?: React.Ref<HTMLTextAreaElement>;
   /** Extra class name(s) applied to the <textarea> itself, alongside the component's own
    *  vendor classes -- distinct from `className`, which stays wrapper-<div>-only. */
   textareaClassName?: string;
 }
 
-export function Textarea({
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea({
   error = false,
   label,
   className,
   textareaClassName,
   id,
   rows = 4,
-  ref,
   style,
   ...rest
-}: TextareaProps) {
+}, ref) {
   const autoId = React.useId();
   const inputId = id ?? autoId;
   return (
@@ -47,4 +44,4 @@ export function Textarea({
       />
     </div>
   );
-}
+});

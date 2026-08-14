@@ -30,6 +30,7 @@ export interface PromptBarProps {
 }
 
 const MAX_LINES = 4;
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
 
 export function PromptBar({
   value,
@@ -50,7 +51,7 @@ export function PromptBar({
 
   // Auto-grow, capped at MAX_LINES. useLayoutEffect avoids a one-frame flash of the wrong
   // height (e.g. on programmatic clear after submit).
-  React.useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
