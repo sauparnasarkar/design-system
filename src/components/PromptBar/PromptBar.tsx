@@ -195,6 +195,8 @@ export function PromptBar({
         <div
           className="__s9cmpx-prompt-bar__expanded-panel"
           data-expanded={showExpanded}
+          aria-hidden={!showExpanded}
+          inert={!showExpanded}
           style={{
             display: 'grid',
             gridTemplateRows: showExpanded ? '1fr' : '0fr',
