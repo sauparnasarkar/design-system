@@ -60,6 +60,12 @@ const PATHS: Record<string, React.ReactNode> = {
     <path d="M9 9h-6v-2h4v-4h2v6z M15 9h6v-2h-4v-4h-2v6z M15 15h6v2h-4v4h-2v-6z M9 15h-6v2h4v4h2v-6z" />
   ),
   send: <path d="M11 21h2v-9.086l3.293 3.293 1.414-1.414L12 8.086l-5.707 5.707 1.414 1.414L11 11.914V21z" />,
+  // A four-point "twinkle" star (concave sides, unlike the solid 5-point 'grid' shape) -- the
+  // standard cross-product convention for "AI/generative" entry points (ChatGPT, Gemini, Copilot
+  // all use a variant of this exact glyph), not a repurposed existing icon.
+  sparkle: (
+    <path d="M12 2c0 0 .5 6.5 3 9s7 1 7 1-4.5 1.5-7 4-3 6-3 6-.5-3.5-3-6-7-4-7-4 4.5 1.5 7-1 3-9 3-9z" />
+  ),
 };
 
 export type IconName = keyof typeof PATHS;
