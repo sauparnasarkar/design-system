@@ -177,6 +177,123 @@ export const AutoGrowCapsAtFourLines: Story = {
   },
 };
 
+function ExpandedContentDemo(args: React.ComponentProps<typeof PromptBar>) {
+  const [value, setValue] = React.useState(args.value);
+  return (
+    <PromptBar
+      {...args}
+      value={value}
+      onChange={setValue}
+      expandedContent={
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+          <button type="button" onClick={() => args.onSubmit('Suggested prompt one')}>
+            Suggested prompt one
+          </button>
+          <button type="button" onClick={() => args.onSubmit('Suggested prompt two')}>
+            Suggested prompt two
+          </button>
+        </div>
+      }
+    />
+  );
+}
+
+export const WithExpandedContent: Story = {
+  args: { variant: 'docked' },
+  render: (args) => <ExpandedContentDemo {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const panel = canvasElement.querySelector('.__s9cmpx-prompt-bar__expanded-panel') as HTMLElement;
+    const textarea = canvas.getByRole('textbox', { name: 'Ask a question' });
+
+    // Collapsed until the bar gains focus -- docked never autofocuses.
+    await expect(panel).toHaveAttribute('data-expanded', 'false');
+
+    await userEvent.click(textarea);
+    await expect(panel).toHaveAttribute('data-expanded', 'true');
+
+    // Clicking a tile inside the panel must register its own click, not just collapse the panel
+    // out from under it -- the tile receiving focus (not the panel losing it) is what the blur
+    // handler's relatedTarget check relies on.
+    const tileOne = canvas.getByRole('button', { name: 'Suggested prompt one' });
+    await userEvent.click(tileOne);
+    await expect(args.onSubmit).toHaveBeenCalledWith('Suggested prompt one');
+
+    // Clicking away from the bar entirely collapses it.
+    await userEvent.click(textarea);
+    await expect(panel).toHaveAttribute('data-expanded', 'true');
+    await userEvent.click(canvasElement.ownerDocument.body);
+    await expect(panel).toHaveAttribute('data-expanded', 'false');
+  },
+};
+
+export const ExpandedContentCollapsesOnSubmit: Story = {
+  args: { variant: 'docked', value: 'Ask something' },
+  render: (args) => <ExpandedContentDemo {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const panel = canvasElement.querySelector('.__s9cmpx-prompt-bar__expanded-panel') as HTMLElement;
+    const textarea = canvas.getByRole('textbox', { name: 'Ask a question' }) as HTMLTextAreaElement;
+
+    await userEvent.click(textarea);
+    await expect(panel).toHaveAttribute('data-expanded', 'true');
+
+    // Enter-key submission never blurs the textarea -- collapse must not depend on the blur
+    // handler for this path, only the explicit setExpanded(false) inside trySubmit.
+    await userEvent.keyboard('{Enter}');
+    await expect(args.onSubmit).toHaveBeenCalledWith('Ask something');
+    await expect(panel).toHaveAttribute('data-expanded', 'false');
+  },
+};
+
+// Simulates an instant-submit starter tile inside expandedContent: its onClick calls some
+// caller-owned submit function directly (setting `loading`), never going through PromptBar's own
+// trySubmit at all -- the scenario the `loading`-driven collapse effect exists for, as opposed to
+// ExpandedContentDemo's tiles above, which do go through trySubmit via args.onSubmit.
+function ExternalSubmitDemo(args: React.ComponentProps<typeof PromptBar>) {
+  const [value, setValue] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  return (
+    <PromptBar
+      {...args}
+      value={value}
+      loading={loading}
+      onChange={setValue}
+      expandedContent={
+        <button
+          type="button"
+          onClick={() => {
+            args.onSubmit('Instant-submit tile');
+            setLoading(true);
+          }}
+        >
+          Instant-submit tile
+        </button>
+      }
+    />
+  );
+}
+
+export const ExpandedContentCollapsesOnExternalSubmit: Story = {
+  args: { variant: 'docked' },
+  render: (args) => <ExternalSubmitDemo {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const panel = canvasElement.querySelector('.__s9cmpx-prompt-bar__expanded-panel') as HTMLElement;
+    const textarea = canvas.getByRole('textbox', { name: 'Ask a question' });
+
+    await userEvent.click(textarea);
+    await expect(panel).toHaveAttribute('data-expanded', 'true');
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Instant-submit tile' }));
+    await expect(args.onSubmit).toHaveBeenCalledWith('Instant-submit tile');
+    // The click's own onClick never touches PromptBar's trySubmit -- only the `loading` prop
+    // turning true (set by this demo's own handler, standing in for the real app's submit hook)
+    // is what collapses the panel here.
+    await waitFor(() => expect(panel).toHaveAttribute('data-expanded', 'false'));
+  },
+};
+
 export const WithActions: Story = {
   args: {
     actions: (
