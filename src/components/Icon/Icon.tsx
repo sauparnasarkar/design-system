@@ -59,6 +59,7 @@ const PATHS: Record<string, React.ReactNode> = {
   collapse: (
     <path d="M9 9h-6v-2h4v-4h2v6z M15 9h6v-2h-4v-4h-2v6z M15 15h6v2h-4v4h-2v-6z M9 15h-6v2h4v4h2v-6z" />
   ),
+  send: <path d="M11 21h2v-9.086l3.293 3.293 1.414-1.414L12 8.086l-5.707 5.707 1.414 1.414L11 11.914V21z" />,
 };
 
 export type IconName = keyof typeof PATHS;

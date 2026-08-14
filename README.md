@@ -72,6 +72,9 @@ variables. Themes are small override files in `src/styles/themes/` scoped to
   their own logic/state (clamping, single-vs-multiple open state,
   select-closes-menu, custom-range Apply gating, etc.) — see "Component-level
   test coverage, round 2" in `PLAN.md` for the full list and rationale.
+  `PromptBar` additionally has `play`-function tests covering autofocus
+  per variant, Enter/Shift+Enter handling, the empty-value submit guard,
+  loading/disabled states, refocus-after-loading, and auto-grow capping.
 - **`unit`** — plain Node-environment tests: `src/__tests__/no-vendor-strings.test.ts`
   (fails if a hardcoded `Syena`/`syena` string is reintroduced into non-story
   component source or CSS), plus `SyChart/chartMath.test.ts` and
@@ -81,7 +84,7 @@ variables. Themes are small override files in `src/styles/themes/` scoped to
 
 `npm run test:watch` for interactive/watch mode.
 
-## Component inventory (63)
+## Component inventory (65)
 
 Button, Typography, Link, Tag, Chip, Tabs, TabsWrapper, SegmentedControl,
 Checkbox, Radio, Toggle, Input, Select, MultiSelect (dropdown menu opens with
@@ -96,7 +99,8 @@ ChartTooltip, SyChart (Plotly: column / stacked+line / grouped / multi-line)
 + ChartCard, Slider, RangeSlider (dual-thumb, cross-clamped, APG multi-thumb
 slider pattern — for continuous ranges, e.g. a year filter), KrfSlider,
 Score, Progress, Spinner, DotTyping, Divider,
-Section, Textarea, Counter, EmptyState, JumpLinks, BackToTop, FileUpload, KpiStat, Gauge, News,
+Section, Textarea, PromptBar (controlled prompt/chat input bar, landing/docked
+variants, composes Textarea + Button + Spinner), Counter, EmptyState, JumpLinks, BackToTop, FileUpload, KpiStat, Gauge, News,
 MediaObject, CardCarousel, ContactItem, ContactModule, Chatbot (generic
 title/messages, no hardcoded assistant name),
 and the app shell (Header, SidebarNav, SidebarNavFlyout, AppSwitcher, Footer)
