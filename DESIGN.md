@@ -147,7 +147,7 @@ DataTable, its theming works differently from the rest of the system —
 check both the AG Grid theme class and the vendor `.__s9cmpx-table .ag-*`
 rules, not just one.
 
-## 5. Component catalog (64)
+## 5. Component catalog (65)
 
 Grouped by function. All are exported from `src/index.ts`; `(logic-tested)`
 marks components with a `play`-function test beyond mount+a11y — see §6 for
@@ -163,7 +163,11 @@ what that means and when to add one for a new component.
 (logic-tested), MultiSelect (logic-tested — dropdown opens with a
 type-to-search box filtering by label; opt out per instance with
 `suppressSearch`), NestedMultiSelect (logic-tested), Counter, FileUpload,
-DateRangeDropdown (logic-tested), DropdownMenu (logic-tested)
+DateRangeDropdown (logic-tested), DropdownMenu (logic-tested), PromptBar
+(logic-tested — controlled prompt/chat input composing Textarea + Button +
+Spinner; landing/docked variants, auto-grow capped at 4 lines, Enter/
+Shift+Enter handling, loading/disabled states — see PLAN.md for the
+composition decisions behind it)
 
 **Navigation** — Tabs (logic-tested), TabsWrapper, Breadcrumb, Pagination
 (logic-tested), JumpLinks (logic-tested — scroll/focus regression coverage
@@ -232,7 +236,9 @@ tabindex, tree nav, cross-clamping, type-to-search); KrfSlider, Accordion,
 DropdownMenu, DateRangeDropdown, Checkbox, Radio, Toggle, Input,
 SegmentedControl, ChartTooltip, Gauge, Score, Progress (round-2 pass —
 clamping, single-vs-multiple open state, select-closes-menu, custom-range
-Apply gating); JumpLinks, BackToTop (post-ship scroll/focus fixes).
+Apply gating); JumpLinks, BackToTop (post-ship scroll/focus fixes); PromptBar
+(autofocus per variant, Enter/Shift+Enter handling, empty-value submit
+guard, loading/disabled states, refocus-after-loading, auto-grow capping).
 
 ~40 components remain mount+a11y only — this is a deliberate, documented
 state for low-logic/presentational components (Divider, Typography,

@@ -14,6 +14,10 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   fullRadius?: boolean;
   /** Replaces the label with a spinner and keeps the width stable */
   isLoading?: boolean;
+  /** Node rendered in place of the default spinning chevron while `isLoading` is true --
+   *  e.g. a shared `<Spinner />` for icon-only buttons. Falls back to the default icon when
+   *  omitted. */
+  loadingIcon?: React.ReactNode;
   /** Icon rendered before the label */
   iconLeft?: IconName;
   /** Icon rendered after the label */
@@ -31,6 +35,7 @@ export function Button({
   fullWidth = false,
   fullRadius = false,
   isLoading = false,
+  loadingIcon,
   iconLeft,
   iconRight,
   iconOnly = false,
@@ -56,7 +61,7 @@ export function Button({
       {...rest}
     >
       {isLoading ? (
-        <Icon name="chevron-down" size={ICON_SIZE[size]} className="__s9cmpx-button__loading-icon" />
+        (loadingIcon ?? <Icon name="chevron-down" size={ICON_SIZE[size]} className="__s9cmpx-button__loading-icon" />)
       ) : (
         <>
           {iconLeft && <Icon name={iconLeft} size={ICON_SIZE[size]} />}

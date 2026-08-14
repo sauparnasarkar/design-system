@@ -44,6 +44,7 @@ export { DotTyping } from './components/DotTyping/DotTyping';
 export { Divider } from './components/Divider/Divider';
 export { Section } from './components/Section/Section';
 export { Textarea } from './components/Textarea/Textarea';
+export { PromptBar } from './components/PromptBar/PromptBar';
 export { Progress } from './components/Progress/Progress';
 export { Counter } from './components/Counter/Counter';
 export { EmptyState } from './components/EmptyState/EmptyState';
