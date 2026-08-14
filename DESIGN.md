@@ -165,9 +165,15 @@ type-to-search box filtering by label; opt out per instance with
 `suppressSearch`), NestedMultiSelect (logic-tested), Counter, FileUpload,
 DateRangeDropdown (logic-tested), DropdownMenu (logic-tested), PromptBar
 (logic-tested — controlled prompt/chat input composing Textarea + Button +
-Spinner; landing/docked variants, auto-grow capped at 4 lines, Enter/
-Shift+Enter handling, loading/disabled states — see PLAN.md for the
-composition decisions behind it)
+Spinner; landing/docked variants (same width as of the fix below the
+consuming app requested — landing no longer caps narrower than docked),
+auto-grow capped at 4 lines, Enter/Shift+Enter handling, loading/disabled
+states, optional `expandedContent` — a panel that grows from inside the
+bar's own border on focus, collapses on blur-away or a successful submit
+(dual collapse paths: trySubmit itself, and a `loading`-driven effect for
+a caller submitting externally, bypassing trySubmit) — and a forwardRef
+exposing the underlying textarea so a caller can move focus into it
+programmatically, e.g. after prefilling `value` from a suggestion)
 
 **Navigation** — Tabs (logic-tested), TabsWrapper, Breadcrumb, Pagination
 (logic-tested), JumpLinks (logic-tested — scroll/focus regression coverage
@@ -200,7 +206,12 @@ ContactModule
 Syena default — see §3), Chatbot (generic `title`/`messages`, no hardcoded
 assistant name)
 
-**App shell** — Header, SidebarNav, SidebarNavFlyout, AppSwitcher, Footer
+**App shell** — Header, SidebarNav (logic-tested — optional `persistentAction`:
+a single always-visible action rendered next to the menu toggle, present in
+every state (expanded, collapsed-to-rail, and the mobile drawer's closed
+floating-button state) unlike a regular nav item, for a feature prominent
+enough to want a persistent entry point rather than living inside the page
+list), SidebarNavFlyout, AppSwitcher, Footer
 
 **Composed page stories** (not exported components — demonstrate
 composition) — `Shell/AppShell`, `Templates/ClimateDashboard`

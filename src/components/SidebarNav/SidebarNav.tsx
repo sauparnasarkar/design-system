@@ -1,6 +1,7 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
 import { Icon, type IconName } from '../Icon/Icon';
+import { Button } from '../Button/Button';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 const MOBILE_QUERY = '(max-width: 768px)';
@@ -51,6 +52,17 @@ export interface SidebarNavProps {
    * content may occupy one side (e.g. a logo on the left, or search/user menu
    * on the right). Defaults to 'left'. */
   mobileToggleSide?: 'left' | 'right';
+  /** A single always-visible action rendered next to the menu toggle -- present in every state
+   * (expanded, collapsed-to-rail, and the mobile drawer's closed floating-button state), unlike
+   * a regular nav item, which disappears/collapses to icon-only depending on `open`. For a
+   * feature prominent enough to want a persistent entry point rather than living inside the
+   * page list (e.g. a conversational-agent launcher). */
+  persistentAction?: {
+    icon: IconName;
+    label: string;
+    onClick: () => void;
+    active?: boolean;
+  };
 }
 
 export function SidebarNav({
@@ -62,6 +74,7 @@ export function SidebarNav({
   onItemClick,
   className,
   mobileToggleSide = 'left',
+  persistentAction,
 }: SidebarNavProps) {
   // Normalize to a single list-of-groups shape internally, regardless of
   // which prop the consumer passed — `items` becomes one unlabeled group, so
@@ -175,35 +188,57 @@ export function SidebarNav({
   return (
     <>
       {isMobile && !open && (
-        <button
-          type="button"
-          ref={openButtonRef}
-          aria-label="Open menu"
-          onClick={() => setOpenState(true)}
-          style={{
-            position: 'fixed',
-            top: 12,
-            [mobileToggleSide]: 12,
-            zIndex: 40,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 40,
-            height: 40,
-            borderRadius: 8,
-            // The elevated "menus, popovers, toasts" surface tone, not the flat
-            // card background — against a header that's often a similarly dark
-            // static-background-weak, the plain card tone left this control
-            // nearly imperceptible as a tappable element.
-            background: 'var(--__s9cmpx-static-layer-standard)',
-            border: '1px solid var(--__s9cmpx-static-divider-strong, rgba(31,31,31,0.24))',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-            color: 'var(--__s9cmpx-static-text-strong)',
-            cursor: 'pointer',
-          }}
-        >
-          <Icon name="menu" size={20} />
-        </button>
+        <>
+          <button
+            type="button"
+            ref={openButtonRef}
+            aria-label="Open menu"
+            onClick={() => setOpenState(true)}
+            style={{
+              position: 'fixed',
+              top: 12,
+              [mobileToggleSide]: 12,
+              zIndex: 40,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              // The elevated "menus, popovers, toasts" surface tone, not the flat
+              // card background — against a header that's often a similarly dark
+              // static-background-weak, the plain card tone left this control
+              // nearly imperceptible as a tappable element.
+              background: 'var(--__s9cmpx-static-layer-standard)',
+              border: '1px solid var(--__s9cmpx-static-divider-strong, rgba(31,31,31,0.24))',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+              color: 'var(--__s9cmpx-static-text-strong)',
+              cursor: 'pointer',
+            }}
+          >
+            <Icon name="menu" size={20} />
+          </button>
+          {persistentAction && (
+            // Floats next to the menu toggle -- 40 (button width) + 12 (gap) offset on the same
+            // side -- so it's reachable even while the mobile drawer is fully closed, matching
+            // "persistent, always visible" rather than only showing up once the drawer opens.
+            // Uses the real Button component (variant, not guessed inline colors) for its
+            // active/inactive treatment -- this design system's "active"/"primary" styling goes
+            // through component-scoped CSS custom properties (e.g.
+            // --__s9cmpx-c-button-primary-background-color-default, defined by Button's own
+            // class), not flat global tokens, so hand-rolling the colors here risked silently
+            // referencing a variable that resolves to nothing (confirmed: a first draft of the
+            // desktop-row variant of this same button had exactly that bug, caught live).
+            <Button
+              variant={persistentAction.active ? 'primary' : 'secondary'}
+              iconOnly
+              iconLeft={persistentAction.icon}
+              aria-label={persistentAction.label}
+              onClick={persistentAction.onClick}
+              style={{ position: 'fixed', top: 12, [mobileToggleSide]: 12 + 52, zIndex: 40, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)' }}
+            />
+          )}
+        </>
       )}
       {isMobile && open && (
         <div
@@ -247,6 +282,44 @@ export function SidebarNav({
           >
             <Icon name={isMobile ? 'close' : 'menu'} size={20} />
           </button>
+          {persistentAction && (
+            // Stacked directly below the toggle, not side by side -- the collapsed desktop rail
+            // is only 56px wide, too narrow for two buttons in one row the way the expanded
+            // (240px) state could fit them, so a single layout that works at both widths is
+            // simpler than a conditional row/column switch. Active styling reuses the real
+            // sidebar-item-button--active class (and its own icon/text sub-selectors) rather than
+            // guessing new CSS variables, so this matches a regular active nav item exactly.
+            <button
+              type="button"
+              aria-label={persistentAction.label}
+              title={open ? undefined : persistentAction.label}
+              onClick={persistentAction.onClick}
+              className={cx('__s9cmpx-sidebar-nav__sidebar-item-button', persistentAction.active && '__s9cmpx-sidebar-nav__sidebar-item-button--active')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '10px 14px',
+                // Conditional, not a flat 'none' like the plain toggle button above -- an inline
+                // style always wins over a CSS class regardless of class order, so a hardcoded
+                // 'none' here would silently defeat the --active class's own background-color
+                // rule. `undefined` (no inline background property at all) when active lets that
+                // class's rule apply, matching how renderItem's own <a> handles this same case.
+                background: persistentAction.active ? undefined : 'none',
+                border: 0,
+                cursor: 'pointer',
+                color: 'inherit',
+                width: '100%',
+              }}
+            >
+              <Icon name={persistentAction.icon} size={20} />
+              {open && (
+                <span className="__s9cmpx-sidebar-nav__sidebar-item-text __s9cmpx-label2" style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {persistentAction.label}
+                </span>
+              )}
+            </button>
+          )}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             {renderedGroups.map((group, i) => (
               <React.Fragment key={group.label ?? i}>

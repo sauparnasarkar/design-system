@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, userEvent, within } from 'storybook/test';
 import { SidebarNav } from './SidebarNav';
 
 const meta: Meta<typeof SidebarNav> = {
@@ -37,6 +38,44 @@ export const BlueThemeNavigation: Story = {
       { id: 'webinars', label: 'Webinars', icon: 'external' },
     ],
     footerItems: [{ id: 'support', label: 'Customer Support', icon: 'info', hasFlyout: true }],
+  },
+};
+
+export const WithPersistentAction: Story = {
+  args: {
+    persistentAction: { icon: 'sparkle', label: 'Ask the Agent', onClick: fn(), active: false },
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const actionButton = canvas.getByRole('button', { name: 'Ask the Agent' });
+
+    // Visible and labeled while expanded (default open state on desktop).
+    await expect(actionButton).toBeInTheDocument();
+    await expect(canvas.getByText('Ask the Agent')).toBeInTheDocument();
+
+    await userEvent.click(actionButton);
+    await expect(args.persistentAction?.onClick).toHaveBeenCalledTimes(1);
+
+    // Collapsing the rail must not remove the action -- it's meant to be reachable regardless
+    // of expanded/collapsed state, unlike a regular nav item (which becomes icon-only here too,
+    // but the point of this prop is that it's never gated behind `open` the way the whole nav
+    // list effectively is when collapsed to icons).
+    await userEvent.click(canvas.getByRole('button', { name: 'Toggle Menu' }));
+    await expect(canvas.getByRole('button', { name: 'Ask the Agent' })).toBeInTheDocument();
+  },
+};
+
+export const PersistentActionActiveState: Story = {
+  args: {
+    persistentAction: { icon: 'sparkle', label: 'Ask the Agent', onClick: fn(), active: true },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const actionButton = canvas.getByRole('button', { name: 'Ask the Agent' });
+    // Reuses the real sidebar-item-button--active class (same one a regular active nav item
+    // gets), not a one-off style, so this is a real assertion on shared behavior, not just a
+    // className string match.
+    await expect(actionButton.className).toContain('__s9cmpx-sidebar-nav__sidebar-item-button--active');
   },
 };
 
