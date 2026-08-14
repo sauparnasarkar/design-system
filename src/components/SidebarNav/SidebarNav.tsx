@@ -235,6 +235,13 @@ export function SidebarNav({
               iconLeft={persistentAction.icon}
               aria-label={persistentAction.label}
               onClick={persistentAction.onClick}
+              // The `12 + 52` offset means this button sits *further* from the edge than the
+              // toggle on whichever side `mobileToggleSide` anchors to -- so the left-to-right
+              // reading order is toggle-then-action on 'left', but mirrors to action-then-toggle
+              // on 'right' (a larger offset from the right edge places an element further left).
+              // Confirmed via Copilot's review of this PR; not fixed, since both buttons remain
+              // fully visible and non-overlapping either way -- flagged here so a future change
+              // to make the relative order side-independent doesn't have to rediscover this.
               style={{ position: 'fixed', top: 12, [mobileToggleSide]: 12 + 52, zIndex: 40, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)' }}
             />
           )}
