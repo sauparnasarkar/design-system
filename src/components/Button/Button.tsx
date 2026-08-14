@@ -16,7 +16,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   isLoading?: boolean;
   /** Node rendered in place of the default spinning chevron while `isLoading` is true --
    *  e.g. a shared `<Spinner />` for icon-only buttons. Falls back to the default icon when
-   *  omitted. */
+   *  omitted. `Spinner` animates itself (its own `__s9cmpx-spinner__loader` keyframe), so it
+   *  needs no extra class here; a static `<Icon>` passed instead would need its own animation
+   *  (e.g. the `__s9cmpx-button__loading-icon` class used by the default) to spin. */
   loadingIcon?: React.ReactNode;
   /** Icon rendered before the label */
   iconLeft?: IconName;
