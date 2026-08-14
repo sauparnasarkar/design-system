@@ -294,6 +294,36 @@ export const ExpandedContentCollapsesOnExternalSubmit: Story = {
   },
 };
 
+// Simulates a caller prefilling `value` from a suggestion (e.g. a tile inside expandedContent)
+// and then imperatively focusing the textarea so the user can immediately edit it -- the ref API
+// this component didn't previously expose at all (see the forwardRef comment above PromptBar).
+function RefFocusDemo(args: React.ComponentProps<typeof PromptBar>) {
+  const [value, setValue] = React.useState('');
+  const ref = React.useRef<HTMLTextAreaElement>(null);
+  return (
+    <div>
+      <button type="button" onClick={() => { setValue('Prefilled from a suggestion'); ref.current?.focus(); }}>
+        Prefill
+      </button>
+      <PromptBar {...args} ref={ref} value={value} onChange={setValue} />
+    </div>
+  );
+}
+
+export const RefExposesTextareaFocus: Story = {
+  args: { variant: 'docked' },
+  render: (args) => <RefFocusDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const textarea = canvas.getByRole('textbox', { name: 'Ask a question' });
+
+    await expect(textarea).not.toHaveFocus();
+    await userEvent.click(canvas.getByRole('button', { name: 'Prefill' }));
+    await expect(textarea).toHaveValue('Prefilled from a suggestion');
+    await expect(textarea).toHaveFocus();
+  },
+};
+
 export const WithActions: Story = {
   args: {
     actions: (

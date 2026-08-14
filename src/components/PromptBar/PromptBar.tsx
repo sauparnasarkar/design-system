@@ -38,7 +38,12 @@ export interface PromptBarProps {
 const MAX_LINES = 4;
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
 
-export function PromptBar({
+// Exposes the underlying textarea element via ref -- same pattern Textarea itself already uses
+// (React.forwardRef<HTMLTextAreaElement, ...>), rather than inventing a bespoke handle type, so
+// a caller can call .focus() after e.g. prefilling `value` from a suggestion in expandedContent
+// (SPEC.md "Corrections applied" #18 in the consuming climate-emissions-analysis-project repo
+// flagged exactly this gap: no way to move focus into the textarea after a prefill click).
+export const PromptBar = React.forwardRef<HTMLTextAreaElement, PromptBarProps>(function PromptBar({
   value,
   onChange,
   onSubmit,
@@ -50,8 +55,9 @@ export function PromptBar({
   expandedContent,
   ariaLabel = 'Ask a question',
   className,
-}: PromptBarProps) {
+}, ref) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  React.useImperativeHandle(ref, () => textareaRef.current as HTMLTextAreaElement, []);
   const prevLoadingRef = React.useRef(loading);
   const reduceMotion = useReducedMotion();
   const isLanding = variant === 'landing';
@@ -209,4 +215,4 @@ export function PromptBar({
       )}
     </div>
   );
-}
+});
