@@ -142,8 +142,9 @@ export const PromptBar = React.forwardRef<HTMLTextAreaElement, PromptBarProps>(f
         flexDirection: 'column',
         width: '100%',
         boxSizing: 'border-box',
-        maxWidth: isLanding ? 540 : undefined,
-        margin: isLanding ? '0 auto' : undefined,
+        // Landing no longer caps at a narrower 540px than docked -- the two variants now render
+        // at the same width (whatever their container provides), not just the same visual style,
+        // so the bar doesn't visibly resize between "before the first submit" and "after".
         padding: isLanding ? '12px 12px 12px 20px' : '8px 8px 8px 16px',
         borderRadius: 'var(--__s9cmpx-border-radius-40)',
         background: 'var(--__s9cmpx-static-background-standard)',
