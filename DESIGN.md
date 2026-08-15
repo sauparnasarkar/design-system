@@ -249,7 +249,8 @@ SegmentedControl, ChartTooltip, Gauge, Score, Progress (round-2 pass —
 clamping, single-vs-multiple open state, select-closes-menu, custom-range
 Apply gating); JumpLinks, BackToTop (post-ship scroll/focus fixes); PromptBar
 (autofocus per variant, Enter/Shift+Enter handling, empty-value submit
-guard, loading/disabled states, refocus-after-loading, auto-grow capping).
+guard, loading/disabled states, expandedContent show/hide on focus, no
+refocus or re-expand once loading resolves, auto-grow capping).
 
 ~40 components remain mount+a11y only — this is a deliberate, documented
 state for low-logic/presentational components (Divider, Typography,

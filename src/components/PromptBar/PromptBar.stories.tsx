@@ -31,26 +31,6 @@ function PromptBarDemo(args: React.ComponentProps<typeof PromptBar>) {
   );
 }
 
-// Simulates a real request: submitting flips `loading` on, then off again shortly after --
-// the scenario the refocus-after-loading effect exists for.
-function RefocusDemo(args: React.ComponentProps<typeof PromptBar>) {
-  const [value, setValue] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-  return (
-    <PromptBar
-      {...args}
-      value={value}
-      loading={loading}
-      onChange={setValue}
-      onSubmit={(v) => {
-        args.onSubmit(v);
-        setLoading(true);
-        setTimeout(() => setLoading(false), 50);
-      }}
-    />
-  );
-}
-
 export const Playground: Story = {
   render: (args) => <PromptBarDemo {...args} />,
   play: async ({ canvasElement, args }) => {
@@ -136,13 +116,45 @@ export const Loading: Story = {
   },
 };
 
-export const RefocusAfterLoading: Story = {
+// Simulates a real request: submitting flips `loading` on, then off again shortly after --
+// the scenario a since-removed auto-refocus effect used to hook into (SPEC.md "Corrections
+// applied" #23 in the consuming climate-emissions-analysis-project repo). Includes
+// expandedContent specifically to prove the fix: a response landing must not pop the panel
+// back open, since focus re-entering the bar is also the panel's own show trigger.
+function LoadingWithExpandedContentDemo(args: React.ComponentProps<typeof PromptBar>) {
+  const [value, setValue] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  return (
+    <div>
+      <PromptBar
+        {...args}
+        value={value}
+        loading={loading}
+        onChange={setValue}
+        onSubmit={(v) => {
+          args.onSubmit(v);
+          setLoading(true);
+        }}
+        expandedContent={<div>Starter prompts</div>}
+      />
+      {loading && (
+        <button type="button" onClick={() => setLoading(false)}>
+          Resolve loading
+        </button>
+      )}
+    </div>
+  );
+}
+
+export const NoRefocusOrExpandAfterLoading: Story = {
   args: { variant: 'docked' },
-  render: (args) => <RefocusDemo {...args} />,
+  render: (args) => <LoadingWithExpandedContentDemo {...args} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const container = canvasElement.querySelector('.__s9cmpx-prompt-bar') as HTMLElement;
+    const panel = canvasElement.querySelector('.__s9cmpx-prompt-bar__expanded-panel') as HTMLElement;
     const textarea = canvas.getByRole('textbox', { name: 'Ask a question' });
+    const sendButton = canvas.getByRole('button', { name: 'Send' });
 
     // Docked doesn't autofocus, so focus it manually first -- mirrors a user clicking back
     // into the bar for a follow-up question.
@@ -150,14 +162,20 @@ export const RefocusAfterLoading: Story = {
     await expect(textarea).toHaveFocus();
 
     await userEvent.type(textarea, 'Follow-up question');
-    await userEvent.keyboard('{Enter}');
+    await userEvent.click(sendButton);
 
-    // Going into `loading` disables (and therefore blurs) the textarea.
+    // Going into `loading` disables (and therefore blurs) the textarea, which also collapses
+    // the panel via the separate `loading`-turning-true effect (unaffected by this fix).
     await waitFor(() => expect(container).toHaveAttribute('aria-busy', 'true'));
+    await expect(panel).toHaveAttribute('data-expanded', 'false');
 
-    // Once loading resolves, focus returns without the user having to click back in.
+    // Once loading resolves, neither focus nor the panel should come back on their own --
+    // the user is left exactly where the response rendering left them, not yanked back into
+    // the bar with the starter grid popped open underneath the answer.
+    await userEvent.click(canvas.getByRole('button', { name: 'Resolve loading' }));
     await waitFor(() => expect(container).not.toHaveAttribute('aria-busy'));
-    await waitFor(() => expect(textarea).toHaveFocus());
+    await expect(textarea).not.toHaveFocus();
+    await expect(panel).toHaveAttribute('data-expanded', 'false');
   },
 };
 
