@@ -205,14 +205,19 @@ export function SidebarNav({
               width: 40,
               height: 40,
               borderRadius: 8,
-              // The elevated "menus, popovers, toasts" surface tone, not the flat
-              // card background — against a header that's often a similarly dark
-              // static-background-weak, the plain card tone left this control
-              // nearly imperceptible as a tappable element.
-              background: 'var(--__s9cmpx-static-layer-standard)',
-              border: '1px solid var(--__s9cmpx-static-divider-strong, rgba(31,31,31,0.24))',
+              // The "menus, popovers, toasts" layer tone was tried first here, but measured
+              // well under the 3:1 UI-component contrast minimum against the header behind
+              // it in both themes (identical #ffffff-on-#ffffff in the base theme; ~1.55:1
+              // in the analytics theme) — a hairline border and shadow alone aren't a
+              // reliable discoverability signal for a primary nav control, especially on
+              // touch devices with no hover state. The "inverse" background/text pairing is
+              // the token set each theme documents for exactly this "flip to a contrasting
+              // surface" chip/toast/tooltip use case, and computes to ~13.6:1 (base theme)
+              // and ~10:1 (analytics theme) against the header — comfortably clears WCAG.
+              background: 'var(--__s9cmpx-static-background-inverse-standard)',
+              border: '1px solid var(--__s9cmpx-static-divider-inverse-standard, rgba(31,31,31,0.24))',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-              color: 'var(--__s9cmpx-static-text-strong)',
+              color: 'var(--__s9cmpx-static-text-inverse-strong)',
               cursor: 'pointer',
             }}
           >
