@@ -125,18 +125,24 @@ function LoadingWithExpandedContentDemo(args: React.ComponentProps<typeof Prompt
   const [value, setValue] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   return (
-    <PromptBar
-      {...args}
-      value={value}
-      loading={loading}
-      onChange={setValue}
-      onSubmit={(v) => {
-        args.onSubmit(v);
-        setLoading(true);
-        setTimeout(() => setLoading(false), 50);
-      }}
-      expandedContent={<div>Starter prompts</div>}
-    />
+    <div>
+      <PromptBar
+        {...args}
+        value={value}
+        loading={loading}
+        onChange={setValue}
+        onSubmit={(v) => {
+          args.onSubmit(v);
+          setLoading(true);
+        }}
+        expandedContent={<div>Starter prompts</div>}
+      />
+      {loading && (
+        <button type="button" onClick={() => setLoading(false)}>
+          Resolve loading
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -148,6 +154,7 @@ export const NoRefocusOrExpandAfterLoading: Story = {
     const container = canvasElement.querySelector('.__s9cmpx-prompt-bar') as HTMLElement;
     const panel = canvasElement.querySelector('.__s9cmpx-prompt-bar__expanded-panel') as HTMLElement;
     const textarea = canvas.getByRole('textbox', { name: 'Ask a question' });
+    const sendButton = canvas.getByRole('button', { name: 'Send' });
 
     // Docked doesn't autofocus, so focus it manually first -- mirrors a user clicking back
     // into the bar for a follow-up question.
@@ -155,7 +162,7 @@ export const NoRefocusOrExpandAfterLoading: Story = {
     await expect(textarea).toHaveFocus();
 
     await userEvent.type(textarea, 'Follow-up question');
-    await userEvent.keyboard('{Enter}');
+    await userEvent.click(sendButton);
 
     // Going into `loading` disables (and therefore blurs) the textarea, which also collapses
     // the panel via the separate `loading`-turning-true effect (unaffected by this fix).
@@ -165,6 +172,7 @@ export const NoRefocusOrExpandAfterLoading: Story = {
     // Once loading resolves, neither focus nor the panel should come back on their own --
     // the user is left exactly where the response rendering left them, not yanked back into
     // the bar with the starter grid popped open underneath the answer.
+    await userEvent.click(canvas.getByRole('button', { name: 'Resolve loading' }));
     await waitFor(() => expect(container).not.toHaveAttribute('aria-busy'));
     await expect(textarea).not.toHaveFocus();
     await expect(panel).toHaveAttribute('data-expanded', 'false');
