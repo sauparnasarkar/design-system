@@ -1,5 +1,23 @@
 import React from 'react';
 
+// Four-point "twinkle" star path generator (concave Bezier sides toward the center, unlike the
+// solid 5-point 'grid' shape) -- centered at (cx, cy) with "radius" s. Used to build the sparkle
+// icon's main glyph plus its two smaller accent stars from the same formula rather than
+// hand-tuning three separate path strings.
+const star = (cx: number, cy: number, s: number) =>
+  `M${cx} ${cy - s}C${cx + s * 0.15} ${cy - s * 0.15} ${cx + s * 0.85} ${cy - s * 0.15} ${cx + s} ${cy}` +
+  `C${cx + s * 0.15} ${cy + s * 0.15} ${cx + s * 0.15} ${cy + s * 0.85} ${cx} ${cy + s}` +
+  `C${cx - s * 0.15} ${cy + s * 0.15} ${cx - s * 0.85} ${cy + s * 0.15} ${cx - s} ${cy}` +
+  `C${cx - s * 0.15} ${cy - s * 0.15} ${cx - s * 0.15} ${cy - s * 0.85} ${cx} ${cy - s}Z`;
+
+// Main glyph plus two smaller accent stars clustered around it -- the multi-star "twinkle
+// cluster" convention used by Gemini/Copilot-style AI entry points, rendered in Icon() below
+// with a colorful gradient rather than the flat currentColor every other icon uses (sparkle is
+// the one deliberately-branded exception, not a pattern to extend to the rest of the set).
+const SPARKLE_MAIN = star(10, 13, 8);
+const SPARKLE_ACCENT_1 = star(18, 6, 3);
+const SPARKLE_ACCENT_2 = star(5, 19, 1.8);
+
 const PATHS: Record<string, React.ReactNode> = {
   search: (
     <path d="M10.5 3a7.5 7.5 0 015.916 12.111l4.236 4.237-1.414 1.414-4.237-4.236A7.5 7.5 0 1110.5 3zm0 2a5.5 5.5 0 100 11 5.5 5.5 0 000-11z" />
@@ -60,12 +78,10 @@ const PATHS: Record<string, React.ReactNode> = {
     <path d="M9 9h-6v-2h4v-4h2v6z M15 9h6v-2h-4v-4h-2v6z M15 15h6v2h-4v4h-2v-6z M9 15h-6v2h4v4h2v-6z" />
   ),
   send: <path d="M11 21h2v-9.086l3.293 3.293 1.414-1.414L12 8.086l-5.707 5.707 1.414 1.414L11 11.914V21z" />,
-  // A four-point "twinkle" star (concave sides, unlike the solid 5-point 'grid' shape) -- the
-  // standard cross-product convention for "AI/generative" entry points (ChatGPT, Gemini, Copilot
-  // all use a variant of this exact glyph), not a repurposed existing icon.
-  sparkle: (
-    <path d="M12 2c0 0 .5 6.5 3 9s7 1 7 1-4.5 1.5-7 4-3 6-3 6-.5-3.5-3-6-7-4-7-4 4.5 1.5 7-1 3-9 3-9z" />
-  ),
+  // Flat single-color fallback (the icon gallery story and the IconName/ICON_NAMES type both
+  // need a PATHS entry) -- real usage renders the colorful multi-star version from Icon() below
+  // instead, since it needs a unique gradient id per instance.
+  sparkle: <path d={SPARKLE_MAIN} />,
 };
 
 export type IconName = keyof typeof PATHS;
@@ -79,6 +95,9 @@ export interface IconProps extends React.SVGAttributes<SVGSVGElement> {
 }
 
 export function Icon({ name, size = 20, ...rest }: IconProps) {
+  // Only sparkle needs this -- called unconditionally since hooks can't be conditional, but the
+  // cost is negligible for every other icon.
+  const gradientId = React.useId();
   return (
     <svg
       viewBox="0 0 24 24"
@@ -89,7 +108,22 @@ export function Icon({ name, size = 20, ...rest }: IconProps) {
       focusable="false"
       {...rest}
     >
-      {PATHS[name]}
+      {name === 'sparkle' ? (
+        <>
+          <defs>
+            <linearGradient id={gradientId} x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#8b5cf6" />
+              <stop offset="55%" stopColor="#f472b6" />
+              <stop offset="100%" stopColor="#fbbf24" />
+            </linearGradient>
+          </defs>
+          <path d={SPARKLE_MAIN} fill={`url(#${gradientId})`} />
+          <path d={SPARKLE_ACCENT_1} fill="#fbbf24" />
+          <path d={SPARKLE_ACCENT_2} fill="#f472b6" />
+        </>
+      ) : (
+        PATHS[name]
+      )}
     </svg>
   );
 }
