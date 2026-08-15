@@ -173,6 +173,16 @@ export const PromptBar = React.forwardRef<HTMLTextAreaElement, PromptBarProps>(f
               padding: 0,
               width: '100%',
               transition: heightTransition,
+              // Below 16px, iOS Safari auto-zooms the whole page in on focus (its own
+              // legibility heuristic, not something CSS can opt out of) -- the underlying
+              // Textarea's 'm' size is body-3-short, 14px. Reported directly, with screenshots:
+              // submitting disables (and blurs) this field abruptly rather than through a
+              // natural tap-away, and iOS's zoom-restore doesn't reliably run on that path,
+              // leaving the whole page pinch-zoomed in (header scrolled off-screen, content
+              // wider than the visual viewport) until the user manually zooms back out. 16px
+              // keeps iOS from ever zooming in the first place, sidestepping the restore-on-
+              // blur behavior entirely rather than trying to trigger it more reliably.
+              fontSize: 16,
             }}
           />
         </div>
