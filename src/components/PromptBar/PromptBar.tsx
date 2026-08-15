@@ -18,7 +18,11 @@ export interface PromptBarProps {
   variant: 'landing' | 'docked';
   placeholder?: string;
   /** True while a query is in flight. Disables the textarea and send button; does not
-   *  clear `value`. Refocuses the input once this returns to false. */
+   *  clear `value`. Does not refocus or re-expand the bar once this returns to false --
+   *  a response landing should not steal focus back from wherever the user's attention
+   *  went while waiting (SPEC.md "Corrections applied" #23 in the consuming
+   *  climate-emissions-analysis-project repo: the previous auto-refocus caused
+   *  expandedContent to pop back open right as the answer rendered). */
   loading?: boolean;
   /** Disabled for reasons other than an in-flight query (e.g. feature-gated). */
   disabled?: boolean;
@@ -58,7 +62,6 @@ export const PromptBar = React.forwardRef<HTMLTextAreaElement, PromptBarProps>(f
 }, ref) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   React.useImperativeHandle(ref, () => textareaRef.current as HTMLTextAreaElement, []);
-  const prevLoadingRef = React.useRef(loading);
   const reduceMotion = useReducedMotion();
   const isLanding = variant === 'landing';
   const [expanded, setExpanded] = React.useState(false);
@@ -92,12 +95,6 @@ export const PromptBar = React.forwardRef<HTMLTextAreaElement, PromptBarProps>(f
     el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
     el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
   }, [value, variant]);
-
-  // Refocus once a loading request completes -- matters for the docked "keep asking" loop.
-  React.useEffect(() => {
-    if (prevLoadingRef.current && !loading) textareaRef.current?.focus();
-    prevLoadingRef.current = loading;
-  }, [loading]);
 
   // Also collapse on `loading` turning true, not just inside trySubmit -- an instant-submit tile
   // inside expandedContent (e.g. a starter prompt that submits immediately on click rather than
