@@ -310,6 +310,48 @@ export const ClickNeverScrollsPastTheDocumentsNaturalEnd: Story = {
 };
 
 /**
+ * Regression test (reported directly: Country Profile, Forecasts, and Scenario Comparison all
+ * "extend to the right" on iPhone). The horizontal (non-`vertical`) row had no `flexWrap`, so on
+ * a narrow viewport the `<li>`s never wrapped -- the row's own intrinsic width (not the
+ * viewport's) became the page's effective width, pushing everything else out with it. Only
+ * visible on pages whose item count/label length was wide enough to exceed a mobile viewport
+ * (confirmed live: Forecasts' 5 items measured 636px unwrapped vs. Overview's 3 short items at
+ * 200px, which never triggered it) -- the vendor `flex-wrap:wrap` class already applied to `<nav>`
+ * was a no-op, since `<nav>` has exactly one child (this `<ul>`); the row layout is controlled by
+ * the `<ul>`'s own inline style, which is what needed the fix.
+ */
+export const RowWrapsInsteadOfOverflowingANarrowContainer: Story = {
+  args: {
+    items: [
+      { id: 'forecast-chart', label: 'Forecast Chart', href: '#forecast-chart' },
+      { id: 'forecast-summary', label: 'Forecast Summary', href: '#forecast-summary' },
+      { id: 'model-comparison', label: 'Model Comparison', href: '#model-comparison' },
+      { id: 'ets-parameters', label: 'ETS Parameters', href: '#ets-parameters' },
+      { id: 'feature-importance', label: 'Feature Importance', href: '#feature-importance' },
+    ],
+  },
+  render: (args) => (
+    // 350px mirrors a real mobile content width (iPhone SE-class viewport minus padding) -- the
+    // same figure live-verified against the actual bug on Forecasts before this fix.
+    <div style={{ width: 350, outline: '1px solid #ccc' }}>
+      <JumpLinks {...args} />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const nav = canvas.getByRole('navigation', { name: 'Jump links' });
+    const container = nav.parentElement as HTMLElement;
+    await expect(container.scrollWidth).toBeLessThanOrEqual(container.clientWidth);
+
+    // Also confirms it's genuinely *wrapping*, not just coincidentally narrow: distinct `top`
+    // offsets among the items prove multiple lines, not a single line that happens to fit.
+    const links = canvas.getAllByRole('link');
+    const distinctTops = new Set(links.map((el) => Math.round(el.getBoundingClientRect().top)));
+    await expect(distinctTops.size).toBeGreaterThan(1);
+  },
+};
+
+/**
  * `onBeforeJump` (SPEC.md §5.19) lets an item force something open before scrolling -- e.g. an
  * Accordion panel whose content isn't even mounted while collapsed (Accordion only renders a
  * panel's content when open). Confirms the panel is genuinely open, and its content reachable,

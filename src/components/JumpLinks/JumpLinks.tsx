@@ -152,7 +152,7 @@ export function JumpLinks({ items, activeId, onSelect, vertical = false, classNa
       className={cx('__s9cmpx-jump-links', vertical && '__s9cmpx-jump-links--vertical', className)}
       {...rest}
     >
-      <ul style={{ display: 'flex', flexDirection: vertical ? 'column' : 'row', gap: vertical ? 4 : 16, listStyle: 'none', margin: 0, padding: 0 }}>
+      <ul style={{ display: 'flex', flexDirection: vertical ? 'column' : 'row', flexWrap: 'wrap', gap: vertical ? 4 : 16, listStyle: 'none', margin: 0, padding: 0 }}>
         {items.map((item) => (
           <li key={item.id} className={cx('__s9cmpx-jump-links__item', active === item.id && '__s9cmpx-jump-links__item--active')}>
             <a
