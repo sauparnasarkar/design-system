@@ -63,53 +63,66 @@ export function DataTable<Row>({
   // partway via trackpad lost their only affordance to keep going, even with more columns
   // still off-screen).
   const wrapperRef = React.useRef<HTMLDivElement>(null);
-  const scrollElRef = React.useRef<HTMLElement | null>(null);
   const [canScrollMore, setCanScrollMore] = React.useState(false);
 
+  // Confirmed live (claude-in-chrome against a real deployed page) that AG Grid can recreate
+  // its internal .ag-body-horizontal-scroll-viewport node well after mount -- not just once,
+  // but again on later changes like a column being added. A ResizeObserver/scroll-listener
+  // bound to whichever node happened to exist at effect-run time goes silently stale the next
+  // time AG Grid swaps it: the button either stopped responding to clicks, or (worse) never
+  // appeared at all despite the grid genuinely overflowing, because the observer watching the
+  // old node never saw the new node's size. Fixed by never trusting a captured node reference
+  // across renders -- everything below re-derives the current live node fresh, and the two
+  // listeners that DO need to stay attached are bound to `wrapperRef.current` itself (this
+  // component's own div, which never gets swapped by AG Grid) rather than to AG Grid's
+  // internal, swappable child.
   React.useEffect(() => {
-    let ro: ResizeObserver | undefined;
-    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
 
+    let rafId: number | undefined;
     const check = () => {
-      const el = scrollElRef.current;
+      rafId = undefined;
+      const el = wrapper.querySelector<HTMLElement>('.ag-body-horizontal-scroll-viewport');
       if (!el) return;
       setCanScrollMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
     };
-
-    const attach = () => {
-      const el = wrapperRef.current?.querySelector<HTMLElement>('.ag-body-horizontal-scroll-viewport') ?? null;
-      if (!el) {
-        // AG Grid builds this element asynchronously after mount — it may not
-        // exist on the very first effect run.
-        retryTimer = setTimeout(attach, 150);
-        return;
-      }
-      scrollElRef.current = el;
-      check();
-      ro = new ResizeObserver(check);
-      ro.observe(el);
-      el.addEventListener('scroll', check, { passive: true });
+    // rAF-coalesced since a MutationObserver fires on every DOM change (AG Grid's own row
+    // virtualization mutates frequently during scroll) and 'scroll' fires once per tick --
+    // neither needs a synchronous re-check on every single event.
+    const scheduleCheck = () => {
+      if (rafId !== undefined) return;
+      rafId = requestAnimationFrame(check);
     };
-    attach();
+
+    check();
+
+    // Covers both "the viewport node doesn't exist yet" (AG Grid builds it asynchronously
+    // after mount -- this fires once it's added, no separate retry-with-setTimeout needed) and
+    // "the viewport node just got replaced" (fires again on the swap itself). attributes
+    // covers AG Grid updating an existing node's own width/class without replacing it (e.g.
+    // during the multi-pass column-width layout settling suppressContentVisibilityAuto below
+    // is about).
+    const mo = new MutationObserver(scheduleCheck);
+    mo.observe(wrapper, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+
+    // 'scroll' doesn't bubble, but it does propagate through the capture phase to every
+    // ancestor regardless -- listening here with capture:true catches a scroll on whichever
+    // specific descendant node is currently live, without needing to know or re-bind to it.
+    wrapper.addEventListener('scroll', scheduleCheck, { capture: true, passive: true });
 
     return () => {
-      if (retryTimer) clearTimeout(retryTimer);
-      ro?.disconnect();
-      scrollElRef.current?.removeEventListener('scroll', check);
+      if (rafId !== undefined) cancelAnimationFrame(rafId);
+      mo.disconnect();
+      wrapper.removeEventListener('scroll', scheduleCheck, { capture: true });
     };
   }, [rows, columns]);
 
   const scrollRight = () => {
-    // Re-queried fresh rather than trusting scrollElRef: confirmed live (claude-in-chrome
-    // against a real deployed page with an overflowing grid) that clicking the button could
-    // silently no-op -- scrollElRef's cached node no longer matched whichever
-    // .ag-body-horizontal-scroll-viewport was actually live in the DOM, while a fresh
-    // querySelector at click time always found the right one and scrolled correctly. Most
-    // likely cause: AG Grid recreating this element sometime after the effect above's initial
-    // attach as its own internal layout settles. 80% of the visible width, not the full width
-    // -- a "page" scroll with slight overlap so context (e.g. a partially-visible column)
-    // carries over between clicks, the same convention most paginated horizontal-scroll UIs
-    // use.
+    // Re-queried fresh, not cached -- same reasoning as the effect above. 80% of the visible
+    // width, not the full width -- a "page" scroll with slight overlap so context (e.g. a
+    // partially-visible column) carries over between clicks, the same convention most
+    // paginated horizontal-scroll UIs use.
     const el = wrapperRef.current?.querySelector<HTMLElement>('.ag-body-horizontal-scroll-viewport');
     el?.scrollBy({ left: el.clientWidth * 0.8, behavior: 'smooth' });
   };
