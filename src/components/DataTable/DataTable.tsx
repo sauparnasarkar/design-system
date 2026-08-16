@@ -100,10 +100,18 @@ export function DataTable<Row>({
   }, [rows, columns]);
 
   const scrollRight = () => {
-    // 80% of the visible width, not the full width -- a "page" scroll with slight overlap so
-    // context (e.g. a partially-visible column) carries over between clicks, the same
-    // convention most paginated horizontal-scroll UIs use.
-    scrollElRef.current?.scrollBy({ left: scrollElRef.current.clientWidth * 0.8, behavior: 'smooth' });
+    // Re-queried fresh rather than trusting scrollElRef: confirmed live (claude-in-chrome
+    // against a real deployed page with an overflowing grid) that clicking the button could
+    // silently no-op -- scrollElRef's cached node no longer matched whichever
+    // .ag-body-horizontal-scroll-viewport was actually live in the DOM, while a fresh
+    // querySelector at click time always found the right one and scrolled correctly. Most
+    // likely cause: AG Grid recreating this element sometime after the effect above's initial
+    // attach as its own internal layout settles. 80% of the visible width, not the full width
+    // -- a "page" scroll with slight overlap so context (e.g. a partially-visible column)
+    // carries over between clicks, the same convention most paginated horizontal-scroll UIs
+    // use.
+    const el = wrapperRef.current?.querySelector<HTMLElement>('.ag-body-horizontal-scroll-viewport');
+    el?.scrollBy({ left: el.clientWidth * 0.8, behavior: 'smooth' });
   };
 
   return (

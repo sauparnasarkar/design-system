@@ -521,3 +521,42 @@ existing control for it).
   instruction (a persistently visible scrollbar wasn't wanted); the button
   is the actual deliverable, the CSS fix is a free secondary improvement
   riding along with the same investigation.
+
+### Follow-up: the button itself could silently no-op (2026-08-16)
+
+- Caught during Mac Mini deploy verification, before reporting the fix
+  above as done — live-testing on the real Data Explorer page (which
+  renders two `DataTable` instances, Dataset Preview + Summary Statistics,
+  both genuinely overflowing) found that clicking the button sometimes did
+  nothing at all: `scrollLeft` never moved on any viewport in either grid,
+  no console error. Direct `scrollBy()`/`scrollLeft` manipulation on a
+  freshly re-queried `.ag-body-horizontal-scroll-viewport` worked
+  correctly every time; only the button's own click handler, which read
+  from `scrollElRef` (captured once when the effect first attached), came
+  up empty.
+- Most likely cause, not fully proven: AG Grid recreating that DOM node
+  sometime after initial mount as its own internal layout settles (its
+  `suppressContentVisibilityAuto` comment already documents multi-pass
+  layout behavior), leaving `scrollElRef.current` pointing at a node no
+  longer in the live tree the observer/click care about. Fixed by having
+  `scrollRight` re-query `.ag-body-horizontal-scroll-viewport` fresh from
+  `wrapperRef` at click time instead of trusting the cached ref — matches
+  every one of the manual verification steps that worked, all of which
+  used a fresh query.
+- Scoped narrowly: only the click handler was changed to re-query.
+  `canScrollMore`'s own visibility gating still relies on the
+  observer/scroll-listener attached to whatever node the effect captures
+  once — if the same node-swap theory is correct, that gating could in
+  principle go stale too (hint showing/hiding a beat late), but that's a
+  materially lower-severity failure than "the button does nothing when
+  clicked" and wasn't reproduced live; not chasing a hypothetical fix for
+  a failure mode that hasn't actually been observed. A `MutationObserver`-
+  based re-attach-on-swap would close that gap fully if it's ever seen in
+  practice.
+- Not covered by an automated test — reliably reproducing "AG Grid swaps
+  its own internal DOM node after mount" in an isolated Storybook `play`
+  function would require faking AG Grid internals rather than testing
+  real behavior; the existing `ScrollHint` story continues to cover the
+  normal click-to-scroll and visibility-gating paths. Re-verified instead
+  by redeploying to the Mac Mini and repeating the exact live sequence
+  that caught this (real page, real click, both overflowing grids).
