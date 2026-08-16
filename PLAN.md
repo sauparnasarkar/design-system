@@ -522,132 +522,63 @@ existing control for it).
   is the actual deliverable, the CSS fix is a free secondary improvement
   riding along with the same investigation.
 
-### Follow-up: the button itself could silently no-op (2026-08-16)
+### Four rounds to get this actually working live (2026-08-16)
 
-- Caught during Mac Mini deploy verification, before reporting the fix
-  above as done — live-testing on the real Data Explorer page (which
-  renders two `DataTable` instances, Dataset Preview + Summary Statistics,
-  both genuinely overflowing) found that clicking the button sometimes did
-  nothing at all: `scrollLeft` never moved on any viewport in either grid,
-  no console error. Direct `scrollBy()`/`scrollLeft` manipulation on a
-  freshly re-queried `.ag-body-horizontal-scroll-viewport` worked
-  correctly every time; only the button's own click handler, which read
-  from `scrollElRef` (captured once when the effect first attached), came
-  up empty.
-- Most likely cause, not fully proven: AG Grid recreating that DOM node
-  sometime after initial mount as its own internal layout settles (its
-  `suppressContentVisibilityAuto` comment already documents multi-pass
-  layout behavior), leaving `scrollElRef.current` pointing at a node no
-  longer in the live tree the observer/click care about. Fixed by having
-  `scrollRight` re-query `.ag-body-horizontal-scroll-viewport` fresh from
-  `wrapperRef` at click time instead of trusting the cached ref — matches
-  every one of the manual verification steps that worked, all of which
-  used a fresh query.
-- Scoped narrowly: only the click handler was changed to re-query.
-  `canScrollMore`'s own visibility gating still relies on the
-  observer/scroll-listener attached to whatever node the effect captures
-  once — if the same node-swap theory is correct, that gating could in
-  principle go stale too (hint showing/hiding a beat late), but that's a
-  materially lower-severity failure than "the button does nothing when
-  clicked" and wasn't reproduced live; not chasing a hypothetical fix for
-  a failure mode that hasn't actually been observed. A `MutationObserver`-
-  based re-attach-on-swap would close that gap fully if it's ever seen in
-  practice.
-- Not covered by an automated test — reliably reproducing "AG Grid swaps
-  its own internal DOM node after mount" in an isolated Storybook `play`
-  function would require faking AG Grid internals rather than testing
-  real behavior; the existing `ScrollHint` story continues to cover the
-  normal click-to-scroll and visibility-gating paths. Re-verified instead
-  by redeploying to the Mac Mini and repeating the exact live sequence
-  that caught this (real page, real click, both overflowing grids).
+The button itself (previous entry) went through three more attempts after
+first appearing done, each one caught by live re-verification on the real
+Mac Mini deployment before being reported as fixed — Storybook and `npm
+test` passed at every stage, none of that caught any of these:
 
-### The predicted gap above turned out to be real, same day (2026-08-16)
+1. **Click did nothing** — `scrollRight` read `scrollElRef`, a node
+   reference cached once when the effect first attached. AG Grid recreates
+   `.ag-body-horizontal-scroll-viewport` after mount as its own layout
+   settles, silently going stale. Fixed by re-querying the node fresh at
+   click time instead of caching it.
+2. **Button stopped appearing on new overflow** — the same stale-node
+   problem also affected `canScrollMore`'s gating (the ResizeObserver
+   attached to a specific node instance). Redesigned to attach both the
+   ResizeObserver and a `MutationObserver({childList, subtree,
+   attributes})` to `wrapperRef.current` (never swapped by AG Grid)
+   instead of the AG Grid-owned child.
+3. **Still didn't appear** — the `MutationObserver` from fix 2 recorded
+   **zero mutations** across a column-add that measurably changed
+   `scrollWidth` from 464 to 960. Root cause: `MutationObserver` can only
+   see DOM tree/attribute changes; AG Grid was widening the box through a
+   mechanism that touches neither (spec-wise, a `ResizeObserver`'s job).
+   Fixed by combining both tools — `ResizeObserver` for size, a
+   `childList`-only `MutationObserver` for node-swap detection.
+4. **Still didn't appear**, even with the ResizeObserver+MutationObserver
+   combination confirmed correctly wired (`ro.observe()` verified called
+   on the right node via direct instrumentation). Root-caused this time by
+   reading `canScrollMore`'s actual React fiber state directly, bypassing
+   DOM/instrumentation proxies entirely: state stayed `false` with
+   `scrollWidth` (960) genuinely exceeding `clientWidth` (464). The real
+   cause: **`ResizeObserver` fires on an element's own border/content-box
+   size changing — not on `scrollWidth`.**
+   `.ag-body-horizontal-scroll-viewport`'s own box is deliberately clamped
+   by `overflow-x` regardless of how wide its content grows; that's
+   exactly the case `ResizeObserver` cannot see. Not a wiring bug like
+   attempts 2–3 — the wrong API for the question ("does this element's
+   content now overflow its own fixed box" is a `scrollWidth`-vs-
+   `clientWidth` comparison, not a box-size-change event). Fixed by
+   dropping both observers for a 250ms poll while the table is mounted
+   (`fix/datatable-scroll-hint-poll-based-detection`, PR #56) — correct by
+   construction regardless of what causes the overflow, at the cost of a
+   cheap comparison on a timer instead of chasing the one correct
+   triggering event.
 
-- Re-verifying the click fix live (real Data Explorer page, adding a
-  column to force *new* overflow on an already-mounted grid) surfaced
-  exactly the failure the entry above called out as a real but
-  unreproduced risk: the button never appeared at all, even though both
-  grids on the page were genuinely overflowing. `canScrollMore`'s
-  ResizeObserver/scroll-listener, bound to the specific node captured at
-  first attach, went stale the same way `scrollElRef` did for the click —
-  confirming this isn't only a mount-time race, AG Grid can swap the node
-  again later (e.g. on a columns change), and any code caching a
-  reference to it is vulnerable each time.
-- Full redesign rather than another narrow patch: both listeners now
-  attach to `wrapperRef.current` (this component's own div, which AG Grid
-  never replaces) instead of the swappable AG Grid child.
-  `wrapper.addEventListener('scroll', ..., { capture: true })` catches a
-  scroll fired on *any* current descendant regardless of node identity
-  (capture-phase propagation reaches ancestors even for `scroll`, which
-  doesn't bubble). A `MutationObserver({ childList: true, subtree: true,
-  attributes: true })` on the wrapper re-checks on any relevant DOM
-  change underneath it — including the very moment AG Grid first builds
-  the viewport node (replacing the old retry-with-`setTimeout` polling
-  entirely) and every later swap. Both funnel through an
-  `requestAnimationFrame`-coalesced `check()` that itself re-queries
-  `.ag-body-horizontal-scroll-viewport` fresh each time, so nothing is
-  ever computed from a cached node reference anywhere in this component
-  now, on either the read side (`canScrollMore`) or the write side
-  (`scrollRight`, fixed earlier the same day).
-- `npm test` → 74 files / 213 tests still passing unchanged after the
-  redesign. Live re-verification (same reproduction that caught this: add
-  a column on the real Data Explorer page, confirm the button appears
-  without a reload, click it, confirm the grid scrolls) is the deploy's
-  own next step, not yet done as of this commit.
+Confirmed live, for real this time: grid in view, column added via the
+Columns picker, button appeared within the poll interval on both Data
+Explorer grid instances, click advanced `scrollLeft`.
 
-### Third time: the MutationObserver redesign above had a blind spot no test caught (2026-08-16)
-
-- The live re-verification promised above found the redesign still didn't
-  work: on the real Data Explorer page, adding a column produced genuine
-  overflow (confirmed via direct `scrollWidth`/`clientWidth` reads) but
-  the button never appeared, no matter how long the wait. A manually
-  attached `MutationObserver` with the exact same options
-  (`childList/subtree/attributes`) on the same wrapper element recorded
-  **zero mutations** across the entire column-add, despite `scrollWidth`
-  measurably changing from 464 to 960 in the same window.
-- Root cause: `MutationObserver` can only ever see DOM tree structure and
-  attribute-string changes. AG Grid was widening this element's rendered
-  box through some mechanism that touches neither — almost certainly a
-  CSS custom property or injected stylesheet rule read by layout, not an
-  element's own `style`/`class` attribute value. This is invisible to
-  `MutationObserver` by construction, not a tuning problem (a broader
-  `attributeFilter` or `subtree: true` wouldn't have helped). The
-  previous entry's redesign replaced the *original* `ResizeObserver` —
-  which correctly detects any box-size change regardless of cause —
-  specifically to solve the stale-node-reference problem, and in doing
-  so silently reintroduced this one from scratch.
-- Fixed by using both tools for what each is actually suited to:
-  `ResizeObserver` on the *current* live viewport node detects any
-  size change (any cause); a `MutationObserver` on the wrapper
-  (`childList` only now — no `attributes`, since size is no longer its
-  job) detects only when that node's *identity* changes and re-points the
-  `ResizeObserver` at whichever one is current. Neither tool alone covers
-  both failure modes; this is the first version of this effect to combine
-  them.
-- Also promoted what had been a throwaway local debug story
-  (`DataTable.stories.tsx`'s `DynamicColumns`, built specifically to
-  reproduce this live, mimicking `DataExplorerPage`'s own
-  `useState`/`useMemo` columns pattern) into a real, committed `play`-test
-  — asserts the button is absent before a columns change, appears without
-  a remount once one causes genuine overflow, and that clicking it
-  scrolls. Neither `ScrollHint` (fixed columns for its whole lifetime) nor
-  any other existing story could have caught either of the last two
-  bugs, since both require columns changing on an *already-mounted* grid,
-  not just a grid that starts out overflowing.
-- One instrumentation note worth keeping for next time: ad-hoc `.click()`
-  or single-`MouseEvent('click')` dispatch via `javascript_exec`-style
-  page scripting did not reliably trigger this button's React `onClick`
-  during manual live debugging, while a full `pointerdown → mousedown →
-  pointerup → mouseup → click` sequence did — and separately,
-  `scroll-behavior: smooth` measured as stuck at ~1px over multiple
-  seconds when driven through ad-hoc CDP scripting against a
-  backgrounded/non-focused iframe, while `behavior: 'auto'` completed
-  instantly and correctly in the same context. Both were artifacts of the
-  debugging tooling, confirmed by the *actual* Storybook test runner
-  (`userEvent.click`, real focused browser context) exercising the same
-  interaction reliably in the `DynamicColumns` story above — worth
-  remembering before concluding a click handler is broken from raw
-  `javascript_exec` results alone.
-- `npm test` → 74 files / **214** tests (the new `DynamicColumns` play
-  test) passing. Live re-verification against the Mac Mini is this
-  commit's own next step.
+One instrumentation note worth keeping for next time: ad-hoc `.click()` or
+single-`MouseEvent('click')` dispatch via `javascript_exec`-style page
+scripting did not reliably trigger this button's React `onClick` during
+manual live debugging, and a `ResizeObserver` subclass injected via
+`javascript_exec` *after* the app had already mounted and created its own
+observer instances did not intercept those pre-existing instances' callbacks
+— both artifacts of retrofitting instrumentation onto an already-running
+page, not evidence about the app's own code. Reading React's fiber state
+directly (`el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))]`,
+walking `memoizedState`) sidesteps this class of problem entirely: no
+patching, no timing assumptions, just the actual value React is holding.
