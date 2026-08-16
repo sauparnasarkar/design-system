@@ -594,3 +594,60 @@ existing control for it).
   a column on the real Data Explorer page, confirm the button appears
   without a reload, click it, confirm the grid scrolls) is the deploy's
   own next step, not yet done as of this commit.
+
+### Third time: the MutationObserver redesign above had a blind spot no test caught (2026-08-16)
+
+- The live re-verification promised above found the redesign still didn't
+  work: on the real Data Explorer page, adding a column produced genuine
+  overflow (confirmed via direct `scrollWidth`/`clientWidth` reads) but
+  the button never appeared, no matter how long the wait. A manually
+  attached `MutationObserver` with the exact same options
+  (`childList/subtree/attributes`) on the same wrapper element recorded
+  **zero mutations** across the entire column-add, despite `scrollWidth`
+  measurably changing from 464 to 960 in the same window.
+- Root cause: `MutationObserver` can only ever see DOM tree structure and
+  attribute-string changes. AG Grid was widening this element's rendered
+  box through some mechanism that touches neither — almost certainly a
+  CSS custom property or injected stylesheet rule read by layout, not an
+  element's own `style`/`class` attribute value. This is invisible to
+  `MutationObserver` by construction, not a tuning problem (a broader
+  `attributeFilter` or `subtree: true` wouldn't have helped). The
+  previous entry's redesign replaced the *original* `ResizeObserver` —
+  which correctly detects any box-size change regardless of cause —
+  specifically to solve the stale-node-reference problem, and in doing
+  so silently reintroduced this one from scratch.
+- Fixed by using both tools for what each is actually suited to:
+  `ResizeObserver` on the *current* live viewport node detects any
+  size change (any cause); a `MutationObserver` on the wrapper
+  (`childList` only now — no `attributes`, since size is no longer its
+  job) detects only when that node's *identity* changes and re-points the
+  `ResizeObserver` at whichever one is current. Neither tool alone covers
+  both failure modes; this is the first version of this effect to combine
+  them.
+- Also promoted what had been a throwaway local debug story
+  (`DataTable.stories.tsx`'s `DynamicColumns`, built specifically to
+  reproduce this live, mimicking `DataExplorerPage`'s own
+  `useState`/`useMemo` columns pattern) into a real, committed `play`-test
+  — asserts the button is absent before a columns change, appears without
+  a remount once one causes genuine overflow, and that clicking it
+  scrolls. Neither `ScrollHint` (fixed columns for its whole lifetime) nor
+  any other existing story could have caught either of the last two
+  bugs, since both require columns changing on an *already-mounted* grid,
+  not just a grid that starts out overflowing.
+- One instrumentation note worth keeping for next time: ad-hoc `.click()`
+  or single-`MouseEvent('click')` dispatch via `javascript_exec`-style
+  page scripting did not reliably trigger this button's React `onClick`
+  during manual live debugging, while a full `pointerdown → mousedown →
+  pointerup → mouseup → click` sequence did — and separately,
+  `scroll-behavior: smooth` measured as stuck at ~1px over multiple
+  seconds when driven through ad-hoc CDP scripting against a
+  backgrounded/non-focused iframe, while `behavior: 'auto'` completed
+  instantly and correctly in the same context. Both were artifacts of the
+  debugging tooling, confirmed by the *actual* Storybook test runner
+  (`userEvent.click`, real focused browser context) exercising the same
+  interaction reliably in the `DynamicColumns` story above — worth
+  remembering before concluding a click handler is broken from raw
+  `javascript_exec` results alone.
+- `npm test` → 74 files / **214** tests (the new `DynamicColumns` play
+  test) passing. Live re-verification against the Mac Mini is this
+  commit's own next step.

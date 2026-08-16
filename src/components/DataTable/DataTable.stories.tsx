@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { DataTable } from './DataTable';
@@ -107,5 +108,51 @@ export const ScrollHint: Story = {
     scrollEl.scrollLeft = scrollEl.scrollWidth;
     scrollEl.dispatchEvent(new Event('scroll'));
     await waitFor(() => expect(canvas.queryByRole('button', { name: /scroll table right/i })).toBeNull());
+  },
+};
+
+// Mimics DataExplorerPage's own pattern (columns computed via useState/useMemo, changing
+// array reference on toggle) to verify the "Scroll for more" button appears when a column is
+// added to an already-mounted, not-yet-overflowing grid -- confirmed live to have broken twice
+// (once from a stale cached-node ref, once from a MutationObserver that structurally can't see
+// a pure box-size change) before landing on the ResizeObserver+MutationObserver combination
+// DataTable.tsx now uses. The static-args ScrollHint story above can't catch either failure
+// mode, since its columns never change after mount.
+function DynamicColumnsHarness() {
+  const [wide, setWide] = useState(false);
+  const columns = wide
+    ? [
+        { field: 'entity' as const, headerName: 'Entity', minWidth: 220 },
+        { field: 'country' as const, headerName: 'Country', minWidth: 220 },
+        { field: 'sector' as const, headerName: 'Sector', minWidth: 220 },
+        { field: 'rating' as const, headerName: 'Rating', minWidth: 220 },
+        { field: 'outlook' as const, headerName: 'Outlook', minWidth: 220 },
+        { field: 'date' as const, headerName: 'Date', minWidth: 220 },
+      ]
+    : [{ field: 'entity' as const, headerName: 'Entity', minWidth: 220 }];
+  return (
+    <div style={{ width: 300 }}>
+      <button type="button" onClick={() => setWide(true)} style={{ marginBottom: 8 }}>
+        Add columns
+      </button>
+      <DataTable columns={columns} rows={ROWS} height={300} />
+    </div>
+  );
+}
+
+export const DynamicColumns: Story = {
+  render: () => <DynamicColumnsHarness />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole('button', { name: /scroll table right/i })).not.toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole('button', { name: /add columns/i }));
+
+    const scrollButton = await waitFor(() => canvas.getByRole('button', { name: /scroll table right/i }));
+    const scrollEl = canvasElement.querySelector<HTMLElement>('.ag-body-horizontal-scroll-viewport')!;
+    expect(scrollEl.scrollLeft).toBe(0);
+
+    await userEvent.click(scrollButton);
+    await waitFor(() => expect(scrollEl.scrollLeft).toBeGreaterThan(0));
   },
 };
