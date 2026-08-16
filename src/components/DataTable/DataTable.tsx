@@ -65,46 +65,73 @@ export function DataTable<Row>({
   const wrapperRef = React.useRef<HTMLDivElement>(null);
   const [canScrollMore, setCanScrollMore] = React.useState(false);
 
-  // Confirmed live (claude-in-chrome against a real deployed page) that AG Grid can recreate
-  // its internal .ag-body-horizontal-scroll-viewport node well after mount -- not just once,
-  // but again on later changes like a column being added. A ResizeObserver/scroll-listener
-  // bound to whichever node happened to exist at effect-run time goes silently stale the next
-  // time AG Grid swaps it: the button either stopped responding to clicks, or (worse) never
-  // appeared at all despite the grid genuinely overflowing, because the observer watching the
-  // old node never saw the new node's size. Fixed by never trusting a captured node reference
-  // across renders -- everything below re-derives the current live node fresh, and the two
-  // listeners that DO need to stay attached are bound to `wrapperRef.current` itself (this
-  // component's own div, which never gets swapped by AG Grid) rather than to AG Grid's
-  // internal, swappable child.
+  // Two DISTINCT problems here, confirmed live against a real deployed page with two
+  // overflowing DataTable instances, needing two different tools -- getting this wrong twice
+  // before landing on the combination below:
+  //
+  // 1. AG Grid can recreate its internal .ag-body-horizontal-scroll-viewport node well after
+  //    mount, not just once -- any code holding a *cached reference* to that node (scrollElRef,
+  //    an earlier version of this fix) goes silently stale the moment AG Grid swaps it.
+  // 2. Separately, and this is the part a MutationObserver genuinely cannot see: AG Grid can
+  //    widen that *same, unswapped* node's scrollWidth via a mechanism that never touches its
+  //    DOM tree structure or its style/class attribute strings -- confirmed live (a
+  //    MutationObserver with `childList/attributes` watching the whole wrapper subtree recorded
+  //    zero mutations across a column-add that measurably changed scrollWidth from 464 to 960).
+  //    MutationObserver can only ever see DOM/attribute mutations; it has no visibility into an
+  //    element's actual *rendered box size*, which is exactly what changed here. An earlier
+  //    version of this fix replaced the original ResizeObserver with a MutationObserver
+  //    specifically to solve problem 1 above -- and in doing so, silently reintroduced problem
+  //    2 from scratch (the button stopped appearing on new overflow at all, not just going
+  //    stale after a swap).
+  //
+  // The fix needs both tools, each solving the one problem it's actually suited to:
+  // ResizeObserver on the *current* viewport node reliably detects any box-size change
+  // regardless of what caused it (problem 2); a MutationObserver on the stable wrapper
+  // (childList only, no attributes -- just existence/identity, not size) detects when that
+  // node gets replaced and re-points the ResizeObserver at whichever one is current (problem
+  // 1). Neither tool alone covers both failure modes.
   React.useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
 
+    let ro: ResizeObserver | undefined;
+    let observedEl: HTMLElement | null = null;
     let rafId: number | undefined;
+
     const check = () => {
       rafId = undefined;
       const el = wrapper.querySelector<HTMLElement>('.ag-body-horizontal-scroll-viewport');
       if (!el) return;
       setCanScrollMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
     };
-    // rAF-coalesced since a MutationObserver fires on every DOM change (AG Grid's own row
-    // virtualization mutates frequently during scroll) and 'scroll' fires once per tick --
-    // neither needs a synchronous re-check on every single event.
+    // rAF-coalesced since both a ResizeObserver and a MutationObserver can fire many times in
+    // quick succession (a scroll-driven virtualization burst, or several columns changing
+    // width in the same layout pass) -- none of that needs a synchronous re-check per event.
     const scheduleCheck = () => {
       if (rafId !== undefined) return;
       rafId = requestAnimationFrame(check);
     };
 
-    check();
+    // Re-points the ResizeObserver at whichever .ag-body-horizontal-scroll-viewport is
+    // currently live, a no-op if it's still the same node. Called once up front (also covers
+    // "the node doesn't exist yet at mount" -- AG Grid builds it asynchronously, and the
+    // MutationObserver below re-calls this once it appears, no separate retry-with-setTimeout
+    // needed) and again every time the wrapper's child DOM structure changes underneath it.
+    const ensureResizeObserverAttached = () => {
+      const el = wrapper.querySelector<HTMLElement>('.ag-body-horizontal-scroll-viewport');
+      if (el === observedEl) return;
+      if (observedEl) ro?.unobserve(observedEl);
+      observedEl = el;
+      if (el) {
+        if (!ro) ro = new ResizeObserver(scheduleCheck);
+        ro.observe(el);
+      }
+      scheduleCheck();
+    };
+    ensureResizeObserverAttached();
 
-    // Covers both "the viewport node doesn't exist yet" (AG Grid builds it asynchronously
-    // after mount -- this fires once it's added, no separate retry-with-setTimeout needed) and
-    // "the viewport node just got replaced" (fires again on the swap itself). attributes
-    // covers AG Grid updating an existing node's own width/class without replacing it (e.g.
-    // during the multi-pass column-width layout settling suppressContentVisibilityAuto below
-    // is about).
-    const mo = new MutationObserver(scheduleCheck);
-    mo.observe(wrapper, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+    const mo = new MutationObserver(ensureResizeObserverAttached);
+    mo.observe(wrapper, { childList: true, subtree: true });
 
     // 'scroll' doesn't bubble, but it does propagate through the capture phase to every
     // ancestor regardless -- listening here with capture:true catches a scroll on whichever
@@ -113,6 +140,7 @@ export function DataTable<Row>({
 
     return () => {
       if (rafId !== undefined) cancelAnimationFrame(rafId);
+      ro?.disconnect();
       mo.disconnect();
       wrapper.removeEventListener('scroll', scheduleCheck, { capture: true });
     };
