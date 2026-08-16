@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { DataTable } from './DataTable';
 import { Tag } from '../Tag/Tag';
 
@@ -74,5 +74,38 @@ export const CustomCells: Story = {
       { field: 'rating', headerName: 'Rating', maxWidth: 120, headerClass: '__s9cmpx-header-cell--highlight', cellClass: '__s9cmpx-table-highlight-cell' },
       { field: 'outlook', headerName: 'Outlook', maxWidth: 130 },
     ],
+  },
+};
+
+export const ScrollHint: Story = {
+  // Reported live: AG Grid's own horizontal scrollbar is unreliable/undiscoverable on macOS
+  // (its hover-to-reveal listener is bound to the exact element visibility:hidden excludes
+  // from hit-testing, confirmed live), so this button is DataTable's actual, guaranteed way to
+  // scroll on a mouse-only desktop -- not just a discoverability hint. 14 wide columns force
+  // horizontal overflow regardless of viewport width to exercise it.
+  args: {
+    columns: Array.from({ length: 14 }, (_, i) => ({
+      colId: `col-${i}`,
+      headerName: `Column ${i + 1}`,
+      minWidth: 220,
+      valueGetter: () => ROWS[0].entity,
+    })),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const button = await waitFor(() => canvas.getByRole('button', { name: /scroll table right/i }));
+    const scrollEl = canvasElement.querySelector<HTMLElement>('.ag-body-horizontal-scroll-viewport')!;
+    expect(scrollEl.scrollLeft).toBe(0);
+
+    await userEvent.click(button);
+    await waitFor(() => expect(scrollEl.scrollLeft).toBeGreaterThan(0));
+
+    // Simulate having reached the end (however the user got there -- click, trackpad,
+    // keyboard) -- the button should disappear once there's nothing left to scroll, unlike the
+    // old one-time hint that vanished after the very first scroll movement regardless of how
+    // much content remained.
+    scrollEl.scrollLeft = scrollEl.scrollWidth;
+    scrollEl.dispatchEvent(new Event('scroll'));
+    await waitFor(() => expect(canvas.queryByRole('button', { name: /scroll table right/i })).toBeNull());
   },
 };
