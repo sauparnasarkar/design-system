@@ -560,3 +560,37 @@ existing control for it).
   normal click-to-scroll and visibility-gating paths. Re-verified instead
   by redeploying to the Mac Mini and repeating the exact live sequence
   that caught this (real page, real click, both overflowing grids).
+
+### The predicted gap above turned out to be real, same day (2026-08-16)
+
+- Re-verifying the click fix live (real Data Explorer page, adding a
+  column to force *new* overflow on an already-mounted grid) surfaced
+  exactly the failure the entry above called out as a real but
+  unreproduced risk: the button never appeared at all, even though both
+  grids on the page were genuinely overflowing. `canScrollMore`'s
+  ResizeObserver/scroll-listener, bound to the specific node captured at
+  first attach, went stale the same way `scrollElRef` did for the click —
+  confirming this isn't only a mount-time race, AG Grid can swap the node
+  again later (e.g. on a columns change), and any code caching a
+  reference to it is vulnerable each time.
+- Full redesign rather than another narrow patch: both listeners now
+  attach to `wrapperRef.current` (this component's own div, which AG Grid
+  never replaces) instead of the swappable AG Grid child.
+  `wrapper.addEventListener('scroll', ..., { capture: true })` catches a
+  scroll fired on *any* current descendant regardless of node identity
+  (capture-phase propagation reaches ancestors even for `scroll`, which
+  doesn't bubble). A `MutationObserver({ childList: true, subtree: true,
+  attributes: true })` on the wrapper re-checks on any relevant DOM
+  change underneath it — including the very moment AG Grid first builds
+  the viewport node (replacing the old retry-with-`setTimeout` polling
+  entirely) and every later swap. Both funnel through an
+  `requestAnimationFrame`-coalesced `check()` that itself re-queries
+  `.ag-body-horizontal-scroll-viewport` fresh each time, so nothing is
+  ever computed from a cached node reference anywhere in this component
+  now, on either the read side (`canScrollMore`) or the write side
+  (`scrollRight`, fixed earlier the same day).
+- `npm test` → 74 files / 213 tests still passing unchanged after the
+  redesign. Live re-verification (same reproduction that caught this: add
+  a column on the real Data Explorer page, confirm the button appears
+  without a reload, click it, confirm the grid scrolls) is the deploy's
+  own next step, not yet done as of this commit.
