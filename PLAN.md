@@ -455,3 +455,69 @@ existing control for it).
   `Score.tsx` for its two newly-exported pure functions — same
   non-blocking warning class already present on `Icon.tsx` and
   `DataTable/presets.tsx`).
+
+## DataTable "Scroll for more" hint → real scroll control (2026-08-16)
+
+- Reported live, in a consuming app (climate-emissions-analysis-project's
+  `/ask` agent page): a scrollable grid showed the "Scroll for more →"
+  badge, but hovering the grid on macOS never revealed a scrollbar to
+  actually use — the badge itself was non-interactive
+  (`pointerEvents: 'none'`, `aria-hidden="true"`), so a mouse-only desktop
+  user had no way to act on it at all.
+- Root-caused live (claude-in-chrome against a real overflowing grid, not
+  just reading the source): AG Grid's own "Apple-style" scrollbar
+  (`.ag-apple-scrollbar`) is `opacity: 0; visibility: hidden` at rest, meant
+  to fade in on hover — but the `mouseenter`/`mousedown` listeners AG Grid
+  binds to trigger that fade-in are bound to the exact element
+  `visibility: hidden` excludes from browser hit-testing. A real hover never
+  reaches it; the reveal mechanism is self-defeating on any Mac/iOS user
+  agent (`_isMacOsUserAgent() || _isIOSUserAgent()` unconditionally applies
+  the class). Confirmed via `elementFromPoint` + a genuinely dispatched
+  `mouseenter` event bypassing hit-testing: the JS listener itself is wired
+  correctly and does toggle `.ag-scrollbar-active` → `opacity: 1` once
+  reached — hit-testing exclusion is the actual, sole blocker of the
+  hover-to-reveal path itself.
+- That said, fixing only the CSS (dropping `visibility: hidden`, keeping
+  `opacity: 0`) turned out to be necessary but not sufficient: even with the
+  JS listener now reachable, no scrollbar visually rendered in a live test.
+  On macOS, AG Grid defers to the OS's own overlay scrollbar for the actual
+  pixels, and that indicator's on-screen appearance is an OS/compositor-level
+  decision driven by native pointer hover — not something a DOM class toggle
+  or CSS opacity change can force into view. Confirmed by directly setting
+  `scrollLeft` on `.ag-body-horizontal-scroll-viewport`, which reliably
+  moved the grid's content regardless of what the native scrollbar did or
+  didn't render.
+- Two-part fix, in order of what actually solves the reported problem:
+  1. **Primary**: `DataTable.tsx`'s badge became a real `<button>` — a
+     `scrollRight` handler drives `scrollLeft` directly (`scrollBy` at 80%
+     of the viewport's visible width, `behavior: 'smooth'`), removed
+     `pointerEvents: 'none'`/`aria-hidden` in favor of a real
+     `aria-label`. Visibility logic changed from `isScrollable`
+     (computed once, then permanently dismissed the instant *any* scroll
+     happened, `scrollLeft > 4`) to `canScrollMore` (recomputed on every
+     scroll event via the existing `ResizeObserver`/scroll-listener
+     plumbing, `scrollLeft + clientWidth < scrollWidth - 1`) — the old
+     one-shot dismissal meant a user who scrolled even slightly via
+     trackpad permanently lost the only affordance, even with many more
+     columns still off-screen; the new button now behaves like a real
+     "next page" control that disappears only once there's genuinely
+     nothing left to scroll to.
+  2. **Secondary**, `overrides.css`: dropped `visibility: hidden` from
+     `.ag-apple-scrollbar`'s invisible state (kept `opacity: 0`) so AG
+     Grid's own hover-to-reveal at least has a chance to work on browsers
+     where the OS does render on DOM-class-driven hover — doesn't hurt,
+     restores intended-but-broken behavior, but isn't what actually
+     resolves the report; the button is.
+- New `ScrollHint` story (`DataTable.stories.tsx`): 14 synthetic wide
+  columns force horizontal overflow regardless of viewport width. `play`
+  asserts the button appears, clicking it advances `scrollLeft`, and
+  setting `scrollLeft` to the far end + dispatching `scroll` (simulating
+  "reached the end by any means") makes the button disappear — covering
+  both the click-to-scroll mechanism and the recomputed-per-scroll
+  visibility gating, not just the one-shot dismissal the old hint had.
+- Deliberately did *not* pursue making the native/OS scrollbar itself
+  reliably visible (e.g. forcing `ag-apple-scrollbar` off entirely, or
+  always-visible scrollbar styling) — explicitly out of scope per direct
+  instruction (a persistently visible scrollbar wasn't wanted); the button
+  is the actual deliverable, the CSS fix is a free secondary improvement
+  riding along with the same investigation.

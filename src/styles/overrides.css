@@ -98,3 +98,24 @@
 .ag-root.ag-layout-normal.ag-body-horizontal-scroll {
   flex-direction: column;
 }
+
+/* AG Grid's own Apple-scrollbar hover-to-reveal is self-defeating: the mouseenter/mousedown
+   listeners meant to fade it in (bound via getGui() in AG Grid's own source) are bound to this
+   exact `.ag-apple-scrollbar` element -- but the vendor CSS's own invisible-Apple-scrollbar
+   state sets `visibility: hidden` on it, and `visibility: hidden` removes an element from
+   hit-testing in every browser, so those listeners can never fire while the scrollbar is in
+   the very state they're meant to un-hide it from. Confirmed live: hovering a scrollable
+   DataTable on macOS never revealed the scrollbar, and dispatching a real mouseenter directly
+   on the element (bypassing hit-testing) does correctly toggle `.ag-scrollbar-active`, proving
+   the JS listener itself works and hit-testing exclusion is the actual blocker. Dropping
+   `visibility: hidden` here (keeping `opacity: 0`) leaves the track fully transparent at rest
+   but still hoverable, letting AG Grid's own already-correct
+   mouseenter -> .ag-scrollbar-active -> opacity:1 chain actually run. Kept as a secondary fix
+   only -- DataTable.tsx's own "Scroll for more" control is the primary, guaranteed-reliable
+   way to scroll on a mouse-only desktop, since even with this fixed, the actual visible
+   scrollbar AG Grid defers to on macOS is the OS's native overlay indicator, whose on-screen
+   appearance is ultimately an OS/compositor-level decision this CSS fix can't fully control. */
+.ag-body-horizontal-scroll.ag-scrollbar-invisible.ag-apple-scrollbar,
+.ag-body-vertical-scroll.ag-scrollbar-invisible.ag-apple-scrollbar {
+  visibility: visible;
+}
