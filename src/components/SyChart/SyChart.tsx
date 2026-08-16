@@ -350,7 +350,11 @@ export function SyChart({
             values: s.values,
             customdata: formattedDeltas,
             hovertemplate,
-            textfont: font,
+            // No explicit `color` here (unlike `font` used elsewhere against the fixed page
+            // background) -- tile fills vary from crimson through lightgrey to green, and a
+            // single static text color is illegible against a chunk of that range. Omitting
+            // `color` lets Plotly fall back to its own per-tile black/white contrast choice.
+            textfont: { family: font.family, size: font.size },
             marker: s.colorValues
               ? {
                   colors: s.colorValues,
