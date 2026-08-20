@@ -80,19 +80,37 @@
   width: 24px;
 }
 
-/* Vendor's own active-text-color rule
+/* Two independent vendor bugs stacked on the active segment's text color, both needing a fix
+   here (see SegmentedControl.tsx for a third, JS-side sibling bug: the sliding highlight pill
+   itself was never positioned at all).
+
+   Bug 1 -- unreachable selector. Vendor's own active-text-color rule
    (`.__s9cmpx-segmented-control__item .__s9cmpx-segmented-control--active .__s9cmpx-segmented-control__item-content`)
    is a three-level descendant chain expecting `--active` to sit on a *child* of `__item` --
-   but SegmentedControl.tsx applies both `__item` and `--active` to the SAME <label> element
-   (a combined class list, not parent/child), with `__item-content` as that label's own direct
-   child. The vendor selector therefore can never match this component's real DOM shape, so the
-   active segment's label never picked up its active text color (confirmed live: both segments
-   read in the same default-state gray with no way to tell which was selected except the
-   underlying radio input's checked state). Reasserted here with the correct compound selector
-   for the actual DOM. See SegmentedControl.tsx for the sibling fix (the sliding highlight pill
-   itself was *also* never positioned -- a separate, JS-side bug in the same component). */
+   but SegmentedControl.tsx applies both `__item` and `--active` to the SAME <label> element (a
+   combined class list, not parent/child), with `__item-content` as that label's own direct
+   child. The vendor selector can never match this component's real DOM shape. Fixed below with
+   the correct compound selector.
+
+   Bug 2 -- wrong token, even once reachable. `--__s9cmpx-c-segmented-control-item-text-color-active`
+   (`sy-design-system.min.css`) is wired to `var(--__s9cmpx-interactive-fill-secondary-default)`
+   -- the exact same token `-text-color-default` also uses. `interactive-fill-secondary-default`
+   is `#e8eefb` (analytics.css), a pale near-white -- legible as text against this app's dark
+   navy card background (the *default*, inactive-segment case), but the active segment's own
+   pill background (`-background-color-active`, `--__s9cmpx-interactive-fill-inverse-default` =
+   `#ffffff`, `syena-default-theme.css`) is white, so that same pale color on white reads as
+   near-invisible (confirmed live with a screenshot: "Claude Sonnet 5 (Anthropic)" essentially
+   unreadable against its own white pill once bug 1's selector fix let this color apply at all).
+   The vendor CSS already defines the *correct* pairing for exactly this fill elsewhere --
+   `--__s9cmpx-interactive-fill-inverse-oninverse` (`#000000`, same file) -- following the same
+   `-default`/`-on<name>` convention `interactive-fill-secondary-default`/`-onsecondary` and
+   `-tertiary-default`/`-ontertiary` both already use; the segmented-control token mapping just
+   never picked it up for the active state. Referenced directly (bypassing the broken
+   component-level token) rather than attempting to redefine
+   `--__s9cmpx-c-segmented-control-item-text-color-active` itself, matching this file's existing
+   convention of reasserting the correct final property value over patching a token indirection. */
 .__s9cmpx-segmented-control__item.__s9cmpx-segmented-control--active .__s9cmpx-segmented-control__item-content {
-  color: var(--__s9cmpx-c-segmented-control-item-text-color-active);
+  color: var(--__s9cmpx-interactive-fill-inverse-oninverse);
 }
 
 /* AG Grid reuses the class name `ag-body-horizontal-scroll` for two different things: the
