@@ -2,6 +2,11 @@ import React from 'react';
 import { cx } from '../../lib/cx';
 import { Icon, type IconName } from '../Icon/Icon';
 
+// SSR-safe: React.useLayoutEffect warns ("does nothing on the server") when the component
+// itself is server-rendered. Same local pattern PromptBar.tsx already uses -- not shared/
+// exported, matching this repo's small-per-component-copy convention.
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
+
 export type SegmentedControlSize = 'small' | 'medium';
 
 export interface SegmentedControlItem {
@@ -60,16 +65,22 @@ export function SegmentedControl({
     container.style.setProperty('--highlight-width', `${activeEl.offsetWidth}px`);
   }, [active]);
 
-  React.useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     measureHighlight();
   }, [measureHighlight, items, size, square, fullWidth]);
 
   React.useEffect(() => {
-    // fullWidth (and any other layout-affecting ancestor resize) can change each item's pixel
-    // width without changing `active`/`items` themselves -- re-measure on viewport resize so
-    // the pill doesn't go stale after a responsive reflow.
-    window.addEventListener('resize', measureHighlight);
-    return () => window.removeEventListener('resize', measureHighlight);
+    // ResizeObserver on the container (not a window resize listener) -- same pattern
+    // TabsWrapper.tsx already uses for its own scroll-affordance recalculation. Catches every
+    // layout-affecting change that actually matters here (viewport resize *only* matters
+    // insofar as it changes the container's own box; a non-fullWidth control's inline-flex
+    // width also naturally reflows from font-loading or content changes without any viewport
+    // resize at all) via one direct signal instead of a broader, less precise proxy for it.
+    const container = containerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(measureHighlight);
+    observer.observe(container);
+    return () => observer.disconnect();
   }, [measureHighlight]);
 
   return (
