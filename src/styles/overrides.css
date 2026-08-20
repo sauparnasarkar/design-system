@@ -80,6 +80,21 @@
   width: 24px;
 }
 
+/* Vendor's own active-text-color rule
+   (`.__s9cmpx-segmented-control__item .__s9cmpx-segmented-control--active .__s9cmpx-segmented-control__item-content`)
+   is a three-level descendant chain expecting `--active` to sit on a *child* of `__item` --
+   but SegmentedControl.tsx applies both `__item` and `--active` to the SAME <label> element
+   (a combined class list, not parent/child), with `__item-content` as that label's own direct
+   child. The vendor selector therefore can never match this component's real DOM shape, so the
+   active segment's label never picked up its active text color (confirmed live: both segments
+   read in the same default-state gray with no way to tell which was selected except the
+   underlying radio input's checked state). Reasserted here with the correct compound selector
+   for the actual DOM. See SegmentedControl.tsx for the sibling fix (the sliding highlight pill
+   itself was *also* never positioned -- a separate, JS-side bug in the same component). */
+.__s9cmpx-segmented-control__item.__s9cmpx-segmented-control--active .__s9cmpx-segmented-control__item-content {
+  color: var(--__s9cmpx-c-segmented-control-item-text-color-active);
+}
+
 /* AG Grid reuses the class name `ag-body-horizontal-scroll` for two different things: the
    dedicated scrollbar-track element, and a *state* class it also stamps onto `.ag-root` itself
    whenever the grid's content actually needs horizontal scrolling (confirmed live via the DOM --
