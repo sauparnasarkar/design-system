@@ -681,6 +681,16 @@ case ("Expandable") with a different Plotly-internal error
 (`Cannot read properties of undefined (reading '_scrollZoom')`) in the
 JSDOM/Vitest environment, on both the pre- and post-fix tree.
 
+**Follow-up (PR review): no story exercised the exact crashing shape.** The
+existing `Treemap` story always set `colorValues`, so it never took the
+branch that crashed and the storybook-project mount+a11y test (which would
+have caught this at the time) never ran against it. Added
+`TreemapWithoutColorValues` — a treemap series with no `colorValues` at
+all — as a permanent regression test. Verified it actually catches the
+regression: reverting the `SyChart.tsx` fix and re-running reproduces the
+exact same `Cannot use 'in' operator to search for 'line' in undefined`
+against this new story specifically.
+
 ## Analytics theme: page canvas was never actually painted, plus a real SearchInput bug (2026-09-02)
 
 Same session/consumer as the entry above; two more issues the user reported

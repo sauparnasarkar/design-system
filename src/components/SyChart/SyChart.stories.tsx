@@ -353,6 +353,42 @@ export const Treemap: Story = {
   },
 };
 
+/**
+ * Regression test for a treemap crash: a colorValues-less trace previously set `marker:
+ * undefined` explicitly (key present, value undefined) instead of omitting the key, which threw
+ * `Cannot use 'in' operator to search for 'line' in undefined` on Plotly's first draw. This story
+ * has no `colorValues` at all, so if that key ever creeps back in, this story fails to mount.
+ */
+export const TreemapWithoutColorValues: Story = {
+  render: () => {
+    const countries = ['China', 'United States', 'India', 'Russia', 'Japan'];
+    const bauTotal = [420000, 180000, 110000, 62000, 38000];
+    return (
+      <ChartCard title="Cumulative BAU Emissions, Sized by Total" onDownload={() => {}}>
+        <SyChart
+          height={360}
+          showLegend={false}
+          series={[{
+            name: 'BAU Total',
+            x: [],
+            y: [],
+            kind: 'treemap',
+            labels: countries,
+            parents: countries.map(() => ''),
+            values: bauTotal,
+            valueLabel: 'Cumulative BAU',
+          }]}
+        />
+      </ChartCard>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const card = canvas.getByText('Cumulative BAU Emissions, Sized by Total');
+    await expect(card).not.toBeNull();
+  },
+};
+
 /** Two small-multiple panels sharing an identical `yRange` — the detail that makes side-by-side comparison honest. */
 export const SharedYRange: Story = {
   render: () => {
