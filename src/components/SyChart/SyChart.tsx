@@ -1,7 +1,27 @@
 import React from 'react';
 import Plotly from 'plotly.js-dist-min';
+// Named type imports come from `plotly.js` directly rather than `Plotly.<Type>` dotted access on
+// the `plotly.js-dist-min` default import -- see the identical comment in Gauge.tsx for why
+// (confirmed against climate-emissions-analysis-project's own build: dotted namespace-style type
+// access through `plotly.js-dist-min`'s `export =` re-export doesn't resolve reliably once this
+// file is type-checked from a consuming project via a path-mapped alias).
+import type { Color, Data, Layout, PlotData, PlotMarker } from 'plotly.js';
 import { cx } from '../../lib/cx';
 import { logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
+
+// `PlotData.type: PlotType` already covers every trace kind this component emits (bar/scatter/
+// choropleth/treemap), so a single `Partial<PlotData>` element type is enough -- no need for a
+// sibling union type. `meta`/`cmid` are real, standard Plotly trace/marker fields this component
+// sets (trace tagging for later lookup; colorscale zero-midpoint pinning) that this version of
+// `@types/plotly.js` simply doesn't declare on `PlotData`/`PlotMarker` -- added here rather than
+// cast away at each use. A handful of other fields (colors/locations restyle-wrapping, null
+// entries) are still narrower in the upstream types than plotly.js-dist-min accepts at runtime;
+// those are cast individually at their exact call sites below, each with a comment explaining the
+// real gap.
+type SyChartTrace = Partial<PlotData> & { meta?: string };
+// `cmid` (colorscale zero-midpoint) is likewise a real, standard Plotly marker field not declared
+// on `PlotMarker` in this version of `@types/plotly.js`.
+type SyChartMarker = Partial<PlotMarker> & { cmid?: number };
 
 export interface SyChartSeries {
   name: string;
@@ -75,7 +95,7 @@ export interface SyChartSeries {
   /** 'choropleth' only: one location code per data point (see `locationmode`) */
   locations?: string[];
   /** 'choropleth' only: Plotly location mode. Defaults to 'ISO-3'. */
-  locationmode?: string;
+  locationmode?: PlotData['locationmode'];
   /**
    * 'choropleth' only: log-transforms `colorValues` for the color scale. Plotly has no native
    * log-scale colorbar, so this pre-transforms `z` and renders the colorbar's ticks
@@ -236,7 +256,7 @@ export function SyChart({
       size: 12,
       color: cssVar(el, '--__s9cmpx-static-text-weak', '#757575'),
     };
-    const data = series.flatMap((s, i): unknown[] => {
+    const data = series.flatMap((s, i): SyChartTrace[] => {
       const color = s.color ?? palette[i % palette.length];
       if (s.kind === 'choropleth') {
         const colorValues = s.colorValues ?? [];
@@ -256,7 +276,7 @@ export function SyChart({
             ? [logTransformBound(s.colorRange[0]), logTransformBound(s.colorRange[1])]
             : s.colorRange
           : [undefined, undefined];
-        const traces: unknown[] = [];
+        const traces: SyChartTrace[] = [];
         // A location with a `null` colorValues entry is simply not drawn by Plotly, leaving
         // the map background showing through -- against this app's dark theme that reads as
         // ocean, not "no data." A second, flat-colored trace underneath the data trace makes
@@ -357,7 +377,11 @@ export function SyChart({
             textfont: { family: font.family, size: font.size },
             marker: s.colorValues
               ? {
-                  colors: s.colorValues,
+                  // `Color[]`'s element type doesn't include a bare `null`, but Plotly's real
+                  // runtime treats a `null` entry in `marker.colors` as "no color for this tile" --
+                  // the same convention already relied on for `z`/`customdata` elsewhere in this
+                  // file, just not modeled for this specific field in `@types/plotly.js`.
+                  colors: s.colorValues as unknown as Color[],
                   colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
                   // Plotly auto-scales a continuous colorscale to the actual min/max of the
                   // provided values, not to a fixed zero-centered range -- with no colorScale
@@ -379,7 +403,7 @@ export function SyChart({
                     outlinewidth: 0,
                     tickfont: font,
                   },
-                }
+                } as SyChartMarker
               : undefined,
           },
         ];
@@ -472,7 +496,7 @@ export function SyChart({
       font: { ...font, size: 11 },
     }));
     const allAnnotations = [...referenceAnnotation, ...customAnnotations];
-    const layout = {
+    const layout: Partial<Layout> = {
       barmode,
       height,
       font,
@@ -544,7 +568,7 @@ export function SyChart({
       annotations: allAnnotations.length > 0 ? allAnnotations : undefined,
     };
     const config = { displayModeBar: false, responsive: true };
-    Plotly.react(el, data, layout, config);
+    Plotly.react(el, data as unknown as Data[], layout, config);
     plotDrawnRef.current = true;
     const dataTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-data');
     const noDataTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-nodata');
@@ -566,7 +590,10 @@ export function SyChart({
     // recompute its own auto-fit center for the cropped lataxis range) is what actually
     // resets it -- confirmed the recomputed center matches the lataxis midpoint exactly.
     resetViewRef.current = hasChoropleth
-      ? () => Plotly.relayout(el, { 'geo.projection.scale': 1, 'geo.center': null })
+      ? // Plotly's relayout accepts flattened dotted-path keys ('geo.projection.scale') for partial
+        // nested updates at runtime; `@types/plotly.js`'s `Layout` only models the nested shape, not
+        // this flattened convention, so there's no type this object literal can structurally satisfy.
+        () => Plotly.relayout(el, { 'geo.projection.scale': 1, 'geo.center': null } as unknown as Partial<Layout>)
       : null;
 
     // Treemap tiles are flat (parents always '' -- see SPEC.md §5.10), so Plotly's default
@@ -741,7 +768,13 @@ export function SyChart({
     }
     if (traceIndexRef.current.noData != null) {
       const noDataLocations = locations.filter((_, idx) => colorValues[idx] == null);
-      Plotly.restyle(el, { locations: [noDataLocations] }, [traceIndexRef.current.noData]);
+      // restyle wraps each targeted trace's new value in an outer array (confirmed working via
+      // the identical convention on `z`/`customdata` above, which `PlotData` types as
+      // `Datum[] | Datum[][] | ...` for exactly this reason) -- but `PlotData.locations` is only
+      // typed `Datum[]`, missing the `Datum[][]` variant `z`/`customdata` already have.
+      Plotly.restyle(el, { locations: [noDataLocations] } as unknown as Partial<Data>, [
+        traceIndexRef.current.noData,
+      ]);
     }
   }, [animationFrame]);
 

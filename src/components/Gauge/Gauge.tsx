@@ -1,6 +1,33 @@
 import React from 'react';
 import Plotly from 'plotly.js-dist-min';
+// Named type imports come from `plotly.js` directly rather than `Plotly.<Type>` dotted access on
+// the `plotly.js-dist-min` default import -- `@types/plotly.js-dist-min` is a bare `export =`
+// re-export of `plotly.js`'s own namespace, and dotted namespace-style type access through that
+// re-export doesn't resolve reliably once this file is type-checked from a consuming project via
+// a path-mapped alias (confirmed against climate-emissions-analysis-project's own build, which
+// hits `TS2694: Namespace has no exported member` for `Plotly.Data` even in a from-scratch file
+// with zero design-system involvement -- a pre-existing gap in that project's tsconfig, not
+// something fixable here, but avoidable entirely by importing named types from `plotly.js`).
+import type { Data } from 'plotly.js';
 import { cx } from '../../lib/cx';
+
+/**
+ * `@types/plotly.js`'s `Data` union does not model the `indicator` trace type at all -- confirmed
+ * by reading the installed package's own `index.d.ts` -- even though plotly.js-dist-min supports
+ * it at runtime. This covers only the fields this component actually sets.
+ */
+interface IndicatorTrace {
+  type: 'indicator';
+  mode: string;
+  value: number;
+  number?: { suffix?: string; font?: { size?: number; family?: string; color?: string } };
+  gauge?: {
+    axis?: { range?: [number, number]; tickfont?: { size?: number; family?: string; color?: string } };
+    bar?: { color?: string; thickness?: number };
+    bgcolor?: string;
+    borderwidth?: number;
+  };
+}
 
 export interface GaugeProps {
   value: number;
@@ -33,7 +60,7 @@ export function Gauge({ value, min = 0, max = 100, suffix = '', color, height = 
       family: cssVar(el, '--__s9cmpx-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
       color: cssVar(el, '--__s9cmpx-static-text-standard', '#494949'),
     };
-    const data = [
+    const data: IndicatorTrace[] = [
       {
         type: 'indicator',
         mode: 'gauge+number',
@@ -53,7 +80,7 @@ export function Gauge({ value, min = 0, max = 100, suffix = '', color, height = 
       paper_bgcolor: 'rgba(0,0,0,0)',
       font,
     };
-    Plotly.react(el, data, layout, { displayModeBar: false, responsive: true });
+    Plotly.react(el, data as unknown as Data[], layout, { displayModeBar: false, responsive: true });
     return () => {
       Plotly.purge(el);
     };
