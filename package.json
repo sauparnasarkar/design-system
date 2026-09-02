@@ -29,6 +29,8 @@
     "@storybook/addon-vitest": "^10.5.0",
     "@storybook/react-vite": "^10.5.0",
     "@types/node": "^24.13.2",
+    "@types/plotly.js": "^3.0.13",
+    "@types/plotly.js-dist-min": "^2.3.4",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
