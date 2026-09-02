@@ -180,9 +180,36 @@
   --__s9cmpx-chart-categorical-default-09: #ff4ae7;
 }
 
-/* The vendor reset/base CSS hardcodes `strong{color:#363636}` and
-   `table th{color:#363636}` (light-mode ink, not semantic tokens) — nearly
-   invisible on this theme's dark surfaces, so override both here. */
+/* The vendor reset's `body{color:#4a4a4a}` (light-mode ink, not a semantic
+   token) is what every element without its own explicit `color` rule
+   inherits -- nearly invisible on this theme's dark surfaces. Confirmed live:
+   KpiStat's value (`.__s9cmpx-headline4` sets no color of its own) and
+   Select's placeholder both rendered as this literal gray on a dark navy
+   card. Overriding `color` on the theme root fixes every such
+   not-explicitly-colored descendant in one place, rather than requiring a
+   fix per missed component every time one is found (as the two rules below,
+   which predate this one, already had to do for `strong`/`table th`).
+
+   `background-color` is set here for the same reason `color` is: the reset's
+   `html{background-color:#fff}` is what shows through everywhere this theme
+   doesn't explicitly paint its own surface -- which is everywhere outside a
+   Card/KpiStat/etc., since this token layer only supplies colors for
+   components that reference it, it never paints the page canvas itself.
+   Storybook's own preview decorator already special-cases this (see
+   `.storybook/preview.tsx`, `background: var(--__s9cmpx-static-background-
+   weak)`) precisely because the theme CSS alone doesn't do it -- confirmed
+   live in a real consumer app (not Storybook) that never added an
+   equivalent: page titles, tab bars, and any other text sitting directly on
+   the page canvas rather than inside a themed component correctly resolved
+   bright text colors (per the `color` fix above) that were then invisible
+   against the literal white canvas underneath. Matching Storybook's own
+   value here means a consuming app's `data-theme="analytics"` wrapper needs
+   no extra decorator/background wiring of its own to get a real dark
+   canvas -- not just correct component surfaces floating on white. */
+[data-theme="analytics"] {
+  color: var(--__s9cmpx-static-text-standard);
+  background-color: var(--__s9cmpx-static-background-weak);
+}
 [data-theme="analytics"] strong {
   color: var(--__s9cmpx-static-text-strong);
 }

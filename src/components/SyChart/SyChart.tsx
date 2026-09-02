@@ -790,7 +790,12 @@ export function SyChart({
         role="img"
         aria-label={ariaLabel ?? fallbackDescription}
         className={cx('__s9cmpx-chart', '__s9cmpx-chart-plotly', useFixedTooltip && '__s9cmpx-chart-plotly--custom-tooltip', className)}
-        style={{ width: '100%' }}
+        // Plotly's `layout.height` only sizes the plot AFTER it draws -- with no CSS height of
+        // its own, this div was 0px tall at the moment the mount effect calls Plotly.react,
+        // since no content or CSS rule had given it any height yet. Setting it explicitly makes
+        // the container's real size match what layout.height requests from the first frame,
+        // instead of relying on Plotly's own post-draw resize.
+        style={{ width: '100%', height }}
       />
       {useFixedTooltip && (
         <div
