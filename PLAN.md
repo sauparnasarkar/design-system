@@ -624,45 +624,72 @@ Correct on its own merits, but **testing showed this does not fix the
 treemap crash below** — do not assume container height is the cause if this
 recurs.
 
-**Open, unresolved: a treemap-specific Plotly.js crash independent of
-container size, StrictMode, or trace data.** `SyChart`'s treemap kind throws
-inside Plotly's own minified `cleanData` (`TypeError: Cannot use 'in'
-operator to search for 'line' in undefined`) on its very first draw, in this
-consumer's real app. Systematically ruled out via isolated Playwright
-repros: React StrictMode double-invoke (disabled it entirely — crash
-persisted on a single mount); zero-height container (fixed per above —
-crash persisted with a confirmed-correct 420px rect); the trace/layout/config
-objects themselves (captured the exact live JSON and replayed it via
-`Plotly.newPlot`/`Plotly.react` standalone, and via the same Vite-bundled
-`plotly.js-dist-min` module on a hand-created div on the same live page —
-both succeeded); ancestor CSS (`contain`/`transform`/`zoom`/`filter` all
-`none` on every ancestor up to `<main>`); deferred timing (wrapped the call
-in `setTimeout(...,0)` — crash still occurred on the later macrotask). A
-sibling probe div, given the exact same call inside the exact same effect
-invocation, also failed — so it isn't specific to the real `ref` element
-either. Whatever's left standing (some other page-wide/module-singleton
-state specific to this consumer's real component tree) wasn't identified
-before time was better spent elsewhere; a bar-chart `SyChart` usage on the
-same page/theme/StrictMode setup does not crash, so this is treemap-kind-
-specific, not a general SyChart or Analytics-theme bug. **Mitigated, not
-fixed**: the consumer app added its own `RouteErrorBoundary` around routes
-so this contains to the one page instead of unmounting the whole tree — a
-consumer-side fix, not a `design-system` one, since `design-system` has no
-error boundary of its own anywhere and this crash type (an uncaught error
-inside a passive effect) isn't specific to charts. If this resurfaces:
-the next things to try are (a) checking for a second/conflicting `d3` or
-`d3-hierarchy` instance in the consumer's dependency graph (treemap's
-`calc` is the one SyChart code path that uses `d3-hierarchy`; cartesian
-kinds don't touch it), and (b) bisecting `plotly.js-dist-min` versions,
-since this consumer pins the same `^3.7.0` this repo does but was never
-itself confirmed crash-free against a real treemap outside this repo's own
-Vitest/JSDOM stories.
+**RESOLVED (2026-09-02, follow-up session): root cause was `marker:
+undefined` as a live object key, not any of the above.** The treemap crash
+above resisted this session's entire investigation (StrictMode, container
+sizing, ancestor CSS, deferred timing, sibling probe div, and — critically —
+replaying the *exact captured* trace/layout/config JSON, both standalone and
+via the same bundled Plotly module on the live page) because every one of
+those repros used **JSON-serialized** trace data, and `JSON.stringify`
+silently drops any key whose value is `undefined`. The real bug only exists
+in the *live* JS object, never in its JSON round-trip — which is exactly why
+"replay the exact same data" kept succeeding while the real page kept
+crashing with supposedly the same data.
+
+The treemap trace builder wrote `marker: s.colorValues ? {...} : undefined`.
+When a treemap series has no `colorValues` (the Taxonomy Drill-Down page's
+case — a plain, uncolored treemap), this evaluates to a trace object with
+the literal key `marker` **present**, valued `undefined` — not an *absent*
+key. `'marker' in trace` is `true` either way in JS, and Plotly's own
+`cleanData` gates a treemap `marker.line` default on that key's *presence*,
+not its truthiness. So it entered the branch expecting an object and did
+`'line' in trace.marker`, throwing `TypeError: Cannot use 'in' operator to
+search for 'line' in undefined` — the exact reported error, on the exact
+reported line, only for treemap (the one SyChart kind with a
+conditionally-`undefined` `marker`; bar's `marker` fallback at line ~465 is
+always a real object, which is why bar/line/band never showed this).
+
+Confirmed directly: a hand-built trace `{ type: 'treemap', ..., marker:
+undefined }` fed to the same bundled `plotly.js-dist-min` module reproduces
+`Cannot use 'in' operator to search for 'line' in undefined` verbatim; the
+same trace with the `marker` key *omitted* entirely does not crash.
+
+**Fix**: changed the treemap branch from `marker: s.colorValues ? {...} :
+undefined` to conditionally *spreading* the whole `marker` key in
+(`...(s.colorValues ? { marker: {...} } : {})`), so a colorValues-less
+treemap never has a `marker` key on its trace at all, matching every other
+kind's convention of omitting rather than nulling out unused Plotly fields.
+Verified live: Taxonomy Drill-Down renders its treemap correctly across all
+five dimension tabs (Sector/Industry/Business Theme/End Market/
+Infrastructure) with zero console errors and no `RouteErrorBoundary`
+fallback; Family Rollup's bar-chart `SyChart` usages (which do set
+`colorValues`, exercising the still-present branch) unaffected;
+`design-system`'s own `SyChart` Vitest suite unchanged (26/26 passing,
+same 12 pre-existing unrelated `_scrollZoom` JSDOM errors on both the pre-
+and post-fix tree, confirmed via `git stash`).
+
+**Lesson for future Plotly.js crash investigations in this file**: never
+rely on `JSON.stringify`/`console.log`-captured trace data to "replay the
+exact input" — it cannot represent a key present with value `undefined`,
+which is a legitimate and different runtime shape from that key being
+absent, and Plotly's own internals (at least `cleanData`) can and do
+distinguish between them.
 
 Unrelated, pre-existing, confirmed via `git stash` (not caused by the above):
 `design-system`'s own `npm test` already fails one `SyChart.stories.tsx`
 case ("Expandable") with a different Plotly-internal error
 (`Cannot read properties of undefined (reading '_scrollZoom')`) in the
 JSDOM/Vitest environment, on both the pre- and post-fix tree.
+
+**Follow-up (PR review): no story exercised the exact crashing shape.** The
+existing `Treemap` story always set `colorValues`, so it never took the
+branch that crashed and the storybook-project mount+a11y test (which would
+have caught this at the time) never ran against it. Added
+`TreemapWithoutColorValues` — a treemap series with no `colorValues` at
+all — as a permanent regression test. Verified it actually catches the
+regression: reverting the `SyChart.tsx` fix and re-running reproduces the
+exact same `Cannot use 'in' operator to search for 'line' in undefined`
+against this new story specifically.
 
 ## Analytics theme: page canvas was never actually painted, plus a real SearchInput bug (2026-09-02)
 
