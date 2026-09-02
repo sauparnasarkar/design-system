@@ -95,8 +95,10 @@ Card(+Header), Tile, Accordion, Breadcrumb, Table, DataTable (AG Grid with
 the `ag-theme-s9cmpx` skin) + presets (HeatCell, TrendCell, TableToolbar),
 TableFilter, Pagination, Icon, Avatar, Logo (generic markSrc/wordmark lockup),
 Modal, Drawer, Toast, Tooltip,
-ChartTooltip, SyChart (Plotly: column / stacked+line / grouped / multi-line)
-+ ChartCard, Slider, RangeSlider (dual-thumb, cross-clamped, APG multi-thumb
+ChartTooltip, SyChart (Plotly: column / stacked+line / grouped / multi-line,
+plus band/choropleth/treemap — see DESIGN.md's Charts entry for an open
+treemap crash in at least one consumer before assuming a new report is
+novel) + ChartCard, Slider, RangeSlider (dual-thumb, cross-clamped, APG multi-thumb
 slider pattern — for continuous ranges, e.g. a year filter), KrfSlider,
 Score, Progress, Spinner, DotTyping, Divider,
 Section, Textarea, PromptBar (controlled prompt/chat input bar, landing/docked

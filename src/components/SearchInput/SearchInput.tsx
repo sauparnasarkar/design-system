@@ -16,12 +16,13 @@ export function SearchInput({
   onChange,
   onClear,
   className,
+  style,
   ...rest
 }: SearchInputProps) {
   const [internal, setInternal] = React.useState('');
   const current = value !== undefined ? String(value) : internal;
   return (
-    <div className={cx('__s9cmpx-search-input', `__s9cmpx-search-input--${variant}`, className)}>
+    <div className={cx('__s9cmpx-search-input', `__s9cmpx-search-input--${variant}`, className)} style={style}>
       <div
         className="__s9cmpx-search-input__control"
         style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}
@@ -38,8 +39,8 @@ export function SearchInput({
             setInternal(e.target.value);
             onChange?.(e.target.value);
           }}
-          style={{ border: 0, outline: 'none', background: 'transparent', flex: 1 }}
           {...rest}
+          style={{ border: 0, outline: 'none', background: 'transparent', flex: 1 }}
         />
         {current && (
           <button

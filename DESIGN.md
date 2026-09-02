@@ -79,7 +79,16 @@ Current themes:
   cyan accent, its own vivid chart palette validated for a dark surface
   (the one theme that goes beyond the ~30-token pattern — it needed fuller
   dark-mode token coverage; see "Analytics theme: full dark token coverage"
-  in `PLAN.md` if extending it).
+  and the later "text-color inheritance gap" entry in `PLAN.md` if extending
+  it). Sets `color` on `[data-theme="analytics"]` itself (not just the usual
+  token overrides) because the vendor reset hardcodes `body{color:#4a4a4a}`
+  — any component with no explicit `color` of its own otherwise inherits
+  that literal light-mode gray instead of the theme's ink, nearly invisible
+  on this theme's dark surfaces. Found three times independently (`strong`,
+  `table th`, then `KpiStat`'s value) before being fixed at the theme root
+  instead of per component — if a new component looks unreadable only under
+  this theme, check whether it sets its own `color` before assuming the
+  theme is incomplete again.
 
 To add a theme: create `src/styles/themes/<name>.css` following the
 green.css pattern, import it in `.storybook/preview.tsx`, and register it
@@ -197,7 +206,12 @@ Score (logic-tested), Progress (logic-tested), Gauge (logic-tested), KpiStat,
 Avatar, Icon
 
 **Charts** — ChartTooltip (logic-tested), SyChart (logic-tested — Plotly:
-column / stacked+line / grouped / multi-line) + ChartCard
+column / stacked+line / grouped / multi-line, plus band/choropleth/treemap
+kinds; **treemap has an open, unresolved crash inside Plotly's own
+`cleanData` on first draw in at least one real consumer app** — bar/line
+usages are unaffected; see the "text-color inheritance gap + SyChart sizing
++ open treemap crash" entry in `PLAN.md` before assuming a new treemap
+report is a fresh bug) + ChartCard
 
 **Content/marketing** — News, MediaObject, CardCarousel, ContactItem,
 ContactModule

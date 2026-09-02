@@ -582,3 +582,171 @@ page, not evidence about the app's own code. Reading React's fiber state
 directly (`el[Object.keys(el).find(k=>k.startsWith('__reactFiber$'))]`,
 walking `memoizedState`) sidesteps this class of problem entirely: no
 patching, no timing assumptions, just the actual value React is holding.
+
+## Analytics theme: text-color inheritance gap + SyChart sizing + open treemap crash (2026-09-02)
+
+User-reported (new consumer: `fund-allocation-dashboard-react`, nested inside
+`global-institutional-broker-platform/us_fund_family_india_allocation_monitor/`)
+via three live-browser issues: KpiStat values and a Select placeholder nearly
+invisible on the Analytics theme; a Taxonomy Drill-Down page rendering fully
+blank. Diagnosed with Playwright (the Claude-in-Chrome extension wasn't
+reachable from that session) rather than manual clicking — real console
+errors and computed styles proved more reliable than screenshots alone.
+
+**Contrast — same root cause as "Analytics theme: full dark token coverage"
+above, one more gap in the same pattern.** That 2026-07-15 entry and the
+`strong`/`table th` overrides already in `analytics.css` exist because the
+vendor reset hardcodes `body{color:#4a4a4a}` (light-mode ink, not a semantic
+token), which bleeds through to any element with no explicit `color` of its
+own. `KpiStat`'s `.__s9cmpx-headline4` value span is exactly that case —
+confirmed live via `getComputedStyle`: `rgb(74,74,74)` on a `#1e2f52` card,
+~1.5:1 contrast (needs 4.5:1). Patching `headline4` alone would just repeat
+the class of miss those two prior rules already are — each one exists
+because a *different* component was independently found broken by the same
+underlying gap. **Fixed once, at the source**: `analytics.css` now sets
+`color: var(--__s9cmpx-static-text-standard)` on `[data-theme="analytics"]`
+itself, so every descendant without its own color rule inherits the correct
+dark-theme ink instead of the reset's literal gray. The `strong`/`table th`
+rules stay (more specific, harmless now) but nothing like this should need a
+fourth one-off patch. Verified: KpiStat value corrected to `rgb(215,224,240)`
+on Fund Screener and Fund Detail; Select's "Select..." placeholder (same
+underlying gap, different component) confirmed legible without a separate
+fix.
+
+**SyChart container sizing — a real but insufficient fix.** The chart div
+(`SyChart.tsx`'s `ref` element) had no CSS `height` of its own — only
+`layout.height` passed to Plotly, which sizes the plot *after* it draws.
+Confirmed live via `getBoundingClientRect()` inside the mount effect: the
+div was 0px tall at the moment `Plotly.react` is first called. Now sets
+`style={{ width: '100%', height }}` directly, so the container has its real
+size from the first frame instead of relying on Plotly's post-draw resize.
+Correct on its own merits, but **testing showed this does not fix the
+treemap crash below** — do not assume container height is the cause if this
+recurs.
+
+**Open, unresolved: a treemap-specific Plotly.js crash independent of
+container size, StrictMode, or trace data.** `SyChart`'s treemap kind throws
+inside Plotly's own minified `cleanData` (`TypeError: Cannot use 'in'
+operator to search for 'line' in undefined`) on its very first draw, in this
+consumer's real app. Systematically ruled out via isolated Playwright
+repros: React StrictMode double-invoke (disabled it entirely — crash
+persisted on a single mount); zero-height container (fixed per above —
+crash persisted with a confirmed-correct 420px rect); the trace/layout/config
+objects themselves (captured the exact live JSON and replayed it via
+`Plotly.newPlot`/`Plotly.react` standalone, and via the same Vite-bundled
+`plotly.js-dist-min` module on a hand-created div on the same live page —
+both succeeded); ancestor CSS (`contain`/`transform`/`zoom`/`filter` all
+`none` on every ancestor up to `<main>`); deferred timing (wrapped the call
+in `setTimeout(...,0)` — crash still occurred on the later macrotask). A
+sibling probe div, given the exact same call inside the exact same effect
+invocation, also failed — so it isn't specific to the real `ref` element
+either. Whatever's left standing (some other page-wide/module-singleton
+state specific to this consumer's real component tree) wasn't identified
+before time was better spent elsewhere; a bar-chart `SyChart` usage on the
+same page/theme/StrictMode setup does not crash, so this is treemap-kind-
+specific, not a general SyChart or Analytics-theme bug. **Mitigated, not
+fixed**: the consumer app added its own `RouteErrorBoundary` around routes
+so this contains to the one page instead of unmounting the whole tree — a
+consumer-side fix, not a `design-system` one, since `design-system` has no
+error boundary of its own anywhere and this crash type (an uncaught error
+inside a passive effect) isn't specific to charts. If this resurfaces:
+the next things to try are (a) checking for a second/conflicting `d3` or
+`d3-hierarchy` instance in the consumer's dependency graph (treemap's
+`calc` is the one SyChart code path that uses `d3-hierarchy`; cartesian
+kinds don't touch it), and (b) bisecting `plotly.js-dist-min` versions,
+since this consumer pins the same `^3.7.0` this repo does but was never
+itself confirmed crash-free against a real treemap outside this repo's own
+Vitest/JSDOM stories.
+
+Unrelated, pre-existing, confirmed via `git stash` (not caused by the above):
+`design-system`'s own `npm test` already fails one `SyChart.stories.tsx`
+case ("Expandable") with a different Plotly-internal error
+(`Cannot read properties of undefined (reading '_scrollZoom')`) in the
+JSDOM/Vitest environment, on both the pre- and post-fix tree.
+
+## Analytics theme: page canvas was never actually painted, plus a real SearchInput bug (2026-09-02)
+
+Same session/consumer as the entry above; two more issues the user reported
+live after the first round of fixes landed.
+
+**`SearchInput` silently discarded its own internal styling whenever a
+caller passed a `style` prop.** Real, confirmed-live bug, not scoped to the
+Analytics theme: `SearchInput.tsx` spread `{...rest}` (which includes any
+caller `style`) *after* its own `style={{border:0, outline:'none',
+background:'transparent', flex:1}}` on the inner `<input>` -- JSX/React
+doesn't merge two `style` props on the same element, the later one wins
+outright. `fund-allocation-dashboard-react`'s Issuer Ownership Screener
+passes `style={{maxWidth:420, marginBottom:16}}` (clearly intended for the
+whole search box), which landed on the *inner input* instead and wiped its
+transparent/borderless/flex-1 styling entirely. Confirmed live via
+`getComputedStyle`: the input fell back to the browser's literal native
+`type=search` defaults -- `background: rgb(255,255,255)`,
+`border: 2px inset rgb(118,118,118)`, `flex: 0 1 auto` (not growing) -- which
+rendered as a small (~174px) native-looking white box floating at the far
+right of a much wider, otherwise-empty dark bar. The user's own description
+("I cannot type anything... this looks like a tooltip") is exactly what that
+combination looks like: the real input was there and *did* accept typed
+text (confirmed: `.value` updated correctly even in this broken state), but
+nothing about its appearance or position read as "the search box." The
+`Header`'s own `SearchInput` usage never passes `style`, which is why it was
+never affected and why this wasn't caught earlier. **Fixed**: `style`
+destructured out separately and applied to the *outer* wrapper div (the
+natural target for a caller's box-sizing intent); `{...rest}` now spreads
+*before* the input's own load-bearing `style`, so no future caller-supplied
+prop can silently clobber it the same way, whether or not it happens to be
+`style` specifically.
+
+**The Analytics theme never painted the page canvas -- only the components
+that explicitly reference surface tokens did.** Reported as "the tab and
+page title/sub-title text color" still looking wrong even after the
+text-color-inheritance fix in the entry above. Root cause, confirmed live
+via `getComputedStyle`: `html{background-color:#fff}` (the vendor reset) is
+what actually shows through the page canvas -- `body`, `#root`, the
+`[data-theme="analytics"]` wrapper div, and `<main>` were all
+`rgba(0,0,0,0)` (transparent) in the real consumer app, so the literal white
+reset background was still visible everywhere *outside* a Card/KpiStat/etc.
+The text-color fix from the prior entry was working correctly (title color
+computed to the right bright `#d7e0f0`) -- it just had nothing dark to sit
+on outside of individual component surfaces, so it read as low-contrast
+again for a completely different reason than the first round. This exact
+gap is *why* Storybook's own preview decorator paints
+`background: var(--__s9cmpx-static-background-weak)` on its canvas (see
+"Analytics theme: full dark token coverage" above) -- Storybook was already
+covering for something the theme CSS itself never did, and this consumer
+had no equivalent of its own. **Fixed at the theme root, same place as the
+`color` fix**: `[data-theme="analytics"]` now also sets
+`background-color: var(--__s9cmpx-static-background-weak)`, matching
+Storybook's own decorator value exactly. This makes DESIGN.md §2's existing
+claim ("set `data-theme` on an ancestor element... that's the only wiring a
+consuming app needs") actually true for the first time for this theme --
+previously a consumer had to separately know to paint the canvas itself, a
+step Storybook hid by doing it for you. Verified live on both Fund Screener
+and Fund Detail: real dark navy canvas end to end, no more white bleeding
+through around/between cards.
+
+**A real feature gap, not a bug**: `Header`'s search field had no wired
+behavior at all (`SearchInput` with no `onChange`/`onSubmit`/enter-handling
+exposed) -- confirmed by reading the component before assuming otherwise.
+Typing and pressing Enter did nothing, which reads as broken even though it
+was simply never implemented. `Header` grew an `onSearch?: (query: string)
+=> void` prop, called on Enter with the field's own now-internally-tracked
+value; the consumer wires it to `navigate('/issuers?q=' + query)` and
+`IssuerScreenerPage` seeds/re-syncs its own search state from `?q=` (via
+`useSearchParams`, re-checked on every navigation since revisiting the same
+route with a new query string doesn't remount the page). Scoped
+deliberately narrow: only issuers are searchable end-to-end today (funds
+have no equivalent text-search endpoint), so the placeholder was corrected
+from "Search issuers, funds…" to "Search issuers…" rather than promising a
+fund search that doesn't exist.
+
+**A real race condition surfaced while testing the above, unrelated to any
+of it**: `IssuerScreenerPage`'s issuer-select `onClick` had no guard against
+a slow `getIssuerOwnership()` response resolving *after* the user had
+already retyped a new query or clicked "back to search" -- confirmed live
+via a fast click-then-type sequence where the stale response resurrected
+the old issuer's detail view on top of a fresh, unrelated search. Fixed
+with a ref tracking the latest requested/cleared security_id; a response is
+only applied if it's still the most recent request. Also added an explicit
+"← Back to search results" button on the selected-issuer view (clears the
+same ref) -- previously the only way back to the results list was to retype
+the search box, which worked but wasn't discoverable.

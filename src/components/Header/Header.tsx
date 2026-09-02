@@ -8,6 +8,10 @@ export interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
   logo: React.ReactNode;
   /** Placeholder for the global search field; omit to hide search */
   searchPlaceholder?: string;
+  /** Called with the typed value when the user presses Enter in the search field. Omit to
+   *  leave the field purely decorative -- but consider whether that's really the intent, since
+   *  a visible search box with no wired action reads as broken, not intentionally inert. */
+  onSearch?: (query: string) => void;
   /** Extra actions before the standard icons (e.g. an AI assistant button) */
   centerActions?: React.ReactNode;
   showNotifications?: boolean;
@@ -19,6 +23,7 @@ export interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
 export function Header({
   logo,
   searchPlaceholder = 'Search…',
+  onSearch,
   centerActions,
   showNotifications = true,
   showAppSwitcher = true,
@@ -27,6 +32,7 @@ export function Header({
   className,
   ...rest
 }: HeaderProps) {
+  const [searchValue, setSearchValue] = React.useState('');
   const iconButtonStyle: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
@@ -76,6 +82,11 @@ export function Header({
               placeholder={searchPlaceholder}
               aria-label="Search Bar"
               className="__s9cmpx-search-input--on-inverse"
+              value={searchValue}
+              onChange={setSearchValue}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchValue.trim()) onSearch?.(searchValue.trim());
+              }}
             />
           </div>
         )}
