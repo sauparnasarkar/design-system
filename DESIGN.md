@@ -207,11 +207,14 @@ Avatar, Icon
 
 **Charts** — ChartTooltip (logic-tested), SyChart (logic-tested — Plotly:
 column / stacked+line / grouped / multi-line, plus band/choropleth/treemap
-kinds; **treemap has an open, unresolved crash inside Plotly's own
-`cleanData` on first draw in at least one real consumer app** — bar/line
-usages are unaffected; see the "text-color inheritance gap + SyChart sizing
-+ open treemap crash" entry in `PLAN.md` before assuming a new treemap
-report is a fresh bug) + ChartCard
+kinds; a colorValues-less treemap previously crashed Plotly's own
+`cleanData` on first draw — a real bug, fixed 2026-09-02: the trace builder
+left a `marker: undefined` key present (vs. omitted) on the trace object,
+which Plotly's `cleanData` treats differently from a genuinely absent key;
+see the "RESOLVED" update inside the "text-color inheritance gap + SyChart
+sizing + open treemap crash" entry in `PLAN.md` for the full root cause,
+including why every JSON-based repro attempt failed to reproduce it) +
+ChartCard
 
 **Content/marketing** — News, MediaObject, CardCarousel, ContactItem,
 ContactModule

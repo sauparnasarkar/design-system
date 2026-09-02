@@ -375,36 +375,50 @@ export function SyChart({
             // single static text color is illegible against a chunk of that range. Omitting
             // `color` lets Plotly fall back to its own per-tile black/white contrast choice.
             textfont: { family: font.family, size: font.size },
-            marker: s.colorValues
+            // Conditionally *spread* rather than `marker: s.colorValues ? {...} : undefined` --
+            // the latter still leaves a `marker` key on the trace object with value `undefined`
+            // (`'marker' in trace` is true either way), and Plotly's cleanData gates a treemap
+            // marker.line check on that key's *presence*, not its truthiness, so it entered the
+            // branch and crashed doing `'line' in undefined` ("Cannot use 'in' operator to
+            // search for 'line' in undefined") on every colorValues-less treemap -- confirmed
+            // live (Taxonomy Drill-Down page) and reproduced standalone against the exact same
+            // bundled Plotly module with a hand-built trace using `marker: undefined`. Every
+            // earlier repro of this crash used JSON-captured trace data, which is exactly why
+            // it never reproduced: `JSON.stringify` silently drops undefined-valued keys, so a
+            // "replay the exact captured data" repro can never recreate a present-but-undefined
+            // key. Omitting the key entirely when there's no colorValues avoids the branch.
+            ...(s.colorValues
               ? {
-                  // `Color[]`'s element type doesn't include a bare `null`, but Plotly's real
-                  // runtime treats a `null` entry in `marker.colors` as "no color for this tile" --
-                  // the same convention already relied on for `z`/`customdata` elsewhere in this
-                  // file, just not modeled for this specific field in `@types/plotly.js`.
-                  colors: s.colorValues as unknown as Color[],
-                  colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
-                  // Plotly auto-scales a continuous colorscale to the actual min/max of the
-                  // provided values, not to a fixed zero-centered range -- with no colorScale
-                  // override (i.e. the default green/lightgrey/crimson "below/above a
-                  // reference point" convention), that silently breaks the convention itself
-                  // whenever the data is skewed: e.g. one huge outlier riser drags the
-                  // "crimson" end far to the right, so every merely-modest riser lands near
-                  // the "green" end of the auto-range and reads as green despite being an
-                  // increase. Pinning the midpoint to true 0 keeps lightgrey at "no change"
-                  // and red/green symmetric around it regardless of skew. Only applied to the
-                  // default scale -- a custom colorScale (e.g. a one-sided magnitude scale)
-                  // may not have a meaningful zero crossing at all.
-                  cmid: s.colorScale ? undefined : 0,
-                  ...(s.colorRange ? { cmin: s.colorRange[0], cmax: s.colorRange[1] } : {}),
-                  showscale: s.showColorbar ?? true,
-                  colorbar: {
-                    title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
-                    thickness: 14,
-                    outlinewidth: 0,
-                    tickfont: font,
-                  },
-                } as SyChartMarker
-              : undefined,
+                  marker: {
+                    // `Color[]`'s element type doesn't include a bare `null`, but Plotly's real
+                    // runtime treats a `null` entry in `marker.colors` as "no color for this tile" --
+                    // the same convention already relied on for `z`/`customdata` elsewhere in this
+                    // file, just not modeled for this specific field in `@types/plotly.js`.
+                    colors: s.colorValues as unknown as Color[],
+                    colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+                    // Plotly auto-scales a continuous colorscale to the actual min/max of the
+                    // provided values, not to a fixed zero-centered range -- with no colorScale
+                    // override (i.e. the default green/lightgrey/crimson "below/above a
+                    // reference point" convention), that silently breaks the convention itself
+                    // whenever the data is skewed: e.g. one huge outlier riser drags the
+                    // "crimson" end far to the right, so every merely-modest riser lands near
+                    // the "green" end of the auto-range and reads as green despite being an
+                    // increase. Pinning the midpoint to true 0 keeps lightgrey at "no change"
+                    // and red/green symmetric around it regardless of skew. Only applied to the
+                    // default scale -- a custom colorScale (e.g. a one-sided magnitude scale)
+                    // may not have a meaningful zero crossing at all.
+                    cmid: s.colorScale ? undefined : 0,
+                    ...(s.colorRange ? { cmin: s.colorRange[0], cmax: s.colorRange[1] } : {}),
+                    showscale: s.showColorbar ?? true,
+                    colorbar: {
+                      title: s.colorbarTitle ? { text: s.colorbarTitle, font } : undefined,
+                      thickness: 14,
+                      outlinewidth: 0,
+                      tickfont: font,
+                    },
+                  } as SyChartMarker,
+                }
+              : {}),
           },
         ];
       }
