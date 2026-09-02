@@ -22,7 +22,15 @@ export interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
 
 export function Header({
   logo,
-  searchPlaceholder = 'Search…',
+  // No default value, deliberately -- the prop doc promises "omit to hide search," and a
+  // default of 'Search…' would silently contradict that for every caller who omits it
+  // expecting the box to disappear. Confirmed live this was already a real bug for an
+  // existing consumer (climate-emissions-analysis-project's own Header call omits both
+  // searchPlaceholder and onSearch, intending no search box at all, but was actually
+  // rendering a decorative "Search…" box with no wired action -- exactly the failure
+  // mode the onSearch doc comment below already warns about, just via omission instead
+  // of an explicit empty value).
+  searchPlaceholder,
   onSearch,
   centerActions,
   showNotifications = true,
