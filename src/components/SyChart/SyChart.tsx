@@ -43,6 +43,16 @@ export interface SyChartSeries {
    */
   pointColors?: Array<string | undefined>;
   /**
+   * 'bar' only: cycle each bar through the theme's categorical palette (the same palette used
+   * to color separate series) instead of painting every bar in this series the one flat
+   * `color`. For a plain categorical bar chart (e.g. "top N funds by value") where each bar is
+   * its own category rather than a shared series, this reads as one flat, undifferentiated block
+   * of color otherwise. Opt-in — not the default — because at least one existing single-series
+   * bar chart consumer relies on today's flat-color behavior; ignored if `colorValues` or
+   * `pointColors` is also set (both take precedence).
+   */
+  colorByPoint?: boolean;
+  /**
    * Continuous color scale for 'bar'/'choropleth'/'treemap' series (e.g. a magnitude- or
    * % change-driven gradient). Numeric values mapped through Plotly's native colorscale,
    * rendering a real colorbar legend. Takes precedence over `pointColors`/`color`.
@@ -418,7 +428,15 @@ export function SyChart({
                     },
                   } as SyChartMarker,
                 }
-              : {}),
+              : // No continuous `colorValues` to scale a gradient from -- fall back to the same
+                // discrete categorical palette bar/line series use for their own per-series color,
+                // cycled one color per tile instead of Plotly's own built-in default palette
+                // (which otherwise silently applies here and ignores the theme entirely).
+                {
+                  marker: {
+                    colors: (s.labels ?? []).map((_, idx) => palette[idx % palette.length]) as unknown as Color[],
+                  } as SyChartMarker,
+                }),
           },
         ];
       }
@@ -476,7 +494,13 @@ export function SyChart({
               tickfont: font,
             },
           }
-        : { color: s.pointColors ? s.pointColors.map((c) => c ?? color) : color };
+        : {
+            color: s.pointColors
+              ? s.pointColors.map((c) => c ?? color)
+              : s.colorByPoint
+                ? s.x.map((_, idx) => palette[idx % palette.length])
+                : color,
+          };
       return [
         {
           type: 'bar',
