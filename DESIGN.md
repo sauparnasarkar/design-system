@@ -157,6 +157,35 @@ Current themes:
     tracked label). Rather than changing the shared component's default,
     this theme scopes a typography override to `.__s9cmpx-kpi-stat`
     specifically, leaving `KpiStat` usage elsewhere unaffected.
+  - **`SidebarNav`'s mobile "Open menu" toggle went invisible** (1.00:1
+    contrast) once this theme's header went dark: the button's background,
+    `--__s9cmpx-static-background-inverse-standard`, resolves to the exact
+    same ink black this theme's own header now uses. `SidebarNav.tsx` now
+    routes that button through dedicated `--__s9cmpx-c-sidebar-mobile-
+    toggle-background/border/icon-color` tokens (falling back to the
+    original inverse tokens, so every other theme is byte-identical to
+    before) — this theme overrides them to a white chip, the one place a
+    theme needs a header-adjacent floating control to *not* inherit the
+    header's own ink.
+  - **A long consumer wordmark wrapped to 3 lines and overflowed the
+    header's fixed `height: 56px`** on any viewport <=768px wide (confirmed
+    via real device emulation, phone and tablet-portrait alike — see
+    `PLAN.md`'s mobile-audit entry for the full device matrix). Not
+    Broadsheet-specific — every theme's header shares the same fixed
+    height — but worth flagging here since long-wordmark apps are exactly
+    where it surfaces. `Header.tsx`'s own markup was never the problem; a
+    consumer's `logo` content needs explicit `white-space: nowrap` +
+    `overflow: hidden` + `text-overflow: ellipsis` + a **`max-width`**
+    (not `min-width: 0`) to truncate safely. `min-width: 0` looks like the
+    standard fix but is a trap here specifically: `.__s9cmpx-header__left`
+    is a CSS Grid item in a `minmax(auto, 1fr)` track, and overriding a
+    grid item's own automatic minimum to 0 (via `min-width: 0` **or**
+    `overflow` set to anything but `visible`) can let the grid's
+    fr-distribution collapse that entire column to 0px instead of just
+    letting its content shrink — confirmed live, the whole logo disappeared,
+    not just its overflow. `max-width` sidesteps this: the box constrains
+    itself directly, so the grid item's reported natural size is already
+    small and nothing upstream needs to shrink.
 - **analytics-bright-signal** — the polychrome sibling: cool bright canvas
   (`#F3F6FD`), cobalt primary (`#1B4DFF`), a hue per metric group
   (cobalt/violet/magenta) — color does the hierarchy work here instead of
