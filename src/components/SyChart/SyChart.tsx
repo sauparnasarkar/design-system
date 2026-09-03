@@ -764,7 +764,16 @@ export function SyChart({
       resizeObserver = new ResizeObserver((entries) => {
         const width = entries[0]?.contentRect.width;
         if (!width) return;
-        Plotly.relayout(el, { height: Math.max(220, width / CHOROPLETH_ASPECT_RATIO) });
+        const newHeight = Math.max(220, width / CHOROPLETH_ASPECT_RATIO);
+        Plotly.relayout(el, { height: newHeight });
+        // Plotly.relayout resizes its own internal SVG but never touches this wrapper div's
+        // own CSS height (fixed at the `height` prop's value via the JSX below) -- without
+        // this, a computed height taller than that fixed value (the common case on any
+        // reasonably wide desktop container, since this floor/ratio routinely exceeds the
+        // ~280px default) renders the map's SVG past the wrapper's own box with no clipping,
+        // bleeding into whatever content follows on the page. Confirmed live: the map
+        // overflowing into the "Select countries"/By Country section below it.
+        el.style.height = `${newHeight}px`;
       });
       resizeObserver.observe(el);
     } else if (showLegend && series.length > 3) {
@@ -786,7 +795,12 @@ export function SyChart({
         if (!width) return;
         const itemsPerRow = Math.max(1, Math.floor(width / LEGEND_ITEM_WIDTH));
         const rows = Math.ceil(series.length / itemsPerRow);
-        Plotly.relayout(el, { height: rows > 1 ? height + (rows - 1) * LEGEND_ROW_HEIGHT : height });
+        const newHeight = rows > 1 ? height + (rows - 1) * LEGEND_ROW_HEIGHT : height;
+        Plotly.relayout(el, { height: newHeight });
+        // Same wrapper-height sync gap as the choropleth branch above -- growing Plotly's own
+        // internal height for a wrapped legend without updating this div's own CSS height
+        // lets the taller plot overflow the wrapper once it exceeds the fixed `height` prop.
+        el.style.height = `${newHeight}px`;
       });
       resizeObserver.observe(el);
     }
