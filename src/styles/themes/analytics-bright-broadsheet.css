@@ -224,6 +224,10 @@
 [data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__right button {
   color: #CFCABE !important;
 }
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__left .__s9cmpx-logo__asset,
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__left .__s9cmpx-logo__asset > span {
+  color: #CFCABE !important;
+}
 
 /* Active sidebar item: solid ink fill with a vermillion left rule and white text/icon, per
    this theme's own reference mock -- all three are real component-level custom properties
