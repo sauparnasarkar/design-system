@@ -134,23 +134,30 @@ export function DataTable<Row>({
   // Only built when a caller actually wants row activation -- re-enables cell focus (off by
   // default below) and wires both the mouse and keyboard paths to the same handler, so a row
   // that opens something on click also opens on Enter/Space from a keyboard-focused cell.
+  // `onRowClicked`/`onCellKeyDown` compose with any handler the caller also passes via
+  // `gridOptions` (both fire) rather than silently overriding one another, since a plain
+  // `{...activationGridOptions, ...gridOptions}` spread would let a caller's own
+  // `gridOptions.onRowClicked` (e.g. for row-selection tracking) silently swallow activation.
   const activationGridOptions = React.useMemo<GridOptions<Row> | undefined>(() => {
     if (!onRowActivate) return undefined;
     return {
       suppressCellFocus: false,
       rowStyle: { cursor: 'pointer' },
+      ...gridOptions,
       onRowClicked: (e) => {
         if (e.data) onRowActivate(e.data);
+        gridOptions?.onRowClicked?.(e);
       },
       onCellKeyDown: (e) => {
         const keyEvent = 'event' in e ? (e.event as KeyboardEvent | undefined) : undefined;
-        if (!keyEvent || (keyEvent.key !== 'Enter' && keyEvent.key !== ' ')) return;
-        if (!e.data) return;
-        keyEvent.preventDefault();
-        onRowActivate(e.data);
+        if (keyEvent && (keyEvent.key === 'Enter' || keyEvent.key === ' ') && e.data) {
+          keyEvent.preventDefault();
+          onRowActivate(e.data);
+        }
+        gridOptions?.onCellKeyDown?.(e);
       },
     };
-  }, [onRowActivate]);
+  }, [onRowActivate, gridOptions]);
 
   return (
     <div ref={wrapperRef} className={cx('__s9cmpx-table', 'ag-theme-s9cmpx', className)} style={{ position: 'relative', height, width: '100%' }}>
@@ -168,8 +175,7 @@ export function DataTable<Row>({
         // calculations stuck at 0 even after the grid scrolls into view. This is AG
         // Grid's own documented escape hatch for that failure mode.
         suppressContentVisibilityAuto
-        {...activationGridOptions}
-        {...gridOptions}
+        {...(activationGridOptions ?? gridOptions)}
       />
       {canScrollMore && (
         <button

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { DataTable } from './DataTable';
 import { Tag } from '../Tag/Tag';
 
@@ -61,6 +61,32 @@ export const Playground: Story = {
 
 export const WithFloatingFilters: Story = {
   args: { floatingFilters: true, height: 460 },
+};
+
+export const RowActivation: Story = {
+  // Regression guard for the keyboard-accessibility gap onRowActivate fixes: a hand-rolled
+  // gridOptions.onRowClicked only ever fired from a real mouse click, so Enter/Space on a
+  // keyboard-focused cell did nothing. Verifies both the click path and the keyboard path
+  // invoke the same handler, and that cell focus (suppressed by default -- see the plain
+  // Playground story) is re-enabled only because this table opts in via onRowActivate.
+  args: { onRowActivate: fn() },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const firstCell = await waitFor(() => canvas.getAllByRole('gridcell')[0]);
+    // Rows are sorted by date desc by default, so read back whichever row landed first
+    // rather than assuming ROWS[0]'s position.
+    const expectedRow = ROWS.find((r) => r.entity === firstCell.textContent);
+    expect(expectedRow).toBeDefined();
+
+    await userEvent.click(firstCell);
+    await waitFor(() => expect(args.onRowActivate).toHaveBeenCalledTimes(1));
+    expect(args.onRowActivate).toHaveBeenCalledWith(expectedRow);
+
+    // A real click also gives the cell keyboard focus (suppressCellFocus: false) -- Enter on
+    // that now-focused cell should fire the same handler a second time.
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(args.onRowActivate).toHaveBeenCalledTimes(2));
+  },
 };
 
 export const CustomCells: Story = {
