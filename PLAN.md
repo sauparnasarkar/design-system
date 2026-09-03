@@ -919,3 +919,31 @@ Verification: `npx tsc -b` clean in both repos; the same 8-route x 2-theme (16-c
 regression sweep from the theme work above re-run clean; all four device presets re-screenshotted
 post-fix showing a single-line, ellipsis-truncated wordmark and a clearly visible white toggle
 chip; desktop (1400px) re-verified showing the full, untruncated wordmark with zero regression.
+
+## AG Grid header icons (filter/sort/menu) invisible by default under Broadsheet (2026-09-03)
+
+Found while the consumer app turned on AG Grid's default column filter (a header-icon-triggered
+popup, not the floating-filter row -- the user's own reference screenshot showed the "small ▽ icon
+next to the column label" style, which needed zero new code: `filter: true` was already
+`DataTable`'s `defaultColDef`, just never surfaced because no consumer page had a visible way to
+trigger it before). The icon rendered, at the right position, at full opacity -- but genuinely
+invisible: confirmed via an element-level 4x-scaled screenshot showing a solid dark square with no
+glyph at all, only appearing on `:hover`.
+
+**Root cause, the same class of bug as the header-text-color fix earlier in this file, but via a
+different mechanism**: `.ag-icon-filter` (and `-asc`/`-desc`/`-menu`) set their own `color`
+directly from `var(--ag-icon-font-color-filter, var(--ag-icon-font-color))` -- never `color:
+inherit` -- so the existing `.ag-header-cell { color: var(--ag-header-foreground-color) }` fix
+never reaches them. `--ag-icon-font-color` itself falls back to `--ag-foreground-color`, this
+theme's general light-surface body ink (`#16150F`) -- the exact same near-black as this theme's own
+(darkened) header background, hence genuinely 0-contrast rather than just low-contrast.
+
+**Fixed** by overriding the custom property itself (not `color` directly, which the icon classes
+would just re-override), scoped to `.ag-header-row` so only header-area icons are affected --
+confirmed the floating-filter popup panel (a separate, light-surface overlay elsewhere in the DOM)
+still resolves normal dark ink correctly, and the existing `:hover` accent-color swap is untouched
+since it's a value layered on top of this custom property, not competing with it. Verified live:
+icon color moved from `#16150F` (invisible against its own `#16150F` header) to `#CFCABE` (the
+same header-foreground token the text fix already uses); Dark (`analytics`) theme's own icon color
+measured byte-identical before and after (`rgb(232, 238, 251)` against its `rgb(18, 30, 53)`
+header -- already correct, never touched by this theme-scoped fix).
