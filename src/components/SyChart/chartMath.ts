@@ -3,6 +3,26 @@
 // plotly.js-dist-min — that module has a module-scope reference to `self` that only exists
 // in a browser, so importing anything from SyChart.tsx itself crashes under Node.
 
+import { format as d3Format } from 'd3-format';
+
+/**
+ * Formats a raw hover value using the same d3-format spec passed to `yTickFormat` (e.g.
+ * '$,.2s', '.0%') -- Plotly's own axis tick rendering already uses d3-format under the hood,
+ * so reusing the identical library/spec here is what keeps a tooltip's per-bar value in the
+ * same units as its axis, rather than a plain locale-formatted raw number (e.g. "3072973124.24"
+ * next to an axis reading "$3.0G"). Falls back to the previous plain-number formatting when no
+ * spec is given, or when the spec itself is malformed -- a bad format string should never crash
+ * a tooltip.
+ */
+export function formatChartValue(value: number, spec?: string): string {
+  if (!spec) return value.toLocaleString(undefined, { maximumFractionDigits: 3 });
+  try {
+    return d3Format(spec)(value);
+  } catch {
+    return value.toLocaleString(undefined, { maximumFractionDigits: 3 });
+  }
+}
+
 /** hex → rgba; anything else falls back to the raw color unchanged. */
 export function withAlpha(color: string, alpha: number): string {
   const m = color.match(/^#([0-9a-f]{6})/i);

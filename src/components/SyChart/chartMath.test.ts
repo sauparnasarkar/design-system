@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
+import { formatChartValue, logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
 
 describe('withAlpha', () => {
   it('converts a 6-digit hex color to rgba with the given alpha', () => {
@@ -51,6 +51,25 @@ describe('logColorbarTicks', () => {
 
   it('handles a single value (degenerate single-point span)', () => {
     expect(logColorbarTicks([42])).toEqual({ tickvals: [1, 2], ticktext: ['10', '100'] });
+  });
+});
+
+describe('formatChartValue', () => {
+  it('falls back to a plain locale-formatted number when no spec is given', () => {
+    expect(formatChartValue(3072973124.24)).toBe('3,072,973,124.24');
+  });
+
+  it('applies a dollar SI-prefix spec the same way the axis tickformat renders it', () => {
+    expect(formatChartValue(3072973124.24, '$,.2s')).toBe('$3.1G');
+    expect(formatChartValue(1415882304, '$,.2s')).toBe('$1.4G');
+  });
+
+  it('applies a percent spec', () => {
+    expect(formatChartValue(0.42, '.0%')).toBe('42%');
+  });
+
+  it('falls back to plain-number formatting for a malformed spec instead of throwing', () => {
+    expect(formatChartValue(1234.5, 'not-a-real-spec')).toBe('1,234.5');
   });
 });
 

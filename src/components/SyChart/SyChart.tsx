@@ -7,7 +7,7 @@ import Plotly from 'plotly.js-dist-min';
 // file is type-checked from a consuming project via a path-mapped alias).
 import type { Color, Data, Layout, PlotData, PlotMarker } from 'plotly.js';
 import { cx } from '../../lib/cx';
-import { logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
+import { formatChartValue, logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
 
 // `PlotData.type: PlotType` already covers every trace kind this component emits (bar/scatter/
 // choropleth/treemap), so a single `Partial<PlotData>` element type is enough -- no need for a
@@ -694,11 +694,21 @@ export function SyChart({
         tooltip.replaceChildren();
         const header = document.createElement('div');
         header.style.cssText = 'font-weight:600;margin-bottom:4px;';
-        header.textContent = String(event.points[0].x);
+        // In horizontal mode the trace itself swaps x/y (categories on y, values on x -- see
+        // the trace-construction code below), so the category/value split has to swap here
+        // too. Without this, a horizontal chart's header showed the raw numeric value (e.g.
+        // "3072973124.24") and each row showed the category name where the value belongs --
+        // confirmed live on the Top Portfolios chart.
+        const categoryPoint = orientation === 'h' ? event.points[0].y : event.points[0].x;
+        header.textContent = String(categoryPoint);
         tooltip.appendChild(header);
         for (const p of event.points) {
           const color = p.fullData?.line?.color ?? p.fullData?.marker?.color ?? cssVar(el, '--__s9cmpx-static-text-weak', '#757575');
-          const val = typeof p.y === 'number' ? p.y.toLocaleString(undefined, { maximumFractionDigits: 3 }) : String(p.y);
+          const rawValue = orientation === 'h' ? p.x : p.y;
+          // formatChartValue applies the same d3-format spec as yTickFormat (the axis itself),
+          // so a bar's hover value reads in the same units as its axis instead of a raw,
+          // unformatted number.
+          const val = typeof rawValue === 'number' ? formatChartValue(rawValue, yTickFormat) : String(rawValue);
           const row = document.createElement('div');
           row.style.cssText = 'display:flex;align-items:center;gap:6px;white-space:nowrap;';
           const swatch = document.createElement('span');
