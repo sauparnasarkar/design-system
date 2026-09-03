@@ -1,0 +1,262 @@
+/*
+ * Analytics Bright / Broadsheet theme  —  [data-theme="analytics-bright-broadsheet"]
+ * Light counterpart to the `analytics` theme: warm paper canvas (#F4F2ED),
+ * white surfaces with ink hairlines, near-black ink hierarchy, and a single
+ * hot accent (vermillion #D8361B) carrying every interactive/active state.
+ * Chart panels stay DARK (#171614) so the vivid categorical series keep the
+ * luminance separation they were validated for — the one deliberate
+ * light/dark split in this theme.
+ *
+ * Drop-in sibling of themes/analytics.css: same override surface, scoped to
+ * [data-theme="analytics-bright-broadsheet"], so both can coexist and be toggled.
+ *
+ * Contrast: all ink-on-surface pairs meet WCAG AA at body size
+ * (#3A3733 on #FFFFFF = 10.1:1, #6E6A62 on #FFFFFF = 5.2:1,
+ *  #16150F on #F4F2ED = 15.4:1). Sentiment keeps the conventional
+ * red = decline / green = gain reading; the categorical series palette stays
+ * out of the red and green hue bands so no series can be misread as sentiment.
+ */
+[data-theme="analytics-bright-broadsheet"] {
+  /* Brand ramp — vermillion.
+     NOTE: 100/200 are intentionally NOT ramp steps. SyChart reads
+     --__s9cmpx-color-brand-100/200 as gridline/zeroline colors, and this
+     theme's chart panels are dark (see the .js-plotly-plot block below), so
+     these two steps carry on-dark hairline values instead. Same hijack, and
+     same reason, as themes/analytics.css. Use 50/300+ for brand tints. */
+  --__s9cmpx-color-brand-50: #FDF0EC;
+  --__s9cmpx-color-brand-100: #2C2A26; /* chart gridline (on-dark) */
+  --__s9cmpx-color-brand-200: #3A3733; /* chart zeroline (on-dark) */
+  --__s9cmpx-color-brand-300: #F6CFC6;
+  --__s9cmpx-color-brand-400: #E4634A;
+  --__s9cmpx-color-brand-500: #D8361B;
+  --__s9cmpx-color-brand-600: #B82B12;
+  --__s9cmpx-color-brand-700: #96220C;
+  --__s9cmpx-color-brand-800: #741A08;
+  --__s9cmpx-color-brand-900: #521205;
+  --__s9cmpx-color-brand-1000: #300A02;
+
+  /* Surfaces: paper canvas / cards+inputs / recessed */
+  --__s9cmpx-static-background-weak: #F4F2ED;
+  --__s9cmpx-static-background-standard: #FFFFFF;
+  --__s9cmpx-static-background-strong: #EDEAE1;
+  --__s9cmpx-static-surface-weak: #F4F2ED;
+  --__s9cmpx-static-surface-standard: #FFFFFF;
+  --__s9cmpx-static-surface-strong: #EDEAE1;
+  --__s9cmpx-static-layer-standard: #FFFFFF; /* menus, popovers, toasts */
+
+  /* Inverse surfaces are the ink blacks (header bar, table header, tags) */
+  --__s9cmpx-static-background-inverse-weak: #3A3733;
+  --__s9cmpx-static-background-inverse-standard: #16150F;
+  --__s9cmpx-static-background-inverse-strong: #000000;
+
+  /* Ink */
+  --__s9cmpx-static-text-strong: #16150F;
+  --__s9cmpx-static-text-standard: #3A3733;
+  --__s9cmpx-static-text-weak: #6E6A62;
+  --__s9cmpx-static-text-inverse-strong: #FFFFFF;
+  --__s9cmpx-static-text-inverse-standard: #EDEAE1;
+  --__s9cmpx-static-text-inverse-weak: #CFCABE;
+
+  /* Hairlines & dividers */
+  --__s9cmpx-static-divider-weak: #EDEAE1;
+  --__s9cmpx-static-divider-standard: #D9D4C8;
+  --__s9cmpx-static-divider-strong: #C9C3B6;
+  --__s9cmpx-static-divider-inverse-weak: #FFFFFF29;
+  --__s9cmpx-static-divider-inverse-standard: #FFFFFF3D;
+  --__s9cmpx-static-divider-inverse-strong: #FFFFFF5C;
+
+  /* Sentiment tints (tags, alerts, TrendCell fills) — light washes… */
+  --__s9cmpx-static-background-sentiment-info: #E8EEFB;
+  --__s9cmpx-static-background-sentiment-negative: #FBE4DF;
+  --__s9cmpx-static-background-sentiment-neutral: #EFEDE7;
+  --__s9cmpx-static-background-sentiment-notice: #FBF3D9;
+  --__s9cmpx-static-background-sentiment-positive: #E4F1EA;
+  /* …with dark ink on top */
+  --__s9cmpx-static-text-sentiment-info: #1B3FCF;
+  --__s9cmpx-static-text-sentiment-negative: #A82A12;
+  --__s9cmpx-static-text-sentiment-neutral: #4A463F;
+  --__s9cmpx-static-text-sentiment-notice: #8A6410;
+  --__s9cmpx-static-text-sentiment-positive: #14653F;
+  --__s9cmpx-static-text-sentiment-standard-info: #1B3FCF;
+  --__s9cmpx-static-text-sentiment-standard-negative: #A82A12;
+  --__s9cmpx-static-text-sentiment-standard-neutral: #6E6A62;
+  --__s9cmpx-static-text-sentiment-standard-notice: #8A6410;
+  --__s9cmpx-static-text-sentiment-standard-positive: #14653F;
+  --__s9cmpx-static-outline-sentiment-info: #1B3FCF;
+  --__s9cmpx-static-outline-sentiment-negative: #C0392B;
+  --__s9cmpx-static-outline-sentiment-neutral: #C9C3B6;
+  --__s9cmpx-static-outline-sentiment-notice: #E8B317;
+  --__s9cmpx-static-outline-sentiment-positive: #1E7A4C;
+  --__s9cmpx-interactive-fill-sentiment-info: #1B3FCF29;
+  --__s9cmpx-interactive-fill-sentiment-negative: #C0392B29;
+  --__s9cmpx-interactive-fill-sentiment-neutral: #6E6A6229;
+  --__s9cmpx-interactive-fill-sentiment-notice: #E8B31747;
+  --__s9cmpx-interactive-fill-sentiment-positive: #1E7A4C29;
+
+  /* Primary interactive — vermillion */
+  --__s9cmpx-interactive-fill-primary-default: #D8361B;
+  --__s9cmpx-interactive-fill-primary-hover: #B82B12;
+  --__s9cmpx-interactive-fill-primary-pressed: #96220C;
+  --__s9cmpx-interactive-fill-primary-disabled: #D8361B26;
+  --__s9cmpx-interactive-fill-primary-onprimary: #FFFFFF;
+  --__s9cmpx-interactive-fill-primary-onprimarydisabled: #C79385;
+
+  /* Secondary (solid) buttons are ink */
+  --__s9cmpx-interactive-fill-secondary-default: #16150F;
+  --__s9cmpx-interactive-fill-secondary-hover: #2C2A26;
+  --__s9cmpx-interactive-fill-secondary-pressed: #3A3733;
+  --__s9cmpx-interactive-fill-secondary-disabled: #16150F1F;
+  --__s9cmpx-interactive-fill-secondary-onsecondary: #FFFFFF;
+  --__s9cmpx-interactive-fill-secondary-onsecondarydisabled: #8B857A;
+
+  /* Tertiary/ghost fills: ink-alpha */
+  --__s9cmpx-interactive-fill-tertiary-default: #16150F0A;
+  --__s9cmpx-interactive-fill-tertiary-hover: #16150F14;
+  --__s9cmpx-interactive-fill-tertiary-pressed: #16150F1F;
+  --__s9cmpx-interactive-fill-tertiary-disabled: #16150F08;
+  --__s9cmpx-interactive-fill-tertiary-ontertiary: #16150F;
+  --__s9cmpx-interactive-fill-tertiary-ontertiarydisabled: #8B857A;
+
+  /* Links */
+  --__s9cmpx-interactive-fill-link-default: #1B3FCF;
+  --__s9cmpx-interactive-fill-link-hover: #D8361B;
+  --__s9cmpx-interactive-fill-link-pressed: #96220C;
+  --__s9cmpx-interactive-fill-link-disabled: #6E6A627A;
+
+  /* Outlines: ink-alpha ladder; "selected" is solid vermillion (tab
+     underline, selected segmented-control border) */
+  --__s9cmpx-interactive-outline-primary-default: #16150F3D;
+  --__s9cmpx-interactive-outline-primary-hover: #16150F5C;
+  --__s9cmpx-interactive-outline-primary-pressed: #16150F7A;
+  --__s9cmpx-interactive-outline-primary-disabled: #16150F1F;
+  --__s9cmpx-interactive-outline-primary-selected-default: #D8361B;
+  --__s9cmpx-interactive-outline-primary-selected-hover: #B82B12;
+  --__s9cmpx-interactive-outline-primary-selected-pressed: #96220C;
+  --__s9cmpx-interactive-outline-secondary-default: #D9D4C8;
+  --__s9cmpx-interactive-outline-secondary-hover: #C9C3B6;
+  --__s9cmpx-interactive-outline-secondary-pressed: #B4AD9E;
+  --__s9cmpx-interactive-outline-secondary-disabled: #EDEAE1;
+  --__s9cmpx-interactive-outline-secondary-selected-default: #16150F;
+  --__s9cmpx-interactive-outline-secondary-selected-hover: #2C2A26;
+  --__s9cmpx-interactive-outline-secondary-selected-pressed: #3A3733;
+  --__s9cmpx-interactive-outline-focus: #D8361B;
+
+  /* Hover/selection overlays */
+  --__s9cmpx-interactive-overlay-primary-default: #16150F00;
+  --__s9cmpx-interactive-overlay-primary-hover: #16150F0A;
+  --__s9cmpx-interactive-overlay-primary-pressed: #16150F14;
+  --__s9cmpx-interactive-overlay-primary-selected-default: #FBE4DF;
+  --__s9cmpx-interactive-overlay-primary-selected-hover: #F6CFC6;
+  --__s9cmpx-interactive-overlay-primary-selected-pressed: #F0BCAF;
+  --__s9cmpx-interactive-overlay-secondary-default: #16150F00;
+  --__s9cmpx-interactive-overlay-secondary-hover: #16150F0A;
+  --__s9cmpx-interactive-overlay-secondary-pressed: #16150F14;
+  --__s9cmpx-interactive-overlay-secondary-selected-default: #EDEAE1;
+  --__s9cmpx-interactive-overlay-secondary-selected-hover: #E2DED3;
+  --__s9cmpx-interactive-overlay-secondary-selected-pressed: #D9D4C8;
+
+  --__s9cmpx-button-primary-default-background: #D8361B;
+  --__s9cmpx-button-primary-default-border: #D8361B;
+  --__s9cmpx-button-primary-default-label: #FFFFFF;
+  --__s9cmpx-button-primary-hover-background: #B82B12;
+  --__s9cmpx-button-primary-hover-border: #B82B12;
+  --__s9cmpx-button-primary-hover-label: #FFFFFF;
+  --__s9cmpx-button-primary-focused-background: #D8361B;
+  --__s9cmpx-button-primary-focused-border: #D8361B3D;
+  --__s9cmpx-button-primary-focused-label: #FFFFFF;
+  --__s9cmpx-button-primary-pressed-background: #96220C;
+  --__s9cmpx-button-primary-pressed-border: #96220C;
+  --__s9cmpx-button-primary-pressed-label: #FFFFFF;
+
+  /* Chart panel surface — consumed by the .js-plotly-plot rule below and
+     available to any app that wants to paint its own chart wrapper. */
+  --__s9cmpx-chart-surface: #171614;
+  --__s9cmpx-chart-surface-text-weak: #CFCABE;
+
+  /* Series palette, validated on the #171614 panel. Ordered brightest-first
+     (by relative luminance) so the first-assigned series in any chart reads
+     most prominent. Every hue sits outside the red and green bands used by
+     sentiment (green = gain, red = decline), so a categorical series can
+     never be misread as a signed value. */
+  --__s9cmpx-chart-categorical-default-01: #FFB020;
+  --__s9cmpx-chart-categorical-default-02: #4C9AFF;
+  --__s9cmpx-chart-categorical-default-03: #35D0DE;
+  --__s9cmpx-chart-categorical-default-04: #C79BFF;
+  --__s9cmpx-chart-categorical-default-05: #FF7A5C;
+  --__s9cmpx-chart-categorical-default-06: #F5F2EA;
+  --__s9cmpx-chart-categorical-default-07: #FFD98A;
+  --__s9cmpx-chart-categorical-default-08: #8FC4FF;
+  --__s9cmpx-chart-categorical-default-09: #E86FD0;
+}
+
+/* Same reasoning as themes/analytics.css: the vendor reset's
+   `body{color:#4a4a4a}` and `html{background-color:#fff}` are what any
+   element without its own rule inherits, so set both on the theme root —
+   a consuming app needs no extra canvas wiring of its own. */
+[data-theme="analytics-bright-broadsheet"] {
+  color: var(--__s9cmpx-static-text-standard);
+  background-color: var(--__s9cmpx-static-background-weak);
+}
+[data-theme="analytics-bright-broadsheet"] strong {
+  color: var(--__s9cmpx-static-text-strong);
+}
+
+/* SidebarNav's icon wrapper and menu toggle have no color rule of their own
+   (see the analytics theme's note) — inherit this theme's ink explicitly. */
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-sidebar-nav__sidebar {
+  color: var(--__s9cmpx-static-text-strong);
+}
+
+/* Chart panels. SyChart sets paper_bgcolor/plot_bgcolor transparent, so the
+   plot inherits its container; painting the Plotly root gives every chart the
+   dark panel without touching Card or ChartCard. Plotly writes tick/legend
+   colors as inline SVG attributes from --__s9cmpx-static-text-weak (a
+   light-theme grey), so they are re-pointed here to the on-dark ink —
+   !important is required to beat Plotly's own inline attributes. */
+[data-theme="analytics-bright-broadsheet"] .js-plotly-plot {
+  background: var(--__s9cmpx-chart-surface);
+  border-radius: 2px;
+  padding: 8px 4px;
+  box-sizing: border-box;
+}
+[data-theme="analytics-bright-broadsheet"] .js-plotly-plot .xtick text,
+[data-theme="analytics-bright-broadsheet"] .js-plotly-plot .ytick text,
+[data-theme="analytics-bright-broadsheet"] .js-plotly-plot .legendtext,
+[data-theme="analytics-bright-broadsheet"] .js-plotly-plot .xtitle,
+[data-theme="analytics-bright-broadsheet"] .js-plotly-plot .ytitle,
+[data-theme="analytics-bright-broadsheet"] .js-plotly-plot .gtitle {
+  fill: var(--__s9cmpx-chart-surface-text-weak) !important;
+}
+
+/* AG Grid (ag-theme-s9cmpx hardcodes light values, so override --ag-* here).
+   Header rows go ink so the table reads as a masthead, not another grey band. */
+[data-theme="analytics-bright-broadsheet"] .ag-theme-s9cmpx {
+  --ag-alpine-active-color: #D8361B;
+  --ag-background-color: #FFFFFF;
+  --ag-foreground-color: #16150F;
+  --ag-secondary-foreground-color: #3A3733;
+  --ag-data-color: #16150F;
+  --ag-header-background-color: #16150F;
+  --ag-header-foreground-color: #CFCABE;
+  --ag-odd-row-background-color: #FAF9F5;
+  --ag-border-color: #D9D4C8;
+  --ag-secondary-border-color: #EDEAE1;
+  --ag-row-border-color: #EDEAE1;
+  --ag-row-hover-color: #D8361B0F;
+  --ag-column-hover-color: #D8361B0F;
+  --ag-selected-row-background-color: #D8361B24;
+  --ag-range-selection-background-color: #D8361B1F;
+  --ag-control-panel-background-color: #F4F2ED;
+  --ag-subheader-background-color: #FFFFFF;
+  --ag-panel-background-color: #FFFFFF;
+  --ag-menu-background-color: #FFFFFF;
+  --ag-tooltip-background-color: #16150F;
+  --ag-disabled-foreground-color: #16150F80;
+  --ag-chip-background-color: #16150F12;
+  --ag-checkbox-unchecked-color: #8B857A;
+  --ag-input-border-color: #C9C3B6;
+  --ag-input-focus-border-color: #D8361B66;
+  --ag-input-disabled-border-color: #EDEAE1;
+  --ag-input-disabled-background-color: #F4F2ED;
+  --ag-card-shadow: 0 1px 4px 1px rgba(22, 21, 15, 0.12);
+}
