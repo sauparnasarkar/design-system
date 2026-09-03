@@ -270,3 +270,15 @@
   --ag-input-disabled-background-color: #F3F6FD;
   --ag-card-shadow: 0 2px 8px 0 rgba(11, 18, 32, 0.10);
 }
+
+/* Same vendor gap as analytics-bright-broadsheet.css's identical rule: the vendor CSS wires
+   header cell TEXT color to --__s9cmpx-static-text-standard (this theme's general
+   light-surface body ink, #47536B) at higher specificity than --ag-header-foreground-color,
+   so the cobalt (#1B4DFF) intended above is otherwise silently dead. This theme's header
+   background (#EAF0FF, pale cobalt) is light enough that the un-reasserted body ink stays
+   legible on it -- unlike Broadsheet's dark header, this doesn't produce an illegible result
+   without the fix, only the wrong (grey instead of cobalt) label color. Reasserted anyway for
+   correctness and to keep both bright themes consistent. */
+[data-theme="analytics-bright-signal"] .ag-theme-s9cmpx .ag-header-cell {
+  color: var(--ag-header-foreground-color);
+}

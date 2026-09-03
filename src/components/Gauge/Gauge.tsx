@@ -58,7 +58,19 @@ export function Gauge({ value, min = 0, max = 100, suffix = '', color, height = 
     const fill = color ?? cssVar(el, '--__s9cmpx-chart-categorical-default-01', '#7accf5');
     const font = {
       family: cssVar(el, '--__s9cmpx-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
-      color: cssVar(el, '--__s9cmpx-static-text-standard', '#494949'),
+      // The gauge's own indicator track (bgcolor below) reads --__s9cmpx-color-brand-100,
+      // which every theme with a dark chart panel hijacks to an on-dark value (see
+      // SyChart.tsx's identical hijack/comment) -- so this number/tick text sits on that
+      // dark track, not on the surrounding card's normal surface. --static-text-standard
+      // (this theme's general light-surface body ink) was previously used here regardless,
+      // which happened to still read correctly under `analytics` (its whole canvas, gauge
+      // track included, is already dark, so static-text-standard is already a pale ink) but
+      // produced near-invisible dark-on-dark text under `analytics-bright-broadsheet`
+      // (confirmed live: 1.5:1 contrast) -- that theme's gauge track is dark while its
+      // general body ink is meant for the surrounding light card instead. Falls back to the
+      // same literal default as before for every theme that has no dark gauge track at all
+      // (default/green/blue), where brand-100 stays a normal light tint.
+      color: cssVar(el, '--__s9cmpx-chart-surface-text-weak', '#494949'),
     };
     const data: IndicatorTrace[] = [
       {
