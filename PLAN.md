@@ -881,3 +881,41 @@ of all 8 consumer routes x both theme states (16 combinations) showed zero conso
 rendered color/contrast, not just the CSS source. The Dark (`analytics`) theme was re-screenshotted
 throughout to confirm every fix here stayed scoped to `analytics-bright-broadsheet` and caused zero
 regression to the theme this session had already shipped and verified live multiple times before.
+
+## Mobile/tablet audit of the India Allocation Monitor: 2 real High findings, both fixed (2026-09-03)
+
+An `accessibility-pwa-mobile-audit` pass against the same consumer app found two real, live-
+confirmed Mobile & Tablet bugs (plus separate Accessibility and PWA findings the user asked to
+defer) via Playwright's real device emulation (`devices['iPhone 14 Pro']`, `iPad Mini`, `Pixel 7`,
+`Galaxy Tab S4`) rather than a resized desktop window -- both fixed here, in this repo.
+
+**1. `SidebarNav`'s mobile "Open menu" toggle was invisible under Broadsheet (1.00:1 contrast).**
+Root cause and fix: see the new `DESIGN.md` §2 Broadsheet bullet -- the button's background
+token collided with this theme's own (recently darkened) header background. Fixed by routing
+`SidebarNav.tsx`'s toggle through new `--__s9cmpx-c-sidebar-mobile-toggle-background/border/
+icon-color` tokens (fallback to the original inverse tokens, so `green`/`blue`/`analytics` are
+byte-identical to before -- confirmed live, `analytics`'s own contrast measured 9.98:1 both
+before and after this change), with Broadsheet overriding them to a white chip. Re-measured live:
+18.29:1 in Broadsheet, unchanged 9.98:1 in `analytics`.
+
+**2. The consumer's "India Allocation Monitor" wordmark wrapped to 3 lines and overflowed
+`.__s9cmpx-header`'s fixed `height: 56px`** on every device <=768px wide -- confirmed identical on
+phones (iPhone 14 Pro 393px, Pixel 7 412px) AND tablet portrait (Galaxy Tab S4 712px, iPad Mini
+768px -- `SidebarNav`'s own mobile breakpoint is `max-width: 768px`, so iPad Mini portrait lands
+exactly on it and gets the same broken header a phone does). Fixed entirely in the consumer app
+(`App.tsx`'s `logo` prop content) -- see that repo's own notes for the exact styling. Real,
+reusable lesson recorded in `DESIGN.md` §2 for the next long-wordmark consumer: the obvious fix
+(`min-width: 0` down the flex/grid chain so the text can shrink) is a trap specific to this
+header's layout -- `.__s9cmpx-header__left` is a CSS Grid item in a `minmax(auto, 1fr)` track, and
+zeroing a grid item's own automatic minimum (via `min-width: 0` OR non-`visible` `overflow`) can
+let the grid's fr-distribution algorithm collapse the entire column to 0px rather than just
+shrinking its content -- confirmed live, the whole logo (not just the overflow) disappeared on the
+first attempt. `max-width` on the truncating text itself, with no `min-width`/`overflow` touched
+anywhere in `Header.tsx`, sidesteps the collapse entirely: the box constrains its own rendered
+size directly, so the grid item's reported natural size is already small and nothing upstream
+needs to shrink to accommodate it. `Header.tsx` itself needed no code change in the end.
+
+Verification: `npx tsc -b` clean in both repos; the same 8-route x 2-theme (16-combination)
+regression sweep from the theme work above re-run clean; all four device presets re-screenshotted
+post-fix showing a single-line, ellipsis-truncated wordmark and a clearly visible white toggle
+chip; desktop (1400px) re-verified showing the full, untruncated wordmark with zero regression.

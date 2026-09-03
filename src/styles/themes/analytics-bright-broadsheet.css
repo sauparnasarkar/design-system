@@ -268,6 +268,22 @@
   color: #FFFFFF;
 }
 
+/* Mobile nav "Open menu" toggle: SidebarNav.tsx reads --__s9cmpx-c-sidebar-mobile-toggle-*
+   with a fallback to --static-background-inverse-standard, which is this theme's own ink
+   black (#16150F) -- the SAME value this theme's own header background resolves to (see the
+   header override above). Confirmed live: 1.00:1 contrast, the button invisible except for
+   its icon glyph and drop-shadow. This theme's overall canvas is light, so a white chip
+   (mirroring the KPI cards that already float on this same dark masthead) reads as an
+   obviously tappable surface rather than trying to out-dark an already-dark header. No
+   fallback risk for other themes -- these tokens don't exist anywhere in vendor CSS, so
+   nothing else re-declares them at a closer ancestor the way the sidebar-active tokens above
+   needed a workaround for. */
+[data-theme="analytics-bright-broadsheet"] {
+  --__s9cmpx-c-sidebar-mobile-toggle-background-color: #FFFFFF;
+  --__s9cmpx-c-sidebar-mobile-toggle-border-color: #D9D4C8;
+  --__s9cmpx-c-sidebar-mobile-toggle-icon-color: #16150F;
+}
+
 /* Chart panels. SyChart sets paper_bgcolor/plot_bgcolor transparent, so the
    plot inherits its container; painting the Plotly root gives every chart the
    dark panel without touching Card or ChartCard. Plotly writes tick/legend

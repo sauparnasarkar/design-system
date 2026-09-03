@@ -212,12 +212,22 @@ export function SidebarNav({
               // reliable discoverability signal for a primary nav control, especially on
               // touch devices with no hover state. The "inverse" background/text pairing is
               // the token set each theme documents for exactly this "flip to a contrasting
-              // surface" chip/toast/tooltip use case, and computes to ~13.6:1 (base theme)
-              // and ~10:1 (analytics theme) against the header — comfortably clears WCAG.
-              background: 'var(--__s9cmpx-static-background-inverse-standard)',
-              border: '1px solid var(--__s9cmpx-static-divider-inverse-standard, rgba(31,31,31,0.24))',
+              // surface" chip/toast/tooltip use case, and computed to ~13.6:1 (base theme)
+              // and ~10:1 (analytics theme) against each theme's header AT THE TIME THIS WAS
+              // WRITTEN. Routed through dedicated --c-sidebar-mobile-toggle-* tokens (falling
+              // back to the same inverse tokens above, so behavior is unchanged for every
+              // theme that doesn't override them) because that assumption doesn't hold in
+              // general: confirmed live, analytics-bright-broadsheet later darkened its own
+              // header to the SAME value its inverse-standard token already resolves to,
+              // making this button disappear (1.00:1) without this token ever changing --
+              // the header simply moved to match it. A theme that puts a dark, ink-toned
+              // header behind this button needs to be able to override just this control
+              // without touching --static-background-inverse-standard's other, unrelated
+              // consumers (tooltips, toasts).
+              background: 'var(--__s9cmpx-c-sidebar-mobile-toggle-background-color, var(--__s9cmpx-static-background-inverse-standard))',
+              border: '1px solid var(--__s9cmpx-c-sidebar-mobile-toggle-border-color, var(--__s9cmpx-static-divider-inverse-standard, rgba(31,31,31,0.24)))',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-              color: 'var(--__s9cmpx-static-text-inverse-strong)',
+              color: 'var(--__s9cmpx-c-sidebar-mobile-toggle-icon-color, var(--__s9cmpx-static-text-inverse-strong))',
               cursor: 'pointer',
             }}
           >
