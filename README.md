@@ -17,6 +17,15 @@ Switch themes with the **Theme** dropdown in the Storybook toolbar:
 - **Analytics theme** — dark data-viz look (`[data-theme="analytics"]`,
   SciChart-inspired): deep navy canvas, cyan accent, and its own vivid
   chart palette validated for the dark surface
+- **Analytics Bright — Broadsheet** — light counterpart to Analytics
+  (`[data-theme="analytics-bright-broadsheet"]`): warm paper canvas, near-black
+  ink hierarchy, one vermillion accent, square geometry; chart panels stay
+  dark so the vivid categorical palette keeps its validated luminance
+  separation
+- **Analytics Bright — Signal** — the polychrome sibling
+  (`[data-theme="analytics-bright-signal"]`): cool bright canvas, cobalt
+  primary, a hue per metric group (cobalt/violet/magenta), rounded geometry;
+  same dark-chart-panel split as Broadsheet
 
 ## Architecture
 

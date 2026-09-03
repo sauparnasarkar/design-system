@@ -8,6 +8,8 @@ import '../src/styles/overrides.css';
 import '../src/styles/themes/green.css';
 import '../src/styles/themes/blue.css';
 import '../src/styles/themes/analytics.css';
+import '../src/styles/themes/analytics-bright-broadsheet.css';
+import '../src/styles/themes/analytics-bright-signal.css';
 
 const preview: Preview = {
   globalTypes: {
@@ -21,6 +23,8 @@ const preview: Preview = {
           { value: 'green', title: 'Green theme' },
           { value: 'blue', title: 'Blue theme' },
           { value: 'analytics', title: 'Analytics theme' },
+          { value: 'analytics-bright-broadsheet', title: 'Analytics Bright — Broadsheet' },
+          { value: 'analytics-bright-signal', title: 'Analytics Bright — Signal' },
         ],
         dynamicTitle: true,
       },

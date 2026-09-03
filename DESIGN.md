@@ -89,6 +89,41 @@ Current themes:
   instead of per component — if a new component looks unreadable only under
   this theme, check whether it sets its own `color` before assuming the
   theme is incomplete again.
+- **analytics-bright-broadsheet** — light counterpart to `analytics`: warm
+  paper canvas (`#F4F2ED`), near-black ink hierarchy, one hot accent
+  (vermillion `#D8361B`), square geometry. Hierarchy comes from type size
+  and rules, not color everywhere. Like `analytics`, this is a full-coverage
+  theme (brand ramp through AG Grid tokens), not the minimal `green.css`
+  template. One deliberate exception it and `analytics-bright-signal` share:
+  chart panels stay **dark** (`--__s9cmpx-chart-surface: #171614`) inside an
+  otherwise-light shell, so the existing vivid categorical series keeps the
+  luminance separation it was validated for. `analytics.css` has no
+  `.js-plotly-plot` rule to mirror here — its own canvas is already dark
+  everywhere, so Plotly's transparent `paper_bgcolor`/`plot_bgcolor` never
+  needed a separate panel-painting rule. Both bright themes add one:
+  `.js-plotly-plot { background: var(--__s9cmpx-chart-surface) }`, plus a
+  `fill: ... !important` override on Plotly's inline-SVG tick/legend/axis
+  colors (`--__s9cmpx-static-text-weak` is a light-theme grey Plotly writes
+  directly as an SVG attribute, unreachable by a normal CSS override).
+  `--__s9cmpx-color-brand-100`/`-200` are hijacked as on-dark chart
+  gridline/zeroline values rather than ramp steps — same technique
+  `analytics.css` already uses, for the same reason; use `brand-50` or
+  `brand-300`+ for actual brand tints.
+- **analytics-bright-signal** — the polychrome sibling: cool bright canvas
+  (`#F3F6FD`), cobalt primary (`#1B4DFF`), a hue per metric group
+  (cobalt/violet/magenta) — color does the hierarchy work here instead of
+  type size. Same dark-chart-panel split and `brand-100`/`-200` hijack as
+  Broadsheet above. Two things it needs that Broadsheet doesn't: two
+  non-semantic accent tokens, `--__s9cmpx-accent-secondary` (violet
+  `#7A3CFF`) and `--__s9cmpx-accent-tertiary` (magenta `#E0219A`) — "a hue
+  per metric group" is this theme's whole idea and the semantic layer has no
+  token for it, so consumers apply these directly (`KpiStat` accent rules,
+  nav-item icons, a second/third categorical dimension); and four remapped
+  base radius steps, `--__s9cmpx-border-radius-2/3/4/6` → 4/6/8/10px, since
+  rounder geometry is part of its character — the step *names* no longer
+  match their pixel values after this, though the order stays monotonic
+  (which is what components actually rely on). Reserved for a future
+  consumer as of this writing; not yet adopted by any app.
 
 To add a theme: create `src/styles/themes/<name>.css` following the
 green.css pattern, import it in `.storybook/preview.tsx`, and register it

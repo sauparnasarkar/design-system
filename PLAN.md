@@ -777,3 +777,60 @@ only applied if it's still the most recent request. Also added an explicit
 "← Back to search results" button on the selected-issuer view (clears the
 same ref) -- previously the only way back to the results list was to retype
 the search box, which worked but wasn't discoverable.
+
+## Two new light themes: Analytics Bright — Broadsheet + Signal (2026-09-03)
+
+External design handoff (Claude Design), delivered as a bundle with two production-shaped CSS
+files, an HTML mock, PNG screenshots, and a README -- reviewed and adopted essentially as-is,
+not rewritten. **Broadsheet** (`analytics-bright-broadsheet.css`): warm paper canvas (`#F4F2ED`),
+near-black ink hierarchy, one hot vermillion accent (`#D8361B`), square geometry -- hierarchy
+comes from type size and rules, not color everywhere. **Signal** (`analytics-bright-signal.css`):
+cool bright canvas (`#F3F6FD`), cobalt primary (`#1B4DFF`), a hue per metric group
+(cobalt/violet/magenta), rounded geometry -- color does the hierarchy work instead. Both are
+light counterparts to `analytics`; both are full-coverage themes like it (brand ramp through AG
+Grid tokens), not the minimal `green.css`/`blue.css` ~30-token template.
+
+**The one deliberate light/dark split, in both**: chart panels stay dark
+(`--__s9cmpx-chart-surface`, `#171614` Broadsheet / `#0C1226` Signal) inside an otherwise-light
+shell, so the existing vivid categorical series keeps the luminance separation it was validated
+for. This needed a rule `analytics.css` never had to write: `.js-plotly-plot { background:
+var(--__s9cmpx-chart-surface) }`, plus `fill: ... !important` on Plotly's inline-SVG
+tick/legend/axis colors (Plotly writes these directly as SVG attributes sourced from
+`--__s9cmpx-static-text-weak`, a light-theme grey here, which a normal CSS rule can't reach --
+confirmed by grep that `analytics.css` has zero `.js-plotly-plot` matches, because its own canvas
+is already dark everywhere so Plotly's transparent `paper_bgcolor`/`plot_bgcolor` was already
+correct with no extra rule). The handoff's README claimed both new files are "drop-in siblings
+of `analytics.css`" using "the same override surface" -- true for every other category (surfaces,
+ink, dividers, sentiment, interactive states, buttons, chart categorical palette, sidebar-nav ink,
+AG Grid tokens), false only for this one selector, which is genuinely new. Not a defect in the
+handoff, just an imprecise claim; the CSS files' own header comments already explain it correctly.
+
+**`--__s9cmpx-color-brand-100`/`-200` hijacked as on-dark gridline/zeroline values** in both
+themes (same technique `analytics.css` already documents, same reason: `SyChart` reads these two
+specifically as chart gridline/zeroline colors, and a dark chart panel needs on-dark hairline
+values there instead of a brand tint). Use `brand-50` or `brand-300`+ for actual brand color in
+either theme.
+
+**Signal-only additions, both documented as review items in the handoff and kept as-is**: two
+non-semantic accent tokens, `--__s9cmpx-accent-secondary` (violet `#7A3CFF`) and
+`--__s9cmpx-accent-tertiary` (magenta `#E0219A`) -- "a hue per metric group" is this theme's whole
+idea and the semantic token layer has no name for it, so these ship as plain named custom
+properties for consumers to apply directly (`KpiStat` accent rules, nav-item icons, a
+second/third categorical dimension). And four remapped base radius steps,
+`--__s9cmpx-border-radius-2/3/4/6` → 4/6/8/10px, since rounder geometry is part of Signal's
+character -- the step *names* no longer match their pixel values after this, though the order
+stays monotonic, which is what components actually rely on.
+
+Registered both in `.storybook/preview.tsx` (imports + `globalTypes.theme.toolbar.items`) and
+documented in `README.md`'s theme list and `DESIGN.md` §2, following the existing `analytics`
+entry's own style (inline gotcha documentation, not a separate doc). Verified: `npm test`
+(Storybook's `a11y.test: 'error'` runs axe on every story, including both new themes') passes;
+eyeballed both themes across `Templates/ClimateDashboard`, `Shell/AppShell`, `DataTable`,
+`SyChart` (all kinds incl. treemap/choropleth), `KpiStat`, `Tag`, `InlineAlert`, `Tabs`, `Select`,
+`TableFilter`, `Score`, `Gauge` in the Storybook toolbar.
+
+**Only Broadsheet ships to a real app so far** -- adopted in
+`us_fund_family_india_allocation_monitor/fund-allocation-dashboard-react` (separate PR, same
+session) as a user-selectable alternative to the existing dark `analytics` theme, switchable at
+runtime and persisted in `localStorage`. Signal is not yet adopted by any consumer, per explicit
+user decision -- it exists here as a ready asset for a future app.

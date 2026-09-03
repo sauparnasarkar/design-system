@@ -1,0 +1,272 @@
+/*
+ * Analytics Bright / Signal theme  —  [data-theme="analytics-bright-signal"]
+ * The polychrome sibling of analytics-bright-broadsheet.css. Cool bright canvas
+ * (#F3F6FD), white cards with soft blue hairlines, cobalt primary (#1B4DFF), and a
+ * hue per metric group (cobalt / violet / magenta) so colour — not type size — does
+ * the hierarchy work. Chart panels stay DARK (#0C1226), same rationale as the
+ * Broadsheet theme: the vivid categorical series need the luminance separation.
+ *
+ * Same override surface as themes/analytics.css, scoped to
+ * [data-theme="analytics-bright-signal"], so every theme can coexist and be toggled.
+ *
+ * Contrast: #47536B on #FFFFFF = 7.7:1, #6B7891 on #FFFFFF = 4.8:1,
+ * #0B1220 on #F3F6FD = 16.8:1, #1B4DFF on #FFFFFF = 5.4:1 — all AA at body size.
+ * Sentiment keeps the conventional red = decline / green = gain reading, and no
+ * categorical series sits in the red or green hue band.
+ */
+[data-theme="analytics-bright-signal"] {
+  /* Brand ramp — cobalt.
+     NOTE: as in every theme here, 100/200 are NOT ramp steps. SyChart reads
+     --__s9cmpx-color-brand-100 as gridline and --__s9cmpx-color-brand-200 as
+     zeroline; this theme's chart panels are dark, so those two carry on-dark
+     hairline values. Use 50/300+ for brand tints. */
+  --__s9cmpx-color-brand-50: #EAF0FF;
+  --__s9cmpx-color-brand-100: #1E2A4A; /* chart gridline (on-dark) */
+  --__s9cmpx-color-brand-200: #2A3A63; /* chart zeroline (on-dark) */
+  --__s9cmpx-color-brand-300: #A8BEFF;
+  --__s9cmpx-color-brand-400: #5B84FF;
+  --__s9cmpx-color-brand-500: #1B4DFF;
+  --__s9cmpx-color-brand-600: #1540DB;
+  --__s9cmpx-color-brand-700: #0F32B0;
+  --__s9cmpx-color-brand-800: #0B2E9E;
+  --__s9cmpx-color-brand-900: #08215F;
+  --__s9cmpx-color-brand-1000: #05163F;
+
+  /* Surfaces */
+  --__s9cmpx-static-background-weak: #F3F6FD;
+  --__s9cmpx-static-background-standard: #FFFFFF;
+  --__s9cmpx-static-background-strong: #EAF0FF;
+  --__s9cmpx-static-surface-weak: #F3F6FD;
+  --__s9cmpx-static-surface-standard: #FFFFFF;
+  --__s9cmpx-static-surface-strong: #EAF0FF;
+  --__s9cmpx-static-layer-standard: #FFFFFF;
+
+  /* Inverse surfaces are the deep navy-blacks */
+  --__s9cmpx-static-background-inverse-weak: #27324D;
+  --__s9cmpx-static-background-inverse-standard: #0B1220;
+  --__s9cmpx-static-background-inverse-strong: #05070F;
+
+  /* Ink */
+  --__s9cmpx-static-text-strong: #0B1220;
+  --__s9cmpx-static-text-standard: #47536B;
+  --__s9cmpx-static-text-weak: #6B7891;
+  --__s9cmpx-static-text-inverse-strong: #FFFFFF;
+  --__s9cmpx-static-text-inverse-standard: #EAF0FF;
+  --__s9cmpx-static-text-inverse-weak: #A9B6D6;
+
+  /* Hairlines & dividers */
+  --__s9cmpx-static-divider-weak: #EEF2FB;
+  --__s9cmpx-static-divider-standard: #DCE4F5;
+  --__s9cmpx-static-divider-strong: #C4D2EE;
+  --__s9cmpx-static-divider-inverse-weak: #FFFFFF29;
+  --__s9cmpx-static-divider-inverse-standard: #FFFFFF3D;
+  --__s9cmpx-static-divider-inverse-strong: #FFFFFF5C;
+
+  /* Sentiment tints */
+  --__s9cmpx-static-background-sentiment-info: #EAF0FF;
+  --__s9cmpx-static-background-sentiment-negative: #FDE7E9;
+  --__s9cmpx-static-background-sentiment-neutral: #EEF2FB;
+  --__s9cmpx-static-background-sentiment-notice: #FFF6E6;
+  --__s9cmpx-static-background-sentiment-positive: #E4F6EC;
+  --__s9cmpx-static-text-sentiment-info: #1B4DFF;
+  --__s9cmpx-static-text-sentiment-negative: #B3261E;
+  --__s9cmpx-static-text-sentiment-neutral: #47536B;
+  --__s9cmpx-static-text-sentiment-notice: #8A5A00;
+  --__s9cmpx-static-text-sentiment-positive: #0F7A47;
+  --__s9cmpx-static-text-sentiment-standard-info: #1B4DFF;
+  --__s9cmpx-static-text-sentiment-standard-negative: #B3261E;
+  --__s9cmpx-static-text-sentiment-standard-neutral: #6B7891;
+  --__s9cmpx-static-text-sentiment-standard-notice: #8A5A00;
+  --__s9cmpx-static-text-sentiment-standard-positive: #0F7A47;
+  --__s9cmpx-static-outline-sentiment-info: #1B4DFF;
+  --__s9cmpx-static-outline-sentiment-negative: #D0392F;
+  --__s9cmpx-static-outline-sentiment-neutral: #C4D2EE;
+  --__s9cmpx-static-outline-sentiment-notice: #FF9E1B;
+  --__s9cmpx-static-outline-sentiment-positive: #129455;
+  --__s9cmpx-interactive-fill-sentiment-info: #1B4DFF29;
+  --__s9cmpx-interactive-fill-sentiment-negative: #D0392F29;
+  --__s9cmpx-interactive-fill-sentiment-neutral: #6B789129;
+  --__s9cmpx-interactive-fill-sentiment-notice: #FF9E1B47;
+  --__s9cmpx-interactive-fill-sentiment-positive: #12945529;
+
+  /* Primary interactive — cobalt */
+  --__s9cmpx-interactive-fill-primary-default: #1B4DFF;
+  --__s9cmpx-interactive-fill-primary-hover: #1540DB;
+  --__s9cmpx-interactive-fill-primary-pressed: #0F32B0;
+  --__s9cmpx-interactive-fill-primary-disabled: #1B4DFF26;
+  --__s9cmpx-interactive-fill-primary-onprimary: #FFFFFF;
+  --__s9cmpx-interactive-fill-primary-onprimarydisabled: #8FA3D9;
+
+  /* Secondary (solid) buttons are deep navy */
+  --__s9cmpx-interactive-fill-secondary-default: #0B1220;
+  --__s9cmpx-interactive-fill-secondary-hover: #1B2540;
+  --__s9cmpx-interactive-fill-secondary-pressed: #27324D;
+  --__s9cmpx-interactive-fill-secondary-disabled: #0B12201F;
+  --__s9cmpx-interactive-fill-secondary-onsecondary: #FFFFFF;
+  --__s9cmpx-interactive-fill-secondary-onsecondarydisabled: #8A97AC;
+
+  /* Tertiary/ghost fills: cobalt-alpha, so ghost buttons read as part of the accent */
+  --__s9cmpx-interactive-fill-tertiary-default: #1B4DFF0A;
+  --__s9cmpx-interactive-fill-tertiary-hover: #1B4DFF14;
+  --__s9cmpx-interactive-fill-tertiary-pressed: #1B4DFF24;
+  --__s9cmpx-interactive-fill-tertiary-disabled: #0B122008;
+  --__s9cmpx-interactive-fill-tertiary-ontertiary: #1B4DFF;
+  --__s9cmpx-interactive-fill-tertiary-ontertiarydisabled: #8A97AC;
+
+  /* Links */
+  --__s9cmpx-interactive-fill-link-default: #1B4DFF;
+  --__s9cmpx-interactive-fill-link-hover: #E0219A;
+  --__s9cmpx-interactive-fill-link-pressed: #0F32B0;
+  --__s9cmpx-interactive-fill-link-disabled: #8A97ACB3;
+
+  /* Outlines */
+  --__s9cmpx-interactive-outline-primary-default: #0B12203D;
+  --__s9cmpx-interactive-outline-primary-hover: #0B12205C;
+  --__s9cmpx-interactive-outline-primary-pressed: #0B12207A;
+  --__s9cmpx-interactive-outline-primary-disabled: #0B12201F;
+  --__s9cmpx-interactive-outline-primary-selected-default: #1B4DFF;
+  --__s9cmpx-interactive-outline-primary-selected-hover: #1540DB;
+  --__s9cmpx-interactive-outline-primary-selected-pressed: #0F32B0;
+  --__s9cmpx-interactive-outline-secondary-default: #DCE4F5;
+  --__s9cmpx-interactive-outline-secondary-hover: #C4D2EE;
+  --__s9cmpx-interactive-outline-secondary-pressed: #A8BEFF;
+  --__s9cmpx-interactive-outline-secondary-disabled: #EEF2FB;
+  --__s9cmpx-interactive-outline-secondary-selected-default: #1B4DFF;
+  --__s9cmpx-interactive-outline-secondary-selected-hover: #1540DB;
+  --__s9cmpx-interactive-outline-secondary-selected-pressed: #0F32B0;
+  --__s9cmpx-interactive-outline-focus: #1B4DFF;
+
+  /* Hover/selection overlays */
+  --__s9cmpx-interactive-overlay-primary-default: #1B4DFF00;
+  --__s9cmpx-interactive-overlay-primary-hover: #1B4DFF0F;
+  --__s9cmpx-interactive-overlay-primary-pressed: #1B4DFF1F;
+  --__s9cmpx-interactive-overlay-primary-selected-default: #EAF0FF;
+  --__s9cmpx-interactive-overlay-primary-selected-hover: #DCE7FF;
+  --__s9cmpx-interactive-overlay-primary-selected-pressed: #C9D9FF;
+  --__s9cmpx-interactive-overlay-secondary-default: #1B4DFF00;
+  --__s9cmpx-interactive-overlay-secondary-hover: #1B4DFF0F;
+  --__s9cmpx-interactive-overlay-secondary-pressed: #1B4DFF1F;
+  --__s9cmpx-interactive-overlay-secondary-selected-default: #EEF2FB;
+  --__s9cmpx-interactive-overlay-secondary-selected-hover: #E3EAF8;
+  --__s9cmpx-interactive-overlay-secondary-selected-pressed: #DCE4F5;
+
+  --__s9cmpx-button-primary-default-background: #1B4DFF;
+  --__s9cmpx-button-primary-default-border: #1B4DFF;
+  --__s9cmpx-button-primary-default-label: #FFFFFF;
+  --__s9cmpx-button-primary-hover-background: #1540DB;
+  --__s9cmpx-button-primary-hover-border: #1540DB;
+  --__s9cmpx-button-primary-hover-label: #FFFFFF;
+  --__s9cmpx-button-primary-focused-background: #1B4DFF;
+  --__s9cmpx-button-primary-focused-border: #1B4DFF3D;
+  --__s9cmpx-button-primary-focused-label: #FFFFFF;
+  --__s9cmpx-button-primary-pressed-background: #0F32B0;
+  --__s9cmpx-button-primary-pressed-border: #0F32B0;
+  --__s9cmpx-button-primary-pressed-label: #FFFFFF;
+
+  /* Secondary and tertiary accents. There is no semantic token for "a hue per
+     metric group", which is this theme's whole idea, so they are published as
+     two named custom properties. Consumers apply them to KpiStat accent rules,
+     nav-item icons, and any second/third categorical dimension:
+       border-top: 4px solid var(--__s9cmpx-accent-secondary)
+     Both are AA on white as text (#7A3CFF = 5.9:1, #E0219A = 4.6:1). */
+  --__s9cmpx-accent-secondary: #7A3CFF; /* violet */
+  --__s9cmpx-accent-tertiary: #E0219A;  /* magenta */
+
+  /* Chart panel surface */
+  --__s9cmpx-chart-surface: #0C1226;
+  --__s9cmpx-chart-surface-text-weak: #A9B6D6;
+
+  /* Series palette, validated on the #0C1226 panel, brightest-first, and clear
+     of the red/green sentiment bands. */
+  --__s9cmpx-chart-categorical-default-01: #58A6FF;
+  --__s9cmpx-chart-categorical-default-02: #FFB84D;
+  --__s9cmpx-chart-categorical-default-03: #35E0D0;
+  --__s9cmpx-chart-categorical-default-04: #C08CFF;
+  --__s9cmpx-chart-categorical-default-05: #FF6FA8;
+  --__s9cmpx-chart-categorical-default-06: #EAF0FF;
+  --__s9cmpx-chart-categorical-default-07: #9AD1FF;
+  --__s9cmpx-chart-categorical-default-08: #FFD08A;
+  --__s9cmpx-chart-categorical-default-09: #7FF0E4;
+
+  /* Rounder geometry is part of this theme's character (10px cards, 8px
+     controls, pill chips) against the Broadsheet theme's 0–2px.
+     CAUTION: these are the base scale steps, named after their default pixel
+     values, so overriding them makes the NAMES inaccurate everywhere — the
+     step order stays monotonic, which is what components rely on. If that
+     trade is unacceptable, drop this block and override the per-component
+     radius tokens instead (--__s9cmpx-card-card-header-border-radius,
+     --__s9cmpx-left-nav-main-menu-item-border-radius, and siblings). */
+  --__s9cmpx-border-radius-2: 4px;
+  --__s9cmpx-border-radius-3: 6px;
+  --__s9cmpx-border-radius-4: 8px;
+  --__s9cmpx-border-radius-6: 10px;
+}
+
+/* Same reasoning as themes/analytics.css: the vendor reset's
+   `body{color:#4a4a4a}` and `html{background-color:#fff}` are what any element
+   without its own rule inherits, so set both on the theme root. */
+[data-theme="analytics-bright-signal"] {
+  color: var(--__s9cmpx-static-text-standard);
+  background-color: var(--__s9cmpx-static-background-weak);
+}
+[data-theme="analytics-bright-signal"] strong {
+  color: var(--__s9cmpx-static-text-strong);
+}
+[data-theme="analytics-bright-signal"] .__s9cmpx-sidebar-nav__sidebar {
+  color: var(--__s9cmpx-static-text-strong);
+}
+
+/* Chart panels. SyChart sets paper_bgcolor/plot_bgcolor transparent, so the plot
+   inherits its container; painting the Plotly root gives every chart the dark
+   panel without touching Card or ChartCard. Plotly writes tick/legend colours as
+   inline SVG attributes from --__s9cmpx-static-text-weak (a light-theme grey), so
+   they are re-pointed here — !important is required to beat those inline
+   attributes and must not be removed. */
+[data-theme="analytics-bright-signal"] .js-plotly-plot {
+  background: var(--__s9cmpx-chart-surface);
+  border-radius: 8px;
+  padding: 8px 4px;
+  box-sizing: border-box;
+}
+[data-theme="analytics-bright-signal"] .js-plotly-plot .xtick text,
+[data-theme="analytics-bright-signal"] .js-plotly-plot .ytick text,
+[data-theme="analytics-bright-signal"] .js-plotly-plot .legendtext,
+[data-theme="analytics-bright-signal"] .js-plotly-plot .xtitle,
+[data-theme="analytics-bright-signal"] .js-plotly-plot .ytitle,
+[data-theme="analytics-bright-signal"] .js-plotly-plot .gtitle {
+  fill: var(--__s9cmpx-chart-surface-text-weak) !important;
+}
+
+/* AG Grid (ag-theme-s9cmpx hardcodes light values, so override --ag-* here).
+   Header rows go pale cobalt with cobalt labels — the table reads as part of the
+   accent system rather than as a grey band. */
+[data-theme="analytics-bright-signal"] .ag-theme-s9cmpx {
+  --ag-alpine-active-color: #1B4DFF;
+  --ag-background-color: #FFFFFF;
+  --ag-foreground-color: #0B1220;
+  --ag-secondary-foreground-color: #47536B;
+  --ag-data-color: #0B1220;
+  --ag-header-background-color: #EAF0FF;
+  --ag-header-foreground-color: #1B4DFF;
+  --ag-odd-row-background-color: #FAFCFF;
+  --ag-border-color: #DCE4F5;
+  --ag-secondary-border-color: #EEF2FB;
+  --ag-row-border-color: #EEF2FB;
+  --ag-row-hover-color: #1B4DFF0F;
+  --ag-column-hover-color: #1B4DFF0F;
+  --ag-selected-row-background-color: #1B4DFF24;
+  --ag-range-selection-background-color: #1B4DFF1F;
+  --ag-control-panel-background-color: #F3F6FD;
+  --ag-subheader-background-color: #FFFFFF;
+  --ag-panel-background-color: #FFFFFF;
+  --ag-menu-background-color: #FFFFFF;
+  --ag-tooltip-background-color: #0B1220;
+  --ag-disabled-foreground-color: #0B122080;
+  --ag-chip-background-color: #1B4DFF14;
+  --ag-checkbox-unchecked-color: #8A97AC;
+  --ag-input-border-color: #C4D2EE;
+  --ag-input-focus-border-color: #1B4DFF66;
+  --ag-input-disabled-border-color: #EEF2FB;
+  --ag-input-disabled-background-color: #F3F6FD;
+  --ag-card-shadow: 0 2px 8px 0 rgba(11, 18, 32, 0.10);
+}
