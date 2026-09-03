@@ -946,3 +946,28 @@ icon color moved from `#16150F` (invisible against its own `#16150F` header) to 
 same header-foreground token the text fix already uses); Dark (`analytics`) theme's own icon color
 measured byte-identical before/after (`rgb(232, 238, 251)` against its `rgb(18, 30, 53)` header --
 already correct, never touched by this theme-scoped fix).
+
+## DataTable: keyboard-accessible row activation (2026-09-03)
+
+Fixed the second remaining Accessibility finding from the same audit: every consumer table
+wired with `gridOptions.onRowClicked` (there are several across the India Allocation Monitor --
+FamilyRollupPage, FundScreenerPage, FundDetailPage, IssuerScreenerPage) fires row navigation
+only on a real mouse click. Confirmed live before this fix: focusing a grid cell by keyboard and
+pressing Enter did nothing -- a genuine, structural gap, not a one-off oversight, since
+`DataTable` sets `suppressCellFocus` unconditionally (AG Grid: cells aren't even keyboard-
+focusable at all), a deliberate choice for the majority of `DataTable` usages that have no
+per-row action and shouldn't burn a Tab stop per cell.
+
+**Added a new `onRowActivate?: (data: Row) => void` prop** rather than asking every consumer to
+hand-roll the same fix: when provided, it re-enables cell focus for that one table
+(`suppressCellFocus: false`) and wires both `onRowClicked` (mouse) and `onCellKeyDown` (Enter/
+Space on a focused cell) to the same handler, plus defaults `rowStyle` to a pointer cursor. Every
+other `DataTable` usage in every other app is untouched -- `suppressCellFocus` stays the default
+for any table that doesn't opt in. Migrated all four call sites in the consumer app from
+`gridOptions={{ onRowClicked, rowStyle }}` to the new prop (that repo's own PR has the diff).
+
+Verified live: keyboard-only Tab navigation reaches a grid cell (confirmed via real `Tab` key
+presses, not a programmatic `.focus()` shortcut) and Enter fires the same navigation a mouse
+click does; a table with no `onRowActivate` (e.g. Taxonomy Drill-Down) still correctly refuses
+`.focus()` on its cells, confirming zero regression to the "don't Tab-trap a read-only table"
+behavior every other consumer relies on.

@@ -268,6 +268,19 @@ DataTable, its theming works differently from the rest of the system —
 check both the AG Grid theme class and the vendor `.__s9cmpx-table .ag-*`
 rules, not just one.
 
+`suppressCellFocus` is set unconditionally (AG Grid: no keyboard navigation
+into cells at all) — deliberate, not an oversight: Tab-stopping through
+every cell of a purely-informational table is worse for keyboard/screen-
+reader users than skipping the table's internals entirely, and most
+`DataTable` usages across every consumer app have no per-row action at all.
+**If a consumer wires a row to navigate or open something on click, use the
+`onRowActivate` prop instead of a hand-rolled `gridOptions.onRowClicked`** —
+a mouse-only `onRowClicked` is a real, confirmed keyboard-accessibility gap
+(verified live in an audit: Enter on a keyboard-focused cell did nothing).
+`onRowActivate` re-enables cell focus for that one table and wires both the
+click and Enter/Space-on-a-focused-cell paths to the same handler, so the
+row-level action is reachable either way.
+
 ## 5. Component catalog (65)
 
 Grouped by function. All are exported from `src/index.ts`; `(logic-tested)`
