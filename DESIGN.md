@@ -109,6 +109,54 @@ Current themes:
   gridline/zeroline values rather than ramp steps — same technique
   `analytics.css` already uses, for the same reason; use `brand-50` or
   `brand-300`+ for actual brand tints.
+
+  Several real gotchas surfaced live adopting this theme in a consumer app,
+  worth knowing before the next bright theme hits the same ones:
+  - **AG Grid header text was unreadable.** `.__s9cmpx-table .ag-header-cell`
+    sets header text color straight to `--__s9cmpx-c-table-label-cell-text-
+    color-default` (general body ink) at higher specificity than `.ag-header-
+    row`'s own `color: var(--ag-header-foreground-color)` — so `--ag-header-
+    foreground-color` never reaches the actual label text in ANY theme, just
+    invisibly so wherever body ink and header ink happen to be similarly
+    pale. This theme's dark header + light body ink made it visible first,
+    but it's latent everywhere — fixed here (and mirrored in
+    `analytics-bright-signal.css`) by reasserting `.ag-theme-s9cmpx .ag-
+    header-cell { color: var(--ag-header-foreground-color) }` at that same
+    specificity.
+  - **`Gauge`'s value/tick text sat on its own dark indicator track**, not
+    the surrounding (light) card — it previously read `--static-text-
+    standard` (this theme's light-surface body ink) regardless, producing
+    ~1.5:1 contrast. Fixed in `Gauge.tsx` by reading a new
+    `--__s9cmpx-chart-surface-text-weak` token instead (also added to
+    `analytics.css`, same value as its existing on-dark ink, so the default
+    theme's own already-dark gauge track is unaffected).
+  - **Root-level custom-property overrides can be silently shadowed by a
+    closer vendor re-declaration.** `--__s9cmpx-c-sidebar-sidebar-item-
+    button-background-color-active` (and its text/icon siblings) look like
+    plain theme tokens, but vendor CSS re-declares the exact same properties
+    directly on `[class*="__s9cmpx-sidebar-nav"]` — a descendant of wherever
+    `data-theme` lives. CSS custom-property cascade resolves per element, so
+    that nearer vendor declaration wins over a value set only at the theme
+    root, no matter how specific the root selector is. The fix has to target
+    the same (or a more specific) selector the vendor rule uses, not just
+    "the theme root" — confirmed by first shipping the root-scoped version,
+    seeing it silently do nothing live, then re-scoping to `[data-theme=...]
+    [class*="__s9cmpx-sidebar-nav"]`.
+  - **The active sidebar item's icon stayed dark-on-dark even after that
+    fix**, because vendor CSS only recolors it via a `--active>svg` *direct
+    child* selector — the real DOM nests the icon inside an intermediate
+    `.__s9cmpx-sidebar-nav__sidebar-item-icon` wrapper span, so that rule
+    never matches at all (inactive icons just inherit the theme's own body
+    ink instead, which happens to look correct at rest, masking the gap).
+    Fixed with an explicit descendant-selector override on the icon wrapper
+    for the active state only.
+  - **`KpiStat`'s compact BI-tile typography** (`__s9cmpx-headline4` value,
+    plain-case `__s9cmpx-label3` label — a deliberate dense default for other
+    consumers, see that component's own docstring) doesn't match this
+    theme's own masthead-style KPI cards (large bold value, uppercase
+    tracked label). Rather than changing the shared component's default,
+    this theme scopes a typography override to `.__s9cmpx-kpi-stat`
+    specifically, leaving `KpiStat` usage elsewhere unaffected.
 - **analytics-bright-signal** — the polychrome sibling: cool bright canvas
   (`#F3F6FD`), cobalt primary (`#1B4DFF`), a hue per metric group
   (cobalt/violet/magenta) — color does the hierarchy work here instead of

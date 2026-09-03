@@ -834,3 +834,50 @@ eyeballed both themes across `Templates/ClimateDashboard`, `Shell/AppShell`, `Da
 session) as a user-selectable alternative to the existing dark `analytics` theme, switchable at
 runtime and persisted in `localStorage`. Signal is not yet adopted by any consumer, per explicit
 user decision -- it exists here as a ready asset for a future app.
+
+## Broadsheet live bug-fix pass, against the real consumer app (2026-09-03)
+
+Adopting Broadsheet in the India Allocation Monitor surfaced six real, live-confirmed visual bugs
+via the user's own pixel/contrast comparison against the original Claude Design mockup
+screenshots -- every single report led to a genuine root cause, none were false alarms. Full
+detail (including the exact CSS/selectors) lives in `DESIGN.md` §2's Broadsheet entry; summarized
+here:
+
+1. **Page-title heading class didn't exist.** Every page's `<h1>` used `__s9cmpx-h4`, a class
+   with zero matches anywhere in vendor CSS -- confirmed via grep, a latent bug predating this
+   theme, just invisible under the old dark theme's own header treatment. Fixed in the consumer
+   app: all 9 usages renamed to the real `__s9cmpx-headline2` (2rem/600).
+2. **AG Grid header text ~1.5:1 contrast** -- a vendor CSS specificity conflict
+   (`.__s9cmpx-table .ag-header-cell` beats `.ag-header-row`'s own color rule), latent in every
+   theme, just visible here first. Fixed with a scoped, higher-specificity reassertion in both
+   `analytics-bright-broadsheet.css` and `analytics-bright-signal.css`.
+3. **`Gauge`'s value text sat on its own dark indicator track**, inheriting light-surface body ink
+   meant for the surrounding card instead -- ~1.5:1 contrast, confirmed with a hand-written WCAG
+   contrast calculator before touching code. Fixed via a new `--__s9cmpx-chart-surface-text-weak`
+   token (`Gauge.tsx` + `analytics.css`, the latter needing the token added since it never had one).
+4. **Header bar and active sidebar item weren't dark per the mock.** The header fix was a plain
+   cascade override (`--__s9cmpx-c-header-background-color` on `.__s9cmpx-header` directly, plus
+   `!important` on `Header.tsx`'s inline-styled icon buttons). The sidebar fix needed two more
+   rounds after the first "obvious" version silently did nothing live: (a) the active-item
+   background/text/icon custom properties are re-declared by vendor CSS directly on
+   `[class*="__s9cmpx-sidebar-nav"]`, a descendant of the theme root -- a root-scoped override
+   gets shadowed by that nearer declaration regardless of specificity, so the fix had to target
+   the same descendant scope; (b) the active item's icon still stayed dark-on-dark after that,
+   because vendor CSS only recolors it via a `--active>svg` direct-child selector that never
+   matches the real DOM (the icon sits inside an intermediate wrapper span) -- fixed with an
+   explicit descendant-selector override on the wrapper, active state only.
+5. **Overview page's KPI cards, tabs didn't match the mock's editorial/masthead feel.** `Tabs` was
+   using its default `primary` (segmented pill-button) variant; switched to `variant="tertiary"`
+   in `FamilyRollupPage.tsx` -- an existing vendor variant that already renders as an underline
+   tab reading `--__s9cmpx-c-tabs-tertiary-*` tokens (which resolve to this theme's own vermillion
+   accent + ink), no new CSS needed. `KpiStat`'s compact BI-tile typography (small plain-case
+   label, `headline4` value) is a deliberate default for other consumers, so rather than changing
+   the shared component, this theme scopes a `.__s9cmpx-kpi-stat`-only override: uppercase +
+   letter-spaced label, `headline1`-sized bold value.
+
+Verification: `npx tsc -b` clean in both this repo and the consumer app; a live Playwright sweep
+of all 8 consumer routes x both theme states (16 combinations) showed zero console errors and zero
+`RouteErrorBoundary` fallbacks; live `getComputedStyle` checks confirmed each fix's actual
+rendered color/contrast, not just the CSS source. The Dark (`analytics`) theme was re-screenshotted
+throughout to confirm every fix here stayed scoped to `analytics-bright-broadsheet` and caused zero
+regression to the theme this session had already shipped and verified live multiple times before.

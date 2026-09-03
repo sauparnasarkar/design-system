@@ -207,6 +207,67 @@
   color: var(--__s9cmpx-static-text-strong);
 }
 
+/* Header masthead: ink bar with a vermillion rule, per this theme's own reference mock.
+   --__s9cmpx-c-header-background-color is a real CSS custom property (the vendor CSS's
+   `.__s9cmpx-header` reads it via var()), so overriding it here is a normal cascade
+   override -- no !important needed. Header.tsx's logo button and its three right-side icon
+   buttons (bell/app-switcher/user) are a different story: they set `color` as an INLINE
+   style reading --__s9cmpx-static-text-standard/-strong directly (this theme's light-surface
+   body ink), which is exactly wrong once the header itself is dark -- inline styles beat any
+   plain CSS class rule, so !important is required here the same way the .js-plotly-plot
+   tick-color rule below already needs it for Plotly's own inline SVG attributes. */
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header {
+  --__s9cmpx-c-header-background-color: #16150F;
+  border-bottom: 3px solid #D8361B;
+}
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__left button,
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__right button {
+  color: #CFCABE !important;
+}
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__left .__s9cmpx-logo__asset,
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__left .__s9cmpx-logo__asset > span {
+  color: #CFCABE !important;
+}
+
+/* Active sidebar item: solid ink fill with a vermillion left rule and white text/icon, per
+   this theme's own reference mock -- all three are real component-level custom properties
+   (--__s9cmpx-c-sidebar-sidebar-item-button-*), so plain cascade overrides, no !important.
+   Without these, the active item fell back to --static-background-strong (a pale warm-gray
+   tint meant for a LIGHT active state, e.g. a selected table row) with --static-text-strong
+   (near-black) on top -- legible on its own, but a much lower-contrast "selected" cue than
+   this theme's own masthead-style hierarchy calls for, and visibly different from the mock.
+
+   Confirmed live this DIDN'T take effect when first written scoped to just
+   `[data-theme="..."]`: the vendor CSS's own `[class*="__s9cmpx-sidebar-nav"]` rule
+   RE-DECLARES this same custom property (to --static-background-strong) directly on the
+   sidebar-nav container itself, a descendant of the theme root. Custom-property cascade
+   resolves per-element -- a value re-declared at a nearer ancestor of the consuming element
+   wins over one set further up the tree, regardless of which theme wrapper "intends" to own
+   it. Scoping this override to the same `[class*="__s9cmpx-sidebar-nav"]` target (nested one
+   level deeper than the vendor's own bare attribute selector, so it wins on specificity too,
+   not just by matching the same element) fixes it for real. */
+[data-theme="analytics-bright-broadsheet"] [class*="__s9cmpx-sidebar-nav"] {
+  --__s9cmpx-c-sidebar-sidebar-item-button-background-color-active: #16150F;
+  --__s9cmpx-c-sidebar-sidebar-item-button-text-color-active: #FFFFFF;
+  --__s9cmpx-c-sidebar-sidebar-item-icon-color-active: #FFFFFF;
+}
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-sidebar-nav__sidebar-item-button--active {
+  border-left: 3px solid #D8361B;
+}
+
+/* The active item's icon stayed dark-on-dark even with the icon-color-active token set above:
+   confirmed live, vendor CSS only ever recolors the icon via a `--active>svg` DIRECT CHILD
+   selector, but the real DOM nests the svg one level deeper, inside a
+   `.__s9cmpx-sidebar-nav__sidebar-item-icon` wrapper span -- so that rule never matches at all,
+   active or not, and every icon (including inactive ones) instead just inherits this theme's
+   own dark body ink from the `.__s9cmpx-sidebar-nav__sidebar` color rule above. That's the
+   correct look for inactive items (dark icon on this theme's light sidebar), but wrong for the
+   active item once its own background goes dark. Re-asserted here as a descendant selector
+   matching the real markup, active state only. */
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-sidebar-nav__sidebar-item-button--active .__s9cmpx-sidebar-nav__sidebar-item-icon {
+  color: #FFFFFF;
+}
+
 /* Chart panels. SyChart sets paper_bgcolor/plot_bgcolor transparent, so the
    plot inherits its container; painting the Plotly root gives every chart the
    dark panel without touching Card or ChartCard. Plotly writes tick/legend
@@ -259,4 +320,46 @@
   --ag-input-disabled-border-color: #EDEAE1;
   --ag-input-disabled-background-color: #F4F2ED;
   --ag-card-shadow: 0 1px 4px 1px rgba(22, 21, 15, 0.12);
+}
+
+/* The vendor CSS's own `.__s9cmpx-table .ag-header-cell` rule sets header cell TEXT color
+   directly to `--__s9cmpx-c-table-label-cell-text-color-default` (which resolves to
+   `--__s9cmpx-static-text-standard`, this theme's general light-surface body ink) at higher
+   specificity than `.ag-header-row`'s own `color: var(--ag-header-foreground-color)` --
+   meaning the `--ag-header-foreground-color` set above is silently never applied to the
+   actual header label text. Invisible in every theme that shipped before this one only
+   because their general body ink and their intended header-foreground color both happened to
+   be similarly pale (e.g. `analytics.css`: body ink `#d7e0f0` vs. intended header foreground
+   `#8fa2c4` -- different shades, but both legible on that theme's dark header). This theme's
+   header background is deliberately much darker than its light-surface body ink
+   (`#16150F` vs. `#3A3733`), so the same latent gap produces near-invisible header text
+   (confirmed live: 1.5:1 contrast, ~1/7th of the 11.2:1 the token values above already
+   specify) -- not a new bug this theme introduces, just the first theme whose contrast
+   between "page ink" and "intended header ink" is large enough to make it visible. Reasserted
+   at the specificity the vendor rule requires. */
+[data-theme="analytics-bright-broadsheet"] .ag-theme-s9cmpx .ag-header-cell {
+  color: var(--ag-header-foreground-color);
+}
+
+/* KpiStat.tsx fixes its value at `__s9cmpx-headline4` (1.25rem/600 -- a deliberate compact
+   choice for dense BI-dashboard grids, see that component's own docstring) and never applies
+   its label's own `text-case` design token at all -- confirmed live, `.__s9cmpx-label3`'s
+   vendor CSS rule sets font-family/size/weight/letter-spacing/line-height/text-decoration but
+   never `text-transform`, so `--__s9cmpx-web-label-3-text-case` is pure metadata no component
+   reads. The Broadsheet mock's own KPI tiles use a much larger, bolder value (matching
+   `headline1`, 2.5rem/600) and an uppercase, letter-spaced label -- a deliberate editorial/
+   masthead treatment for this theme's Overview cards, not appropriate to bake into the shared
+   component (other consumers rely on the compact default). Scoped to this theme's KPI tiles
+   only, so `green`/`blue`/`analytics` and any other Broadsheet page's non-KPI `__s9cmpx-label3`/
+   `__s9cmpx-headline4` usages (e.g. table captions) are unaffected. */
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-kpi-stat .__s9cmpx-label3 {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+}
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-kpi-stat .__s9cmpx-headline4 {
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--__s9cmpx-static-text-strong);
 }

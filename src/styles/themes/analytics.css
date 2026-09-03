@@ -159,6 +159,15 @@
   --__s9cmpx-button-primary-pressed-border: #1f7590;
   --__s9cmpx-button-primary-pressed-label: #ffffff;
 
+  /* Published for Gauge.tsx (and anything else that needs on-dark-panel ink explicitly) --
+     this theme's whole canvas is already dark, so this is the same value as
+     --__s9cmpx-static-text-standard above; kept as its own token anyway so components read
+     one consistent name across every theme that has a dark chart/gauge panel, rather than
+     Gauge needing theme-specific knowledge of which token happens to be safe here. See the
+     analytics-bright-broadsheet/-signal themes for the case where this genuinely differs
+     from static-text-standard (their canvas is light, only the chart panel is dark). */
+  --__s9cmpx-chart-surface-text-weak: #d7e0f0;
+
   /* Series palette, validated on the #1e2f52 surface. Ordered brightest-first (by relative
      luminance) so the first-assigned series in any chart are automatically most prominent --
      mean luminance 0.529, mean contrast 7.31:1 vs. this surface (previous ramp: 0.253 / 3.83:1;
