@@ -375,6 +375,30 @@
   --ag-icon-font-color: var(--ag-header-foreground-color);
 }
 
+/* The vendor CSS hardcodes `.ag-header-row { font-size: 12px }` for every theme, while row/cell
+   text resolves to `calc(var(--ag-font-size) + 1px)` (14px, since this theme never overrides the
+   13px vendor default `--ag-font-size`) -- a real, confirmed 12px-vs-14px mismatch against the
+   Broadsheet mock, which sets header and row text at the same size (the masthead treatment here
+   comes from weight/case, not a smaller point size). `font-weight: 600` from the vendor rule is
+   left as-is -- that bold treatment already matches the mock. */
+[data-theme="analytics-bright-broadsheet"] .ag-theme-s9cmpx .ag-header-row {
+  font-size: calc(var(--ag-font-size) + 1px);
+}
+
+/* The vendor CSS's own `.__s9cmpx-table__row--default-appearance.ag-row` rule (applied to every
+   row, odd and even alike, whenever DataTable's `striped` prop is true -- the default) paints an
+   identical flat background from `--__s9cmpx-c-table-cell-background-color-default` at higher
+   specificity (3 classes) than AG Grid's own native alternating-row rule, `.ag-row-odd {
+   background-color: var(--ag-odd-row-background-color) }` (1 class) -- silently defeating it
+   regardless of theme. This theme already defines `--ag-odd-row-background-color` (#FAF9F5)
+   genuinely different from `--ag-background-color` (#FFFFFF) above, so it clearly intends visible
+   zebra striping, matching the Broadsheet mock's alternating row bands -- it's just never
+   rendered. Reasserted here at higher specificity (4 selectors), scoped to `-odd` rows only so
+   even rows keep the vendor rule's own flat background, producing real alternation. */
+[data-theme="analytics-bright-broadsheet"] .ag-theme-s9cmpx .__s9cmpx-table__row--default-appearance.ag-row-odd {
+  background-color: var(--ag-odd-row-background-color);
+}
+
 /* KpiStat.tsx fixes its value at `__s9cmpx-headline4` (1.25rem/600 -- a deliberate compact
    choice for dense BI-dashboard grids, see that component's own docstring) and never applies
    its label's own `text-case` design token at all -- confirmed live, `.__s9cmpx-label3`'s
