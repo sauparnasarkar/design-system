@@ -939,11 +939,10 @@ theme's general light-surface body ink (`#16150F`) -- the exact same near-black 
 (darkened) header background, hence genuinely 0-contrast rather than just low-contrast.
 
 **Fixed** by overriding the custom property itself (not `color` directly, which the icon classes
-would just re-override), scoped to `.ag-header-row` so only header-area icons are affected --
-confirmed the floating-filter popup panel (a separate, light-surface overlay elsewhere in the DOM)
-still resolves normal dark ink correctly, and the existing `:hover` accent-color swap is untouched
+would just re-override), scoped to `.ag-header-row-column` so the floating-filter row retains
+normal dark ink on its light background. The existing `:hover` accent-color swap is untouched
 since it's a value layered on top of this custom property, not competing with it. Verified live:
 icon color moved from `#16150F` (invisible against its own `#16150F` header) to `#CFCABE` (the
 same header-foreground token the text fix already uses); Dark (`analytics`) theme's own icon color
-measured byte-identical before and after (`rgb(232, 238, 251)` against its `rgb(18, 30, 53)`
-header -- already correct, never touched by this theme-scoped fix).
+measured byte-identical before/after (`rgb(232, 238, 251)` against its `rgb(18, 30, 53)` header --
+already correct, never touched by this theme-scoped fix).

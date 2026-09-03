@@ -368,11 +368,10 @@
    via an element-level screenshot: the filter icon is genuinely invisible (not just low-
    contrast) until :hover, when a separate vendor rule swaps it to the accent color instead --
    that hover behavior is unrelated to this fix and stays intact, since custom-property
-   inheritance (not a `color` override) is all that's changed here. Scoped to `.ag-header-row`
-   so it never touches the *floating filter panel's own popup* (a separate, light-surface
-   overlay elsewhere in the DOM using the same icon classes) -- confirmed those still resolve
-   dark ink there, correctly, since the popup was never inside the dark header to begin with. */
-[data-theme="analytics-bright-broadsheet"] .ag-theme-s9cmpx .ag-header-row {
+   inheritance (not a `color` override) is all that's changed here. Scoped to
+   `.ag-header-row-column` so the floating-filter row retains dark icons for its white
+   background. */
+[data-theme="analytics-bright-broadsheet"] .ag-theme-s9cmpx .ag-header-row-column {
   --ag-icon-font-color: var(--ag-header-foreground-color);
 }
 
