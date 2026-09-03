@@ -357,6 +357,24 @@
   color: var(--ag-header-foreground-color);
 }
 
+/* Header-row icons (the filter funnel, sort arrows, the column menu) have the SAME latent
+   gap as the header text fix above, but via a different mechanism: `.ag-icon-filter` (and
+   `.ag-icon-asc`/`.ag-icon-desc`/`.ag-icon-menu`) set their own `color` directly from
+   `var(--ag-icon-font-color-<name>, var(--ag-icon-font-color))` -- never `color: inherit` --
+   so the header-cell text-color fix above (which only sets `color` on `.ag-header-cell`
+   itself) never reaches these icons at all; they keep resolving `--ag-icon-font-color`, which
+   in turn falls back to `--ag-foreground-color` (this theme's general light-surface body ink,
+   #16150F) -- the exact same near-black as this theme's own header background. Confirmed live
+   via an element-level screenshot: the filter icon is genuinely invisible (not just low-
+   contrast) until :hover, when a separate vendor rule swaps it to the accent color instead --
+   that hover behavior is unrelated to this fix and stays intact, since custom-property
+   inheritance (not a `color` override) is all that's changed here. Scoped to
+   `.ag-header-row-column` so the floating-filter row retains dark icons for its white
+   background. */
+[data-theme="analytics-bright-broadsheet"] .ag-theme-s9cmpx .ag-header-row-column {
+  --ag-icon-font-color: var(--ag-header-foreground-color);
+}
+
 /* KpiStat.tsx fixes its value at `__s9cmpx-headline4` (1.25rem/600 -- a deliberate compact
    choice for dense BI-dashboard grids, see that component's own docstring) and never applies
    its label's own `text-case` design token at all -- confirmed live, `.__s9cmpx-label3`'s
