@@ -268,3 +268,104 @@
   --ag-input-disabled-background-color: #16233f;
   --ag-card-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.4);
 }
+
+/*
+ * Analytics / Gloss  —  Option 2A, applied to the `analytics` theme in place. This block adds
+ * no new hues and changes no token VALUES: every colour the theme already ships (navy
+ * surfaces, cyan primary, the categorical series ramp) is untouched, so no contrast ratio, CVD
+ * check or chart-palette validation needs redoing. The gloss is entirely elevation and light —
+ * gradient sheen, a 1px inner top highlight, ambient shadow, and a chart ground that reads as a
+ * panel inset into the card.
+ *
+ * Everything here paints with `background-image`, never the `background` shorthand or
+ * `background-color`. That is deliberate and load-bearing: ChartCard.tsx sets
+ * `--__s9cmpx-c-card-background-color-default` as an INLINE style (to darken chart-bearing
+ * cards to the page tone), and Card/KpiStat resolve their own fill from that same property. A
+ * `background:` shorthand here would erase whichever value won and flatten chart cards back to
+ * the general card surface. A gradient in `background-image` composites ON TOP of whatever
+ * background-color resolved, so both the normal card tone and ChartCard's darker override keep
+ * working and both get the same sheen.
+ *
+ * All stops are white-alpha or black-alpha rather than literal navies, for the same reason: the
+ * effect has to sit correctly on three different grounds (#1e2f52 cards, #121e35 chart cards,
+ * #324c7c menus) without any of them being named here.
+ *
+ * Border radii are deliberately NOT changed. The reference mock rounds cards to 8px, but the
+ * radius scale steps are named after their default pixel values (see the caution in
+ * analytics-bright-signal.css), and gloss reads correctly at the vendor's existing 3px.
+ * Rounding is a separate decision from this one.
+ */
+
+/* Cards, KPI tiles and chart cards. KpiStat.tsx applies `__s9cmpx-card` itself
+   when `card` is true, so KPI tiles pick this up with no extra selector. */
+[data-theme="analytics"] .__s9cmpx-card {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0) 64%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.09) inset,
+    0 10px 24px -10px rgba(3, 8, 18, 0.75);
+}
+
+/* Header. analytics.css never overrides --__s9cmpx-c-header-background-color
+   (unlike the Broadsheet theme, which repaints the bar ink), so the header
+   keeps its current surface and only gains the sheen, hairline and lift. */
+[data-theme="analytics"] .__s9cmpx-header {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.07) inset,
+    0 6px 18px -6px rgba(3, 8, 18, 0.8);
+}
+
+/* Active sidebar item: a cyan wash fading left-to-right, a solid cyan rule, and
+   a cyan icon. The wash is `background-image` over the active item's existing
+   background-color, so the vendor's own
+   --__s9cmpx-c-sidebar-sidebar-item-button-background-color-active stays the
+   base tone and none of the token-cascade workarounds the Broadsheet theme
+   needed apply here (that theme had to REPLACE the token; this one layers over
+   whatever it resolves to).
+
+   The icon rule is a descendant selector, not the `--active > svg` direct-child
+   form the vendor CSS uses: the real DOM nests the svg inside a
+   `.__s9cmpx-sidebar-nav__sidebar-item-icon` wrapper span, so the vendor's own
+   rule never matches at all. Same finding as the Broadsheet theme's note. */
+[data-theme="analytics"] .__s9cmpx-sidebar-nav__sidebar-item-button--active {
+  background-image: linear-gradient(90deg, rgba(80, 199, 224, 0.20) 0%, rgba(80, 199, 224, 0.03) 100%);
+  border-left: 2px solid #50c7e0;
+}
+[data-theme="analytics"] .__s9cmpx-sidebar-nav__sidebar-item-button--active .__s9cmpx-sidebar-nav__sidebar-item-icon {
+  color: #50c7e0;
+}
+
+/* Primary buttons: a top-lit face and a cyan-tinted cast shadow. The glow is
+   the theme's own #2d9cbd at low alpha, so it reads as the button's own light
+   rather than as a new accent colour. */
+[data-theme="analytics"] .__s9cmpx-button--primary {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.28) inset,
+    0 6px 16px -6px rgba(45, 156, 189, 0.55);
+}
+
+/* Chart ground. SyChart sets paper_bgcolor/plot_bgcolor transparent, so the
+   plot inherits its container — painting the Plotly root turns the plot area
+   into a recessed panel within the card, which is what separates a glossy
+   dashboard from a flat one. Alpha stops again, so this composites over
+   ChartCard's already-darkened card without naming a navy: a light top edge
+   and a darkened foot, reading as an inset well.
+
+   No tick/legend colour rules here, unlike the bright themes: this theme's
+   canvas is already dark, so Plotly's inline colours (from
+   --__s9cmpx-static-text-weak) are correct as they stand. */
+[data-theme="analytics"] .js-plotly-plot {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.10) 100%);
+  border-radius: 6px;
+  padding: 8px 4px;
+  box-sizing: border-box;
+}
+
+/* AG Grid popups/menus. --ag-card-shadow is already declared in this file's
+   own .ag-theme-s9cmpx block above; this re-declaration wins on source order.
+   Merge it into that block instead if you'd rather not carry a duplicate. */
+[data-theme="analytics"] .ag-theme-s9cmpx {
+  --ag-card-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.65);
+}
