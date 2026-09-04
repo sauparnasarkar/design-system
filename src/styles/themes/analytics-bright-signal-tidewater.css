@@ -1,0 +1,371 @@
+/*
+ * Analytics Bright / Tidewater theme  —  [data-theme="analytics-bright-signal-tidewater"]
+ * A sibling of analytics-bright-signal.css, not a replacement: same structure
+ * (cool bright canvas, white cards with soft hairlines, DARK chart panels,
+ * rounder geometry, one hue per metric group), with the primary moved from
+ * cobalt to deep teal-blue #0A6E8C and the canvas cooled toward water.
+ *
+ * Built for the GHG emissions dashboard. The hue is climate-adjacent — water
+ * and atmosphere rather than foliage — which is the whole reason it is not
+ * green: on that dashboard green already means "emissions fell" and red means
+ * "emissions rose" (see the consumer app's POSITIVE_COLOR/NEGATIVE_COLOR), so a
+ * green brand would compete with a live semantic. Teal-blue leaves the
+ * increase/decrease convention uncontested, and leaves the Overview map's
+ * pale-yellow-to-deep-maroon magnitude ramp unambiguous too.
+ *
+ * Chart panels stay dark (#061E28) for the same reason the other bright themes
+ * keep them dark: the vivid categorical series need the luminance separation.
+ *
+ * Contrast: #3C5460 on #FFFFFF = 7.7:1, #5C7683 on #FFFFFF = 4.7:1,
+ * #071C24 on #EDF3F6 = 16.1:1, #0A6E8C on #FFFFFF = 5.8:1,
+ * #0F7A6D on #FFFFFF = 5.3:1, #A2660A on #FFFFFF = 4.8:1 — all AA at body size.
+ * (Note the two accents are DARKER than the mock's #12897A/#C07C0F, which
+ * measured 4.3:1 and 3.4:1 — they read the same at a glance and pass as text.)
+ */
+[data-theme="analytics-bright-signal-tidewater"] {
+  /* Brand ramp — teal-blue.
+     NOTE: as in every theme here, 100/200 are NOT ramp steps. SyChart reads
+     --__s9cmpx-color-brand-100 as gridline and --__s9cmpx-color-brand-200 as
+     zeroline; this theme's chart panels are dark, so those two carry on-dark
+     hairline values. Use 50/300+ for brand tints. */
+  --__s9cmpx-color-brand-50: #E4F2F8;
+  --__s9cmpx-color-brand-100: #133544; /* chart gridline (on-dark) */
+  --__s9cmpx-color-brand-200: #1F4B5E; /* chart zeroline (on-dark) */
+  --__s9cmpx-color-brand-300: #9FD5E8;
+  --__s9cmpx-color-brand-400: #3A9DBE;
+  --__s9cmpx-color-brand-500: #0A6E8C;
+  --__s9cmpx-color-brand-600: #085972;
+  --__s9cmpx-color-brand-700: #06485C;
+  --__s9cmpx-color-brand-800: #053B4C;
+  --__s9cmpx-color-brand-900: #042A36;
+  --__s9cmpx-color-brand-1000: #021C24;
+
+  /* Surfaces */
+  --__s9cmpx-static-background-weak: #EDF3F6;
+  --__s9cmpx-static-background-standard: #FFFFFF;
+  --__s9cmpx-static-background-strong: #E1F0F5;
+  --__s9cmpx-static-surface-weak: #EDF3F6;
+  --__s9cmpx-static-surface-standard: #FFFFFF;
+  --__s9cmpx-static-surface-strong: #E1F0F5;
+  --__s9cmpx-static-layer-standard: #FFFFFF;
+
+  /* Inverse surfaces are the deep sea-blacks (header bar, tooltips, tags) */
+  --__s9cmpx-static-background-inverse-weak: #1C3E4C;
+  --__s9cmpx-static-background-inverse-standard: #06222D;
+  --__s9cmpx-static-background-inverse-strong: #02141B;
+
+  /* Ink */
+  --__s9cmpx-static-text-strong: #071C24;
+  --__s9cmpx-static-text-standard: #3C5460;
+  --__s9cmpx-static-text-weak: #5C7683;
+  --__s9cmpx-static-text-inverse-strong: #FFFFFF;
+  --__s9cmpx-static-text-inverse-standard: #E4F2F8;
+  --__s9cmpx-static-text-inverse-weak: #94B4C0;
+
+  /* Hairlines & dividers */
+  --__s9cmpx-static-divider-weak: #E5EEF1;
+  --__s9cmpx-static-divider-standard: #D6E3E9;
+  --__s9cmpx-static-divider-strong: #BDD3DB;
+  --__s9cmpx-static-divider-inverse-weak: #FFFFFF29;
+  --__s9cmpx-static-divider-inverse-standard: #FFFFFF3D;
+  --__s9cmpx-static-divider-inverse-strong: #FFFFFF5C;
+
+  /* Sentiment tints. Green and red are reserved entirely for
+     decrease/increase here — no brand or categorical colour enters either
+     hue band. */
+  --__s9cmpx-static-background-sentiment-info: #E1F0F5;
+  --__s9cmpx-static-background-sentiment-negative: #FDE7E9;
+  --__s9cmpx-static-background-sentiment-neutral: #ECF1F3;
+  --__s9cmpx-static-background-sentiment-notice: #FFF6E6;
+  --__s9cmpx-static-background-sentiment-positive: #E4F6EC;
+  --__s9cmpx-static-text-sentiment-info: #0A6E8C;
+  --__s9cmpx-static-text-sentiment-negative: #B3261E;
+  --__s9cmpx-static-text-sentiment-neutral: #3C5460;
+  --__s9cmpx-static-text-sentiment-notice: #8A5A00;
+  --__s9cmpx-static-text-sentiment-positive: #0F7A47;
+  --__s9cmpx-static-text-sentiment-standard-info: #0A6E8C;
+  --__s9cmpx-static-text-sentiment-standard-negative: #B3261E;
+  --__s9cmpx-static-text-sentiment-standard-neutral: #5C7683;
+  --__s9cmpx-static-text-sentiment-standard-notice: #8A5A00;
+  --__s9cmpx-static-text-sentiment-standard-positive: #0F7A47;
+  --__s9cmpx-static-outline-sentiment-info: #0A6E8C;
+  --__s9cmpx-static-outline-sentiment-negative: #D0392F;
+  --__s9cmpx-static-outline-sentiment-neutral: #BDD3DB;
+  --__s9cmpx-static-outline-sentiment-notice: #E8A317;
+  --__s9cmpx-static-outline-sentiment-positive: #129455;
+  --__s9cmpx-interactive-fill-sentiment-info: #0A6E8C29;
+  --__s9cmpx-interactive-fill-sentiment-negative: #D0392F29;
+  --__s9cmpx-interactive-fill-sentiment-neutral: #5C768329;
+  --__s9cmpx-interactive-fill-sentiment-notice: #E8A31747;
+  --__s9cmpx-interactive-fill-sentiment-positive: #12945529;
+
+  /* Primary interactive — teal-blue */
+  --__s9cmpx-interactive-fill-primary-default: #0A6E8C;
+  --__s9cmpx-interactive-fill-primary-hover: #085972;
+  --__s9cmpx-interactive-fill-primary-pressed: #06485C;
+  --__s9cmpx-interactive-fill-primary-disabled: #0A6E8C26;
+  --__s9cmpx-interactive-fill-primary-onprimary: #FFFFFF;
+  --__s9cmpx-interactive-fill-primary-onprimarydisabled: #8FB6C4;
+
+  /* Secondary (solid) buttons are the deep sea ink */
+  --__s9cmpx-interactive-fill-secondary-default: #06222D;
+  --__s9cmpx-interactive-fill-secondary-hover: #10384A;
+  --__s9cmpx-interactive-fill-secondary-pressed: #1C3E4C;
+  --__s9cmpx-interactive-fill-secondary-disabled: #06222D1F;
+  --__s9cmpx-interactive-fill-secondary-onsecondary: #FFFFFF;
+  --__s9cmpx-interactive-fill-secondary-onsecondarydisabled: #7E96A1;
+
+  /* Tertiary/ghost fills: teal-alpha, so ghost buttons read as part of the accent */
+  --__s9cmpx-interactive-fill-tertiary-default: #0A6E8C0A;
+  --__s9cmpx-interactive-fill-tertiary-hover: #0A6E8C14;
+  --__s9cmpx-interactive-fill-tertiary-pressed: #0A6E8C24;
+  --__s9cmpx-interactive-fill-tertiary-disabled: #071C2408;
+  --__s9cmpx-interactive-fill-tertiary-ontertiary: #0A6E8C;
+  --__s9cmpx-interactive-fill-tertiary-ontertiarydisabled: #7E96A1;
+
+  /* Links */
+  --__s9cmpx-interactive-fill-link-default: #0A6E8C;
+  --__s9cmpx-interactive-fill-link-hover: #0F7A6D;
+  --__s9cmpx-interactive-fill-link-pressed: #06485C;
+  --__s9cmpx-interactive-fill-link-disabled: #7E96A1B3;
+
+  /* Outlines */
+  --__s9cmpx-interactive-outline-primary-default: #071C243D;
+  --__s9cmpx-interactive-outline-primary-hover: #071C245C;
+  --__s9cmpx-interactive-outline-primary-pressed: #071C247A;
+  --__s9cmpx-interactive-outline-primary-disabled: #071C241F;
+  --__s9cmpx-interactive-outline-primary-selected-default: #0A6E8C;
+  --__s9cmpx-interactive-outline-primary-selected-hover: #085972;
+  --__s9cmpx-interactive-outline-primary-selected-pressed: #06485C;
+  --__s9cmpx-interactive-outline-secondary-default: #D6E3E9;
+  --__s9cmpx-interactive-outline-secondary-hover: #BDD3DB;
+  --__s9cmpx-interactive-outline-secondary-pressed: #9FD5E8;
+  --__s9cmpx-interactive-outline-secondary-disabled: #E5EEF1;
+  --__s9cmpx-interactive-outline-secondary-selected-default: #0A6E8C;
+  --__s9cmpx-interactive-outline-secondary-selected-hover: #085972;
+  --__s9cmpx-interactive-outline-secondary-selected-pressed: #06485C;
+  --__s9cmpx-interactive-outline-focus: #0A6E8C;
+
+  /* Hover/selection overlays */
+  --__s9cmpx-interactive-overlay-primary-default: #0A6E8C00;
+  --__s9cmpx-interactive-overlay-primary-hover: #0A6E8C0F;
+  --__s9cmpx-interactive-overlay-primary-pressed: #0A6E8C1F;
+  --__s9cmpx-interactive-overlay-primary-selected-default: #E1F0F5;
+  --__s9cmpx-interactive-overlay-primary-selected-hover: #D2E9F1;
+  --__s9cmpx-interactive-overlay-primary-selected-pressed: #BFE0EC;
+  --__s9cmpx-interactive-overlay-secondary-default: #0A6E8C00;
+  --__s9cmpx-interactive-overlay-secondary-hover: #0A6E8C0F;
+  --__s9cmpx-interactive-overlay-secondary-pressed: #0A6E8C1F;
+  --__s9cmpx-interactive-overlay-secondary-selected-default: #ECF1F3;
+  --__s9cmpx-interactive-overlay-secondary-selected-hover: #E1EAEE;
+  --__s9cmpx-interactive-overlay-secondary-selected-pressed: #D6E3E9;
+
+  --__s9cmpx-button-primary-default-background: #0A6E8C;
+  --__s9cmpx-button-primary-default-border: #0A6E8C;
+  --__s9cmpx-button-primary-default-label: #FFFFFF;
+  --__s9cmpx-button-primary-hover-background: #085972;
+  --__s9cmpx-button-primary-hover-border: #085972;
+  --__s9cmpx-button-primary-hover-label: #FFFFFF;
+  --__s9cmpx-button-primary-focused-background: #0A6E8C;
+  --__s9cmpx-button-primary-focused-border: #0A6E8C3D;
+  --__s9cmpx-button-primary-focused-label: #FFFFFF;
+  --__s9cmpx-button-primary-pressed-background: #06485C;
+  --__s9cmpx-button-primary-pressed-border: #06485C;
+  --__s9cmpx-button-primary-pressed-label: #FFFFFF;
+
+  /* Secondary and tertiary accents. Same rationale as the Signal theme: there
+     is no semantic token for "a hue per metric group", so they are published as
+     named custom properties. Consumers apply them to KpiStat accent rules, nav
+     icons, and any second/third categorical dimension:
+       border-top: 3px solid var(--__s9cmpx-accent-secondary)
+     Sea-green is deliberately far enough from sentiment-positive (#0F7A47) in
+     both hue and chroma to not be mistaken for it, and is never used on a
+     signed value. */
+  --__s9cmpx-accent-secondary: #0F7A6D; /* sea-green */
+  --__s9cmpx-accent-tertiary: #A2660A;  /* ochre */
+
+  /* Chart panel surface */
+  --__s9cmpx-chart-surface: #061E28;
+  --__s9cmpx-chart-surface-text-weak: #94B4C0;
+
+  /* Series palette, validated on the #061E28 panel, brightest-first, and clear
+     of the red and green sentiment bands. -04 is a teal rather than a green:
+     it sits with the brand rather than with sentiment. */
+  --__s9cmpx-chart-categorical-default-01: #58C8F0;
+  --__s9cmpx-chart-categorical-default-02: #FFB84D;
+  --__s9cmpx-chart-categorical-default-03: #C08CFF;
+  --__s9cmpx-chart-categorical-default-04: #7FE0D0;
+  --__s9cmpx-chart-categorical-default-05: #FF6FA8;
+  --__s9cmpx-chart-categorical-default-06: #E6F2F7;
+  --__s9cmpx-chart-categorical-default-07: #9AD7FF;
+  --__s9cmpx-chart-categorical-default-08: #FFD08A;
+  --__s9cmpx-chart-categorical-default-09: #B8A0FF;
+
+  /* Rounder geometry, inherited from the Signal theme's character (10px cards,
+     8px controls, pill chips).
+     CAUTION: these are the base scale steps, named after their default pixel
+     values, so overriding them makes the NAMES inaccurate everywhere — the
+     step order stays monotonic, which is what components rely on. If that
+     trade is unacceptable, drop this block and override the per-component
+     radius tokens instead (--__s9cmpx-card-card-header-border-radius,
+     --__s9cmpx-left-nav-main-menu-item-border-radius, and siblings). */
+  --__s9cmpx-border-radius-2: 4px;
+  --__s9cmpx-border-radius-3: 6px;
+  --__s9cmpx-border-radius-4: 8px;
+  --__s9cmpx-border-radius-6: 10px;
+
+  /* Mobile nav "Open menu" toggle: SidebarNav.tsx reads
+     --__s9cmpx-c-sidebar-mobile-toggle-* with a fallback to
+     --static-background-inverse-standard, which in this theme is #06222D — the
+     SAME value the header override below sets, i.e. an invisible button on its
+     own bar. Exactly the failure the Broadsheet theme documented. This theme's
+     canvas is light, so a white chip (matching the cards that already float on
+     this dark masthead) is the readable answer. */
+  --__s9cmpx-c-sidebar-mobile-toggle-background-color: #FFFFFF;
+  --__s9cmpx-c-sidebar-mobile-toggle-border-color: #D6E3E9;
+  --__s9cmpx-c-sidebar-mobile-toggle-icon-color: #06222D;
+}
+
+/* Same reasoning as themes/analytics.css: the vendor reset's
+   `body{color:#4a4a4a}` and `html{background-color:#fff}` are what any element
+   without its own rule inherits, so set both on the theme root. */
+[data-theme="analytics-bright-signal-tidewater"] {
+  color: var(--__s9cmpx-static-text-standard);
+  background-color: var(--__s9cmpx-static-background-weak);
+}
+[data-theme="analytics-bright-signal-tidewater"] strong {
+  color: var(--__s9cmpx-static-text-strong);
+}
+[data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-sidebar-nav__sidebar {
+  color: var(--__s9cmpx-static-text-strong);
+}
+
+/* Header masthead: deep sea bar with a bright teal rule.
+   --__s9cmpx-c-header-background-color is a real custom property the vendor's
+   `.__s9cmpx-header` reads via var(), so this is a plain cascade override.
+   Header.tsx's logo button and its right-side icon buttons are not: they set
+   `color` as an INLINE style from --static-text-standard/-strong (this theme's
+   light-surface ink), which is wrong once the bar is dark — inline styles beat
+   any plain class rule, so !important is required here, same as the Broadsheet
+   theme and the Plotly tick rule below. */
+[data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-header {
+  --__s9cmpx-c-header-background-color: #06222D;
+  border-bottom: 2px solid #12A0C4;
+}
+[data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-header__left button,
+[data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-header__right button {
+  color: #94B4C0 !important;
+}
+[data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-header__left .__s9cmpx-logo__asset,
+[data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-header__left .__s9cmpx-logo__asset > span {
+  color: #94B4C0 !important;
+}
+
+/* Active sidebar item: a pale teal pill with deep teal text and icon — a
+   lighter treatment than Broadsheet's solid ink fill, matching this theme's
+   softer geometry.
+
+   Scoped to `[class*="__s9cmpx-sidebar-nav"]`, not to the theme root, and this
+   is not optional: the vendor CSS re-declares these same custom properties on
+   the sidebar-nav container itself. Custom-property cascade resolves
+   per-element, so a value set at a nearer ancestor of the consuming element
+   beats one on the theme wrapper no matter what the wrapper intends. Same
+   finding, same fix, as the Broadsheet theme. */
+[data-theme="analytics-bright-signal-tidewater"] [class*="__s9cmpx-sidebar-nav"] {
+  --__s9cmpx-c-sidebar-sidebar-item-button-background-color-active: #E1F0F5;
+  --__s9cmpx-c-sidebar-sidebar-item-button-text-color-active: #073F52;
+  --__s9cmpx-c-sidebar-sidebar-item-icon-color-active: #0A6E8C;
+}
+
+/* The active item's icon: vendor CSS only recolors it via an `--active > svg`
+   DIRECT CHILD selector, but the real DOM nests the svg one level deeper inside
+   a `.__s9cmpx-sidebar-nav__sidebar-item-icon` wrapper span, so that rule never
+   matches and the icon just inherits the sidebar's body ink. Correct for
+   inactive items, wrong for the active one. Re-asserted against the real
+   markup, active state only. */
+[data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-sidebar-nav__sidebar-item-button--active .__s9cmpx-sidebar-nav__sidebar-item-icon {
+  color: #0A6E8C;
+}
+
+/* Chart panels. SyChart sets paper_bgcolor/plot_bgcolor transparent, so the
+   plot inherits its container; painting the Plotly root gives every chart the
+   dark panel without touching Card or ChartCard. Plotly writes tick/legend
+   colours as inline SVG attributes from --__s9cmpx-static-text-weak (a
+   light-theme grey), so they are re-pointed here — !important is required to
+   beat those inline attributes and must not be removed. */
+[data-theme="analytics-bright-signal-tidewater"] .js-plotly-plot {
+  background: var(--__s9cmpx-chart-surface);
+  border-radius: 8px;
+  padding: 8px 4px;
+  box-sizing: border-box;
+}
+[data-theme="analytics-bright-signal-tidewater"] .js-plotly-plot .xtick text,
+[data-theme="analytics-bright-signal-tidewater"] .js-plotly-plot .ytick text,
+[data-theme="analytics-bright-signal-tidewater"] .js-plotly-plot .legendtext,
+[data-theme="analytics-bright-signal-tidewater"] .js-plotly-plot .xtitle,
+[data-theme="analytics-bright-signal-tidewater"] .js-plotly-plot .ytitle,
+[data-theme="analytics-bright-signal-tidewater"] .js-plotly-plot .gtitle {
+  fill: var(--__s9cmpx-chart-surface-text-weak) !important;
+}
+
+/* AG Grid (ag-theme-s9cmpx hardcodes light values, so override --ag-* here).
+   Header rows go pale teal with teal labels — the table reads as part of the
+   accent system rather than as a grey band. */
+[data-theme="analytics-bright-signal-tidewater"] .ag-theme-s9cmpx {
+  --ag-alpine-active-color: #0A6E8C;
+  --ag-background-color: #FFFFFF;
+  --ag-foreground-color: #071C24;
+  --ag-secondary-foreground-color: #3C5460;
+  --ag-data-color: #071C24;
+  --ag-header-background-color: #E1F0F5;
+  --ag-header-foreground-color: #075B75;
+  --ag-odd-row-background-color: #F8FBFC;
+  --ag-border-color: #D6E3E9;
+  --ag-secondary-border-color: #E5EEF1;
+  --ag-row-border-color: #E5EEF1;
+  --ag-row-hover-color: #0A6E8C0F;
+  --ag-column-hover-color: #0A6E8C0F;
+  --ag-selected-row-background-color: #0A6E8C24;
+  --ag-range-selection-background-color: #0A6E8C1F;
+  --ag-control-panel-background-color: #EDF3F6;
+  --ag-subheader-background-color: #FFFFFF;
+  --ag-panel-background-color: #FFFFFF;
+  --ag-menu-background-color: #FFFFFF;
+  --ag-tooltip-background-color: #06222D;
+  --ag-disabled-foreground-color: #071C2480;
+  --ag-chip-background-color: #0A6E8C14;
+  --ag-checkbox-unchecked-color: #7E96A1;
+  --ag-input-border-color: #BDD3DB;
+  --ag-input-focus-border-color: #0A6E8C66;
+  --ag-input-disabled-border-color: #E5EEF1;
+  --ag-input-disabled-background-color: #EDF3F6;
+  --ag-card-shadow: 0 2px 8px 0 rgba(7, 28, 36, 0.10);
+}
+
+/* The vendor CSS's `.__s9cmpx-table .ag-header-cell` rule sets header cell TEXT
+   colour directly from --__s9cmpx-c-table-label-cell-text-color-default (this
+   theme's general body ink) at higher specificity than `.ag-header-row`'s own
+   `color: var(--ag-header-foreground-color)` — so the teal label colour set
+   above is otherwise silently never applied. Reasserted at the specificity the
+   vendor rule requires. */
+[data-theme="analytics-bright-signal-tidewater"] .ag-theme-s9cmpx .ag-header-cell {
+  color: var(--ag-header-foreground-color);
+}
+
+/* Header-row icons (filter funnel, sort arrows, column menu) read their own
+   colour from var(--ag-icon-font-color-<name>, var(--ag-icon-font-color)) and
+   never `inherit`, so the header-cell fix above doesn't reach them. Scoped to
+   `.ag-header-row-column` so the floating-filter row keeps dark icons on its
+   white background. */
+[data-theme="analytics-bright-signal-tidewater"] .ag-theme-s9cmpx .ag-header-row-column {
+  --ag-icon-font-color: var(--ag-header-foreground-color);
+}
+
+/* The vendor's `.__s9cmpx-table__row--default-appearance.ag-row` rule paints
+   every row an identical flat colour at higher specificity than AG Grid's own
+   `.ag-row-odd` rule, defeating zebra striping in every theme. This theme
+   defines a real --ag-odd-row-background-color, so reassert it for odd rows
+   only and let even rows keep the vendor fill. */
+[data-theme="analytics-bright-signal-tidewater"] .ag-theme-s9cmpx .__s9cmpx-table__row--default-appearance.ag-row-odd {
+  background-color: var(--ag-odd-row-background-color);
+}

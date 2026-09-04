@@ -10,6 +10,7 @@ import '../src/styles/themes/blue.css';
 import '../src/styles/themes/analytics.css';
 import '../src/styles/themes/analytics-bright-broadsheet.css';
 import '../src/styles/themes/analytics-bright-signal.css';
+import '../src/styles/themes/analytics-bright-signal-tidewater.css';
 
 const preview: Preview = {
   globalTypes: {
@@ -25,6 +26,7 @@ const preview: Preview = {
           { value: 'analytics', title: 'Analytics theme' },
           { value: 'analytics-bright-broadsheet', title: 'Analytics Bright — Broadsheet' },
           { value: 'analytics-bright-signal', title: 'Analytics Bright — Signal' },
+          { value: 'analytics-bright-signal-tidewater', title: 'Analytics Bright — Tidewater' },
         ],
         dynamicTitle: true,
       },
