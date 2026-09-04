@@ -17,13 +17,24 @@ const meta: Meta = {
 };
 export default meta;
 
+interface ThemeVariant {
+  theme: string;
+  asOf: string;
+  /** Shared by the CI band and the ETS Forecast line, same reuse the Analytics variant's own colors already do. */
+  forecastColor: string;
+  moderateColor: string;
+  aggressiveColor: string;
+}
+
 /**
- * Climate dashboard template (GHG Trend Analysis layout, SciChart-style dark
- * theming). Rendered inside the Analytics theme regardless of the toolbar.
+ * Climate dashboard template (GHG Trend Analysis layout). Rendered inside a
+ * hardcoded theme regardless of the toolbar selection — one exported story
+ * per theme variant, since there's no parameterized-story mechanism in use
+ * elsewhere in this file.
  */
-export const Overview: StoryObj = {
-  render: () => (
-    <div data-theme="analytics" style={{ background: 'var(--__s9cmpx-static-background-weak)', minHeight: '100vh', padding: 24, fontFamily: 'var(--__s9cmpx-font-families-primary)', color: 'var(--__s9cmpx-static-text-standard)' }}>
+function renderDashboard({ theme, asOf, forecastColor, moderateColor, aggressiveColor }: ThemeVariant) {
+  return (
+    <div data-theme={theme} style={{ background: 'var(--__s9cmpx-static-background-weak)', minHeight: '100vh', padding: 24, fontFamily: 'var(--__s9cmpx-font-families-primary)', color: 'var(--__s9cmpx-static-text-standard)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <h1 className="__s9cmpx-headline4" style={{ margin: 0 }}>Climate Change Trend Analysis and Forecasting</h1>
@@ -31,7 +42,7 @@ export const Overview: StoryObj = {
             Greenhouse gas emissions for 10 major countries — regression models and ETS(A,Ad,N) forecasting.
           </p>
         </div>
-        <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>Data refreshed at Jul 13, 2026 09:06 PM</span>
+        <span className="__s9cmpx-label3" style={{ color: 'var(--__s9cmpx-static-text-weak)' }}>Data refreshed at {asOf}</span>
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
@@ -60,7 +71,7 @@ export const Overview: StoryObj = {
         <ChartCard title="Current Warming Index" headingLevel={2}>
           <Gauge value={1.28} min={0} max={2} suffix="°C" height={230} />
         </ChartCard>
-        <ChartCard title="CO₂ Emissions Over Time (MtCO₂)" onDownload={() => {}} asOf="Jul 13, 2026" headingLevel={2}>
+        <ChartCard title="CO₂ Emissions Over Time (MtCO₂)" onDownload={() => {}} asOf={asOf} headingLevel={2}>
           <SyChart
             height={260}
             series={[
@@ -85,9 +96,9 @@ export const Overview: StoryObj = {
                 y: YEARS_FC.map((_, i) => 12000 + i * 260 + i * i * 18),
                 yLower: YEARS_FC.map((_, i) => 12000 + i * 140 - i * i * 14),
                 kind: 'band',
-                color: '#22a084',
+                color: forecastColor,
               },
-              { name: 'ETS Forecast', x: YEARS_FC, y: YEARS_FC.map((_, i) => 12000 + i * 200), kind: 'line', color: '#22a084' },
+              { name: 'ETS Forecast', x: YEARS_FC, y: YEARS_FC.map((_, i) => 12000 + i * 200), kind: 'line', color: forecastColor },
             ]}
             xTitle="Year"
           />
@@ -98,13 +109,41 @@ export const Overview: StoryObj = {
             referenceY={{ value: 2500, label: '1990 level' }}
             series={[
               { name: 'BAU', x: YEARS_FC, y: YEARS_FC.map((_, i) => 12200 + i * 190), kind: 'line' },
-              { name: 'Moderate (−2%/yr)', x: YEARS_FC, y: YEARS_FC.map((_, i) => 12200 * Math.pow(0.98, i)), kind: 'line', color: '#bd8a1d' },
-              { name: 'Aggressive (−5%/yr)', x: YEARS_FC, y: YEARS_FC.map((_, i) => 12200 * Math.pow(0.95, i)), kind: 'line', color: '#22a084' },
+              { name: 'Moderate (−2%/yr)', x: YEARS_FC, y: YEARS_FC.map((_, i) => 12200 * Math.pow(0.98, i)), kind: 'line', color: moderateColor },
+              { name: 'Aggressive (−5%/yr)', x: YEARS_FC, y: YEARS_FC.map((_, i) => 12200 * Math.pow(0.95, i)), kind: 'line', color: aggressiveColor },
             ]}
             xTitle="Year"
           />
         </ChartCard>
       </div>
     </div>
-  ),
+  );
+}
+
+export const Overview: StoryObj = {
+  render: () =>
+    renderDashboard({
+      theme: 'analytics',
+      asOf: 'Jul 13, 2026 09:06 PM',
+      forecastColor: '#22a084',
+      moderateColor: '#bd8a1d',
+      aggressiveColor: '#22a084',
+    }),
+};
+
+/**
+ * Tidewater variant — the same layout under `analytics-bright-signal-tidewater`.
+ * Series colors brightened for the theme's dark #061E28 chart panel per the
+ * design handoff's suggested on-panel values (BAU keeps SyChart's default
+ * categorical color, which already resolves correctly on this panel).
+ */
+export const OverviewTidewater: StoryObj = {
+  render: () =>
+    renderDashboard({
+      theme: 'analytics-bright-signal-tidewater',
+      asOf: 'Jul 13, 2026 09:06 PM',
+      forecastColor: '#7FE0D0',
+      moderateColor: '#FFB84D',
+      aggressiveColor: '#7FE0D0',
+    }),
 };

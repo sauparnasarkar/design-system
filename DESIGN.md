@@ -201,6 +201,28 @@ Current themes:
   match their pixel values after this, though the order stays monotonic
   (which is what components actually rely on). Reserved for a future
   consumer as of this writing; not yet adopted by any app.
+- **analytics-bright-signal-tidewater** — a sibling of `analytics-bright-
+  signal`, not a replacement (Signal stays exactly as it is): same
+  structure (cool bright canvas, white cards, dark chart panels, rounder
+  geometry, one hue per metric group), primary moved from cobalt `#1B4DFF`
+  to deep teal-blue `#0A6E8C`, accents to sea-green `#0F7A6D` and ochre
+  `#A2660A`, chart ground to `#061E28`. Built for
+  `climate-emissions-analysis-project`'s GHG dashboard, where the hue choice
+  is load-bearing rather than cosmetic: green/red already mean
+  emissions-fell/emissions-rose there, so a green brand would compete with a
+  live semantic — water/atmosphere instead of foliage sidesteps that and
+  keeps the Overview map's pale-yellow-to-deep-maroon magnitude ramp
+  unambiguous too. Unlike Signal, this theme **does** darken its header
+  (`--__s9cmpx-c-header-background-color: #06222D`), so it needs — and
+  carries — the same vendor-gap fixes `analytics-bright-broadsheet`
+  documented rather than Signal's smaller set: the dark-header inline
+  `color` `!important` overrides on `Header.tsx`'s logo/icon buttons, the
+  sidebar active-token cascade re-scope to `[class*="__s9cmpx-sidebar-nav"]`,
+  and the active-icon wrapper-span reassertion. Also carries the
+  `--__s9cmpx-c-sidebar-mobile-toggle-*` trio, which this theme genuinely
+  needs on its own terms (not copied defensively): its header resolves to
+  the same value the toggle's inverse-token fallback does, the same
+  invisible-button failure Broadsheet hit first.
 
 To add a theme: create `src/styles/themes/<name>.css` following the
 green.css pattern, import it in `.storybook/preview.tsx`, and register it
