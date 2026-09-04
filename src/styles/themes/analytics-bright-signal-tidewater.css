@@ -17,7 +17,8 @@
  * keep them dark: the vivid categorical series need the luminance separation.
  *
  * Contrast: #3C5460 on #FFFFFF = 7.7:1, #5C7683 on #FFFFFF = 4.7:1,
- * #071C24 on #EDF3F6 = 16.1:1, #0A6E8C on #FFFFFF = 5.8:1,
+ * #071C24 on #DCE8ED (the -weak canvas, darkened from the mock's #EDF3F6 per direct
+ * feedback) = 14.2:1, #0A6E8C on #FFFFFF = 5.8:1,
  * #0F7A6D on #FFFFFF = 5.3:1, #A2660A on #FFFFFF = 4.8:1 — all AA at body size.
  * (Note the two accents are DARKER than the mock's #12897A/#C07C0F, which
  * measured 4.3:1 and 3.4:1 — they read the same at a glance and pass as text.)
@@ -40,13 +41,15 @@
   --__s9cmpx-color-brand-900: #042A36;
   --__s9cmpx-color-brand-1000: #021C24;
 
-  /* Surfaces */
-  --__s9cmpx-static-background-weak: #EDF3F6;
+  /* Surfaces. -weak (the page canvas) darkened from the original mock's #EDF3F6 per direct
+     feedback that it read as too light; -strong darkened in step to preserve the original
+     ordering (standard white > weak canvas > strong emphasis surface). */
+  --__s9cmpx-static-background-weak: #DCE8ED;
   --__s9cmpx-static-background-standard: #FFFFFF;
-  --__s9cmpx-static-background-strong: #E1F0F5;
-  --__s9cmpx-static-surface-weak: #EDF3F6;
+  --__s9cmpx-static-background-strong: #CFE3EA;
+  --__s9cmpx-static-surface-weak: #DCE8ED;
   --__s9cmpx-static-surface-standard: #FFFFFF;
-  --__s9cmpx-static-surface-strong: #E1F0F5;
+  --__s9cmpx-static-surface-strong: #CFE3EA;
   --__s9cmpx-static-layer-standard: #FFFFFF;
 
   /* Inverse surfaces are the deep sea-blacks (header bar, tooltips, tags) */
