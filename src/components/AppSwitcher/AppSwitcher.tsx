@@ -59,14 +59,24 @@ export function AppSwitcher({ apps, onClose, onAppClick, message, tileSize = 'de
           <Icon name="close" size={14} />
         </button>
       )}
-      <div className="__s9cmpx-app-switcher-module__items-wrapper" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 4 }}>
+      {/* overflowX handles the boundary case a fixed 120px tile width creates once MAX_COLUMNS=3
+          apps land on a viewport narrow enough that the popover's own maxWidth (above) caps below
+          3 tiles' real combined width (3*120 + gaps + padding) -- rather than letting the grid's
+          content visually spill past this dialog's own rounded border, it scrolls within it. Not
+          a real case for either of this workspace's own consumers today (both pass exactly 2
+          apps), but a real one for the day a 3rd app is added. */}
+      <div className="__s9cmpx-app-switcher-module__items-wrapper" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 4, overflowX: 'auto' }}>
         {apps.map((app) => (
           <a
             key={app.id}
             href={app.href ?? '#'}
             className={cx('__s9cmpx-app-launcher-tile', tileSize !== 'default' && `__s9cmpx-app-launcher-tile--${tileSize}`, app.noPermission && '__s9cmpx-app-launcher-tile--no-permission')}
             onClick={(e) => {
-              if (!app.href) e.preventDefault();
+              // noPermission must block navigation even when the caller also supplied a real
+              // href -- a grayed-out, aria-disabled tile that still followed its own link on
+              // click would contradict `noPermission`'s whole purpose (confirmed real: no
+              // current caller does this today, but the prop's own contract allows it).
+              if (app.noPermission || !app.href) e.preventDefault();
               if (!app.noPermission) onAppClick?.(app.id);
             }}
             aria-disabled={app.noPermission}
