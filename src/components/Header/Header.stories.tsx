@@ -58,7 +58,7 @@ export const CenterActionsContrastDoesNotClobberSearchClear: Story = {
     // override also uses for header icon buttons -- both solve "legible weak text on this
     // theme's dark ink surface" with the same token, so the two paths coincidentally produce
     // an identical rendered color regardless of which one actually wins the cascade (same
-    // coincidence holds in analytics-bright-signal-tidewater too, confirmed against its own
+    // coincidence holds in analytics-bright-tidewater too, confirmed against its own
     // theme file). Asserting on the browser's own selector-matching semantics instead --
     // .matches() against the exact override selector -- proves the CSS-level exclusion
     // actually works, independent of what color it happens to resolve to in either theme.

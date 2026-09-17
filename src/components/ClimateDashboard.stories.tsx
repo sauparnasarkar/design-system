@@ -132,7 +132,7 @@ export const Overview: StoryObj = {
 };
 
 /**
- * Tidewater variant — the same layout under `analytics-bright-signal-tidewater`.
+ * Tidewater variant — the same layout under `analytics-bright-tidewater`.
  * Series colors brightened for the theme's dark #061E28 chart panel per the
  * design handoff's suggested on-panel values (BAU keeps SyChart's default
  * categorical color, which already resolves correctly on this panel).
@@ -140,7 +140,7 @@ export const Overview: StoryObj = {
 export const OverviewTidewater: StoryObj = {
   render: () =>
     renderDashboard({
-      theme: 'analytics-bright-signal-tidewater',
+      theme: 'analytics-bright-tidewater',
       asOf: 'Jul 13, 2026 09:06 PM',
       forecastColor: '#7FE0D0',
       moderateColor: '#FFB84D',

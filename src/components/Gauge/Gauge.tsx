@@ -72,6 +72,18 @@ export function Gauge({ value, min = 0, max = 100, suffix = '', color, height = 
       // (default/green/blue), where brand-100 stays a normal light tint.
       color: cssVar(el, '--__s9cmpx-chart-surface-text-weak', '#494949'),
     };
+    // The unfilled track defaults to --__s9cmpx-color-brand-100, but that token is also
+    // hijacked as SyChart's gridline color on every theme with a dark chart panel (see
+    // SyChart.tsx's identical hijack/comment) -- retuning brand-100 to fix a gauge would move
+    // every gridline in the theme too. --__s9cmpx-gauge-track-color exists so a theme can give
+    // the track its own answer without touching brand-100 at all; it's deliberately NOT given
+    // a CSS-level default (cssVar's fallback is a plain string, not a var() reference), so a
+    // theme that doesn't set it costs nothing and this chain resolves straight through to
+    // today's brand-100 behavior. Only `analytics` currently needs it (its gloss gradient over
+    // .js-plotly-plot -- see analytics.css -- makes brand-100's mid-navy blend into the
+    // lightened top of the arc at low gauge values, reading as a hole punched in the card; the
+    // three bright themes paint a flat, non-gradient panel and don't have this problem).
+    const track = cssVar(el, '--__s9cmpx-gauge-track-color', '') || cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb');
     const data: IndicatorTrace[] = [
       {
         type: 'indicator',
@@ -81,7 +93,7 @@ export function Gauge({ value, min = 0, max = 100, suffix = '', color, height = 
         gauge: {
           axis: { range: [min, max], tickfont: { ...font, size: 11 } },
           bar: { color: fill, thickness: 0.75 },
-          bgcolor: cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb'),
+          bgcolor: track,
           borderwidth: 0,
         },
       },

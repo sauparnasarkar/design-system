@@ -173,6 +173,33 @@
   --__s9cmpx-chart-surface: #171614;
   --__s9cmpx-chart-surface-text-weak: #CFCABE;
 
+  /* On-chart-panel sentiment pair (A5). This theme's sentiment-positive/negative
+     (--__s9cmpx-static-text-sentiment-positive/-negative, #14653F / #A82A12) are tuned against
+     the light card (#FFFFFF) they're meant for -- correct there, but signed values also get
+     drawn INSIDE this theme's dark chart panel (#171614), where those same values measure well
+     under the 3:1 non-text minimum. No token previously existed for "sentiment colour on a dark
+     chart panel in an otherwise-light theme", so the India Allocation Monitor improvised a
+     hardcoded CHART_SIGN_COLORS constant map instead -- these two values are exactly the ones
+     that map already uses for this theme (they were already right), just finally published
+     here so the map itself can be deleted and every consumer reads one name instead of
+     rediscovering the same fix per app. */
+  --__s9cmpx-chart-sentiment-positive: #3ECF95;
+  --__s9cmpx-chart-sentiment-negative: #FF6B7F;
+
+  /* Diverging scale (A6). Red/green (this theme's own sentiment-positive/negative hues) would
+     be a CVD failure if reused for a diverging "above/below a reference point" encoding --
+     deuteranopia can't separate that axis by hue alone. Brown/teal endpoints below are
+     ColorBrewer's "BrBG" scheme (#D8B365/#5AB4AC), independently validated colorblind-safe for
+     exactly this use and not otherwise used as a brand/sentiment/accent hue in this theme.
+     Contrast on this theme's #171614 panel: #D8B365 ~9.1:1, #5AB4AC ~7.4:1 (WCAG relative
+     luminance, well past the 3:1 non-text minimum). Midpoint resolves to this theme's own
+     panel tone instead of a literal white/grey, so a near-zero value sits quietly on the panel
+     rather than becoming the brightest thing on it -- the reverse of what a near-zero value
+     should draw the eye to. */
+  --__s9cmpx-chart-diverging-low: #D8B365;
+  --__s9cmpx-chart-diverging-mid: var(--__s9cmpx-chart-surface);
+  --__s9cmpx-chart-diverging-high: #5AB4AC;
+
   /* Series palette, validated on the #171614 panel. Ordered brightest-first
      (by relative luminance) so the first-assigned series in any chart reads
      most prominent. Every hue sits outside the red and green bands used by
@@ -187,6 +214,13 @@
   --__s9cmpx-chart-categorical-default-07: #FFD98A;
   --__s9cmpx-chart-categorical-default-08: #8FC4FF;
   --__s9cmpx-chart-categorical-default-09: #E86FD0;
+  /* -10 (A4): the categorical ramp ran out at 9 while consumers offer up to 10 series --
+     SyChart.tsx's syPalette() had a zero-padding bug that silently dropped this slot even for
+     themes that defined it (fixed there too). Continues this theme's own red/green exclusion;
+     not independently re-validated for max hue-separation from every other slot beyond that --
+     see SyChart.tsx's wrap-around dash/marker cue for the fix that actually matters once a
+     chart needs an 11th series anyway. */
+  --__s9cmpx-chart-categorical-default-10: #8FA6C9;
 }
 
 /* Same reasoning as themes/analytics.css: the vendor reset's
@@ -416,14 +450,28 @@
    `headline1`, 2.5rem/600) and an uppercase, letter-spaced label -- a deliberate editorial/
    masthead treatment for this theme's Overview cards, not appropriate to bake into the shared
    component (other consumers rely on the compact default). Scoped to this theme's KPI tiles
-   only, so `green`/`blue`/`analytics` and any other Broadsheet page's non-KPI `__s9cmpx-label3`/
-   `__s9cmpx-headline4` usages (e.g. table captions) are unaffected. */
-[data-theme="analytics-bright-broadsheet"] .__s9cmpx-kpi-stat .__s9cmpx-label3 {
+   only, so `green`/`blue` and any other Broadsheet page's non-KPI `__s9cmpx-label3`/
+   `__s9cmpx-headline4` usages (e.g. table captions) are unaffected.
+
+   Also applied to `analytics`: it's the Dark half of the same header-toggle pair as this
+   theme (India Allocation Monitor, India IPO Intelligence), and before this rule was widened
+   the two disagreed -- Light showed the large uppercase treatment the 2A mock specifies,
+   Dark silently fell back to KpiStat's compact default. The two selectors are kept identical
+   on purpose rather than duplicated with separate values, so the pair can't drift apart again;
+   widen this same list (not a new block) if a THIRD theme ever needs it. `color` here also
+   moves `analytics`'s KPI value from its general body ink (#d7e0f0) to full white
+   (`--static-text-strong`) -- a deliberate part of the shared "large, bold" treatment, not
+   an incidental side effect of sharing the rule. Tidewater is not in this list: it isn't
+   part of this toggle pair and doesn't use KpiStat today, so whether it should get the same
+   treatment is an open call, not forced by this fix. */
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-kpi-stat .__s9cmpx-label3,
+[data-theme="analytics"] .__s9cmpx-kpi-stat .__s9cmpx-label3 {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 0.75rem;
 }
-[data-theme="analytics-bright-broadsheet"] .__s9cmpx-kpi-stat .__s9cmpx-headline4 {
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-kpi-stat .__s9cmpx-headline4,
+[data-theme="analytics"] .__s9cmpx-kpi-stat .__s9cmpx-headline4 {
   font-size: 2.25rem;
   font-weight: 600;
   line-height: 1.15;

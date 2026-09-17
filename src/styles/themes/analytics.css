@@ -168,6 +168,41 @@
      from static-text-standard (their canvas is light, only the chart panel is dark). */
   --__s9cmpx-chart-surface-text-weak: #d7e0f0;
 
+  /* This theme has no separate chart-panel surface distinct from its general card tone (unlike
+     the bright themes' dedicated dark panel on a light canvas) -- ChartCard.tsx darkens
+     chart-bearing cards to exactly this value already (see that component's own comment), so
+     aliasing rather than inventing a second literal keeps both in lockstep. Published so
+     consumers/tokens (e.g. the diverging scale's midpoint below) can name "the surface a chart
+     sits on" the same way across every theme, bright or not. */
+  --__s9cmpx-chart-surface: var(--__s9cmpx-static-background-weak);
+
+  /* Gauge's unfilled track: see Gauge.tsx's own comment for why this can't just be
+     --__s9cmpx-color-brand-100 (that token is hijacked as SyChart's gridline color here, and
+     retuning it would move every gridline in the theme). This theme's gloss gradient over
+     .js-plotly-plot (below) lightens the top of the arc enough that brand-100's mid-navy
+     blended into it at low gauge values, reading as a hole punched in the card -- one step up
+     the surface ladder reads as a raised track against either end of that gradient. */
+  --__s9cmpx-gauge-track-color: var(--__s9cmpx-static-surface-strong);
+
+  /* On-chart-panel sentiment pair (A5): every OTHER theme in this family pairs a light page
+     with a dark chart panel, so their sentiment-positive/negative (tuned for a light card) fail
+     contrast once drawn inside the dark panel -- that's the actual bug (see
+     analytics-bright-broadsheet.css's identical block for the numbers). This theme's whole
+     canvas is already dark, so its ordinary sentiment tokens are already safe on both -- no
+     second value needed, just an alias so consumers read one name across all four themes
+     without theme-specific knowledge of which one happens to need a real override. */
+  --__s9cmpx-chart-sentiment-positive: var(--__s9cmpx-static-text-sentiment-positive);
+  --__s9cmpx-chart-sentiment-negative: var(--__s9cmpx-static-text-sentiment-standard-negative);
+
+  /* Diverging scale (A6): brown/teal rather than red/green (a CVD failure -- deuteranopia can't
+     separate an above/below encoding carried by hue alone across that axis) -- see the identical
+     block in analytics-bright-broadsheet.css for the ColorBrewer "BrBG" provenance and contrast
+     math. Midpoint resolves to this theme's own panel tone instead of a literal white/grey, so a
+     near-zero value sits quietly on the panel instead of becoming the brightest thing on it. */
+  --__s9cmpx-chart-diverging-low: #D8B365;
+  --__s9cmpx-chart-diverging-mid: var(--__s9cmpx-chart-surface);
+  --__s9cmpx-chart-diverging-high: #5AB4AC;
+
   /* Series palette, validated on the #1e2f52 surface. Ordered brightest-first (by relative
      luminance) so the first-assigned series in any chart are automatically most prominent --
      mean luminance 0.529, mean contrast 7.31:1 vs. this surface (previous ramp: 0.253 / 3.83:1;
@@ -187,6 +222,13 @@
   --__s9cmpx-chart-categorical-default-07: #ff8f6b;
   --__s9cmpx-chart-categorical-default-08: #7aa5ff;
   --__s9cmpx-chart-categorical-default-09: #ff4ae7;
+  /* -10 (A4): the categorical ramp ran out at 9 while consumers offer up to 10 series --
+     SyChart.tsx's syPalette() had a zero-padding bug that silently dropped this slot even for
+     themes that defined it (fixed there too). Continues this theme's own red/green exclusion;
+     not independently re-validated for max hue-separation from every other slot beyond that --
+     see SyChart.tsx's wrap-around dash/marker cue for the fix that actually matters once a
+     chart needs an 11th series anyway. */
+  --__s9cmpx-chart-categorical-default-10: #e8c34a;
 }
 
 /* The vendor reset's `body{color:#4a4a4a}` (light-mode ink, not a semantic
@@ -246,7 +288,14 @@
   --ag-data-color: #e8eefb;
   --ag-header-background-color: #121e35;
   --ag-header-foreground-color: #8fa2c4;
-  --ag-odd-row-background-color: #1e2f52;
+  /* A3: was the same value as --ag-background-color (#1e2f52), so odd/even rows were
+     identical -- the other three themes in this family each define a real odd-row tone AND
+     carry the reassertion rule below (the vendor's own zebra rule loses to a higher-specificity
+     flat-fill rule from `.__s9cmpx-table__row--default-appearance.ag-row`); this theme was the
+     one that never got either half. A small step off #1e2f52, tuned to stay clearly a band
+     rather than a visible seam -- not a contrast fix, just restoring the striping every other
+     theme already has. */
+  --ag-odd-row-background-color: #1a2a49;
   --ag-border-color: #2c3e63;
   --ag-secondary-border-color: #263757;
   --ag-row-border-color: #263757;
@@ -267,6 +316,16 @@
   --ag-input-disabled-border-color: #2c3e63;
   --ag-input-disabled-background-color: #16233f;
   --ag-card-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.4);
+}
+
+/* A3, continued: the vendor's own `.__s9cmpx-table__row--default-appearance.ag-row` rule paints
+   every row (odd and even alike) an identical flat fill at higher specificity than AG Grid's
+   own `.ag-row-odd { background-color: var(--ag-odd-row-background-color) }` -- silently
+   defeating striping regardless of theme (same finding as analytics-bright-broadsheet.css and
+   analytics-bright-tidewater.css's identical rule). Reasserted here at the specificity the
+   vendor rule requires, scoped to `-odd` rows only so even rows keep the vendor fill. */
+[data-theme="analytics"] .ag-theme-s9cmpx .__s9cmpx-table__row--default-appearance.ag-row-odd {
+  background-color: var(--ag-odd-row-background-color);
 }
 
 /*

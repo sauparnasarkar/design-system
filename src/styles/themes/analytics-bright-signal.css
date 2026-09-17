@@ -176,6 +176,29 @@
   --__s9cmpx-chart-surface: #0C1226;
   --__s9cmpx-chart-surface-text-weak: #A9B6D6;
 
+  /* On-chart-panel sentiment pair (A5). Same problem as every other bright theme in this
+     family: --static-text-sentiment-positive/-negative (#0F7A47/#B3261E) are tuned against
+     this theme's white card, not its dark #0C1226 chart panel, where they'd fail the 3:1
+     non-text minimum the same way Broadsheet's and Tidewater's did. No app consumes this
+     theme yet, so there's no existing hardcoded workaround to match values with (contrast
+     Broadsheet's pair, which was reverse-engineered from a consumer's constant map) -- these
+     are computed fresh via the WCAG relative-luminance formula against this theme's own
+     #0C1226 panel: #4FD69B measures ~10.1:1, #EA5B62 ~5.5:1 (both comfortably past 3:1; the
+     same pair on Tidewater's slightly lighter #061E28 panel measures ~9.4:1/~5.1:1, so reusing
+     it here is a legitimate answer, not a coincidence -- Signal's panel is darker, so the
+     margin is if anything larger). */
+  --__s9cmpx-chart-sentiment-positive: #4FD69B;
+  --__s9cmpx-chart-sentiment-negative: #EA5B62;
+
+  /* Diverging scale (A6). Same brown/teal rationale as the other themes in this family --
+     ColorBrewer's "BrBG" scheme, colorblind-safe by design, avoiding the red/green axis a
+     diverging encoding would otherwise fail under deuteranopia. Contrast on this theme's
+     #0C1226 panel: #D8B365 ~9.3:1, #5AB4AC ~7.6:1 (WCAG relative luminance). Midpoint resolves
+     to this theme's own panel tone rather than a literal white/grey. */
+  --__s9cmpx-chart-diverging-low: #D8B365;
+  --__s9cmpx-chart-diverging-mid: var(--__s9cmpx-chart-surface);
+  --__s9cmpx-chart-diverging-high: #5AB4AC;
+
   /* Series palette, validated on the #0C1226 panel, brightest-first, and clear
      of the red/green sentiment bands. */
   --__s9cmpx-chart-categorical-default-01: #58A6FF;
@@ -187,6 +210,13 @@
   --__s9cmpx-chart-categorical-default-07: #9AD1FF;
   --__s9cmpx-chart-categorical-default-08: #FFD08A;
   --__s9cmpx-chart-categorical-default-09: #7FF0E4;
+  /* -10 (A4): the categorical ramp ran out at 9 while consumers offer up to 10 series --
+     SyChart.tsx's syPalette() had a zero-padding bug that silently dropped this slot even for
+     themes that defined it (fixed there too). Continues this theme's own red/green exclusion;
+     not independently re-validated for max hue-separation from every other slot beyond that --
+     see SyChart.tsx's wrap-around dash/marker cue for the fix that actually matters once a
+     chart needs an 11th series anyway. */
+  --__s9cmpx-chart-categorical-default-10: #D9A6E0;
 
   /* Rounder geometry is part of this theme's character (10px cards, 8px
      controls, pill chips) against the Broadsheet theme's 0–2px.

@@ -11,14 +11,16 @@ import { formatChartValue, logColorbarTicks, noDataHovertemplate, withAlpha } fr
 
 // `PlotData.type: PlotType` already covers every trace kind this component emits (bar/scatter/
 // choropleth/treemap), so a single `Partial<PlotData>` element type is enough -- no need for a
-// sibling union type. `meta`/`cmid` are real, standard Plotly trace/marker fields this component
-// sets (trace tagging for later lookup; colorscale zero-midpoint pinning) that this version of
-// `@types/plotly.js` simply doesn't declare on `PlotData`/`PlotMarker` -- added here rather than
-// cast away at each use. A handful of other fields (colors/locations restyle-wrapping, null
-// entries) are still narrower in the upstream types than plotly.js-dist-min accepts at runtime;
-// those are cast individually at their exact call sites below, each with a comment explaining the
-// real gap.
-type SyChartTrace = Partial<PlotData> & { meta?: string };
+// sibling union type. `meta`/`zmid` are real, standard Plotly trace fields this component sets
+// (trace tagging for later lookup; the choropleth trace's own colorscale zero-midpoint pinning,
+// same reason as `SyChartMarker.cmid` below but declared directly on the trace rather than under
+// `marker` -- that's where Plotly's own choropleth/heatmap traces put it, not a component choice)
+// that this version of `@types/plotly.js` simply doesn't declare on `PlotData` -- added here
+// rather than cast away at each use. A handful of other fields (colors/locations restyle-
+// wrapping, null entries) are still narrower in the upstream types than plotly.js-dist-min
+// accepts at runtime; those are cast individually at their exact call sites below, each with a
+// comment explaining the real gap.
+type SyChartTrace = Partial<PlotData> & { meta?: string; zmid?: number };
 // `cmid` (colorscale zero-midpoint) is likewise a real, standard Plotly marker field not declared
 // on `PlotMarker` in this version of `@types/plotly.js`.
 type SyChartMarker = Partial<PlotMarker> & { cmid?: number };
@@ -58,7 +60,7 @@ export interface SyChartSeries {
    * rendering a real colorbar legend. Takes precedence over `pointColors`/`color`.
    */
   colorValues?: Array<number | null>;
-  /** Plotly colorscale — array of [stop 0–1, CSS color] pairs. Defaults to green→lightgrey→crimson. */
+  /** Plotly colorscale — array of [stop 0–1, CSS color] pairs. Defaults to the theme's diverging scale (brown → chart-surface → teal). */
   colorScale?: Array<[number, string]>;
   /**
    * Pins the color axis to a fixed range (same units as `colorValues`, i.e. pre-log values
@@ -196,16 +198,40 @@ function cssVar(el: Element, name: string, fallback: string): string {
   return v || fallback;
 }
 
-const FALLBACK_PALETTE = ['#7accf5', '#e66066', '#d19e27', '#87ca65', '#fed26a', '#be8cd7', '#3950c4', '#a333a1', '#46b7b7'];
+// -10 matches the vendor base theme's own default for that slot (#c42338) -- this array is
+// the JS-level fallback for when no [data-theme] CSS var resolves at all (e.g. SSR), so it
+// should track the vendor base theme, not the analytics themes' own red/green-avoiding
+// constraint (that constraint lives in each analytics theme's own [data-theme] CSS, added
+// alongside their -01..-09 tokens -- see analytics.css and siblings for their -10 entries).
+const FALLBACK_PALETTE = ['#7accf5', '#e66066', '#d19e27', '#87ca65', '#fed26a', '#be8cd7', '#3950c4', '#a333a1', '#46b7b7', '#c42338'];
 
+// Brown/teal ColorBrewer "BrBG" endpoints (independently verified colorblind-safe for a
+// diverging encoding, unlike red/green) with a neutral midpoint -- syDivergingScale below
+// re-points that midpoint at the theme's own dark chart panel instead of this literal grey,
+// which only applies when no [data-theme] CSS var resolves at all.
 const DEFAULT_CONTINUOUS_SCALE: Array<[number, string]> = [
-  [0, 'green'],
-  [0.5, 'lightgrey'],
-  [1, 'crimson'],
+  [0, '#D8B365'],
+  [0.5, '#E5E5E5'],
+  [1, '#5AB4AC'],
 ];
 
 function syPalette(el: Element): string[] {
-  return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--__s9cmpx-chart-categorical-default-0${i + 1}`, fb));
+  return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--__s9cmpx-chart-categorical-default-${String(i + 1).padStart(2, '0')}`, fb));
+}
+
+/**
+ * Theme-aware diverging scale for `colorValues` series with no explicit `colorScale` --
+ * reads --__s9cmpx-chart-diverging-low/-mid/-high (published per analytics theme; the
+ * midpoint resolves to that theme's own --__s9cmpx-chart-surface, so near-zero values sit
+ * quietly on the panel rather than as the brightest thing on it) and falls back to the
+ * literal BrBG triple above where no theme defines them.
+ */
+function syDivergingScale(el: Element): Array<[number, string]> {
+  return [
+    [0, cssVar(el, '--__s9cmpx-chart-diverging-low', DEFAULT_CONTINUOUS_SCALE[0][1])],
+    [0.5, cssVar(el, '--__s9cmpx-chart-diverging-mid', DEFAULT_CONTINUOUS_SCALE[1][1])],
+    [1, cssVar(el, '--__s9cmpx-chart-diverging-high', DEFAULT_CONTINUOUS_SCALE[2][1])],
+  ];
 }
 
 /**
@@ -261,6 +287,7 @@ export function SyChart({
     const el = ref.current;
     if (!el) return;
     const palette = syPalette(el);
+    const divergingScale = syDivergingScale(el);
     const font = {
       family: cssVar(el, '--__s9cmpx-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
       size: 12,
@@ -326,6 +353,13 @@ export function SyChart({
           locationmode: s.locationmode ?? 'ISO-3',
           z,
           ...(s.colorRange ? { zmin, zmax, zauto: false } : {}),
+          // Unlike the bar/treemap branches below, this trace has no fixed zmin/zmax by
+          // default, so Plotly normalizes z from its own actual min to max -- an asymmetric
+          // signed range (e.g. -10..90) would otherwise place true zero away from the
+          // diverging scale's brown/surface/teal midpoint, the same skew risk the bar/treemap
+          // cmid comment describes. Has no effect once zauto is false (colorRange set above),
+          // and skipped for zLog data, where log-space has no meaningful zero crossing at all.
+          zmid: s.colorScale || s.zLog ? undefined : 0,
           // The real (untransformed) value, even when zLog log10-transformed z for coloring --
           // hovertemplate reads from here instead of the implicit %{z} fallback, which would
           // otherwise show the raw log10 number rather than the actual MtCO2 figure.
@@ -333,7 +367,7 @@ export function SyChart({
           hovertemplate: s.hoverUnit
             ? `%{location}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
             : '%{location}<br>%{customdata:,.0f}<extra></extra>',
-          colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+          colorscale: s.colorScale ?? divergingScale,
           showscale: s.showColorbar ?? true,
           marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
           // Horizontal, positioned below the map -- a vertical colorbar spans the full geo
@@ -381,9 +415,11 @@ export function SyChart({
             customdata: formattedDeltas,
             hovertemplate,
             // No explicit `color` here (unlike `font` used elsewhere against the fixed page
-            // background) -- tile fills vary from crimson through lightgrey to green, and a
-            // single static text color is illegible against a chunk of that range. Omitting
-            // `color` lets Plotly fall back to its own per-tile black/white contrast choice.
+            // background) -- tile fills vary across the full colorscale (brown through this
+            // theme's own chart-surface tone to teal, by default; a wider range still with a
+            // custom `colorScale`), and a single static text color is illegible against a
+            // chunk of that range. Omitting `color` lets Plotly fall back to its own per-tile
+            // black/white contrast choice.
             textfont: { family: font.family, size: font.size },
             // Conditionally *spread* rather than `marker: s.colorValues ? {...} : undefined` --
             // the latter still leaves a `marker` key on the trace object with value `undefined`
@@ -405,18 +441,19 @@ export function SyChart({
                     // the same convention already relied on for `z`/`customdata` elsewhere in this
                     // file, just not modeled for this specific field in `@types/plotly.js`.
                     colors: s.colorValues as unknown as Color[],
-                    colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+                    colorscale: s.colorScale ?? divergingScale,
                     // Plotly auto-scales a continuous colorscale to the actual min/max of the
                     // provided values, not to a fixed zero-centered range -- with no colorScale
-                    // override (i.e. the default green/lightgrey/crimson "below/above a
-                    // reference point" convention), that silently breaks the convention itself
-                    // whenever the data is skewed: e.g. one huge outlier riser drags the
-                    // "crimson" end far to the right, so every merely-modest riser lands near
-                    // the "green" end of the auto-range and reads as green despite being an
-                    // increase. Pinning the midpoint to true 0 keeps lightgrey at "no change"
-                    // and red/green symmetric around it regardless of skew. Only applied to the
-                    // default scale -- a custom colorScale (e.g. a one-sided magnitude scale)
-                    // may not have a meaningful zero crossing at all.
+                    // override (i.e. the default brown/chart-surface/teal "below/above a
+                    // reference point" diverging convention -- see divergingScale/A6), that
+                    // silently breaks the convention itself whenever the data is skewed: e.g.
+                    // one huge outlier riser drags the "teal" end far to the right, so every
+                    // merely-modest riser lands near the midpoint and reads as roughly "no
+                    // change" despite being a real increase. Pinning the midpoint to true 0
+                    // keeps the surface tone at "no change" and the brown/teal ends symmetric
+                    // around it regardless of skew. Only applied to the default scale -- a
+                    // custom colorScale (e.g. a one-sided magnitude scale) may not have a
+                    // meaningful zero crossing at all.
                     cmid: s.colorScale ? undefined : 0,
                     ...(s.colorRange ? { cmin: s.colorRange[0], cmax: s.colorRange[1] } : {}),
                     showscale: s.showColorbar ?? true,
@@ -466,6 +503,22 @@ export function SyChart({
       }
       if (s.kind === 'line') {
         const showMarkers = s.showMarkers ?? s.x.length < 10;
+        // A series index past the palette's length repeats an earlier series' color (the
+        // `palette[i % palette.length]` wrap above) -- on a dense chart (e.g. 10+ countries)
+        // that reads as the SAME series twice rather than a coincidental color collision.
+        // Varying dash/marker shape here is the load-bearing fix (a 10th palette token alone
+        // only moves the collision to the 11th series). Gated on `s.color == null`: a caller
+        // that already supplies its own explicit color for this series isn't relying on the
+        // palette wrap at all, so it isn't actually colliding with anything and shouldn't have
+        // its line style silently changed underneath it (Copilot review, PR #74).
+        const isWrapped = i >= palette.length && s.color == null;
+        // `s.dashed` is an existing per-series caller override and takes precedence over this
+        // automatic cue -- but only when the caller actually set it. `dashed?: boolean` means
+        // an explicit `false` previously guaranteed a solid line; treating that the same as
+        // "unset" would silently force `dash` back on for a wrapped series whose caller asked
+        // for solid specifically (Copilot review, PR #74), so only an omitted `dashed` falls
+        // through to the automatic wrap cue.
+        const dash = s.dashed != null ? (s.dashed ? 'dot' : 'solid') : isWrapped ? 'dash' : 'solid';
         return [
           {
             type: 'scatter',
@@ -473,15 +526,15 @@ export function SyChart({
             name: s.name,
             x: s.x,
             y: s.y,
-            line: { color, width: 2.75, dash: s.dashed ? 'dot' : 'solid' },
-            ...(showMarkers ? { marker: { color, size: 5 } } : {}),
+            line: { color, width: 2.75, dash },
+            ...(showMarkers ? { marker: { color, size: 5, symbol: isWrapped ? 'diamond' : 'circle' } } : {}),
           },
         ];
       }
       const marker = s.colorValues
         ? {
             color: s.colorValues,
-            colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+            colorscale: s.colorScale ?? divergingScale,
             // See the treemap branch's identical cmid comment above -- same auto-range skew
             // risk applies to bar's marker.color continuous scaling.
             cmid: s.colorScale ? undefined : 0,
