@@ -1,14 +1,16 @@
 import React from 'react';
 import { cx } from '../../lib/cx';
 import { Icon } from '../Icon/Icon';
-import { Logo } from '../Logo/Logo';
 
 export interface AppSwitcherApp {
   id: string;
-  /** Brand mark image + wordmark rendered on the tile — consumer-supplied, same as `Logo`'s own props. */
+  /** Brand mark image rendered on the tile — consumer-supplied. */
   markSrc: string;
-  wordmark: React.ReactNode;
+  /** @deprecated unused since the tile switched to an icon-over-label layout (see `name`) -- kept only so existing callers that still pass it don't need an immediate edit. */
+  wordmark?: React.ReactNode;
+  /** @deprecated unused for the same reason as `wordmark`. */
   accent?: string;
+  /** @deprecated unused for the same reason as `wordmark`. */
   accentColor?: string;
   name: string;
   href?: string;
@@ -26,14 +28,29 @@ export interface AppSwitcherProps {
   className?: string;
 }
 
-/** App switcher panel (`__s9cmpx-app-switcher-module` + `__s9cmpx-app-launcher-tile`) opened from the header grid icon. */
+// Google's own app switcher (the reference this tile design was matched against) keeps a fixed
+// 3-column grid at every viewport width rather than reflowing by breakpoint -- its tiles are
+// narrow enough (a single icon + a below label, not a full Logo lockup) that 3 of them never
+// risk overflowing a phone-width popover the way this component's old 2-column, 170px-tile
+// layout did (confirmed live: right-anchored on a ~390px viewport, that older layout rendered
+// partly off the left edge of the screen). `Math.min` also means a caller with only 1-2 apps
+// (both of this workspace's real consumers today) gets exactly that many columns, never a grid
+// with an empty trailing cell.
+const MAX_COLUMNS = 3;
+
+/** App switcher panel (`__s9cmpx-app-switcher-module` + `__s9cmpx-app-launcher-tile`) opened from the header grid icon. Tile layout: icon on top, app name below -- matches the icon-launcher convention (Google's app switcher, iOS/Android home screens) rather than this design system's own inline Logo lockup, which doubled up the app name (lockup wordmark + a second name label) when used as a launcher tile. */
 export function AppSwitcher({ apps, onClose, onAppClick, message, tileSize = 'default', className }: AppSwitcherProps) {
+  const columns = Math.max(1, Math.min(MAX_COLUMNS, apps.length));
   return (
     <div
       className={cx('__s9cmpx-app-switcher-module', className)}
       role="dialog"
       aria-label="App switcher"
-      style={{ background: 'var(--__s9cmpx-static-layer-standard, #fff)', border: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.12)', padding: 16, width: 'fit-content', position: 'relative' }}
+      // boxSizing: border-box is load-bearing for maxWidth's own math -- confirmed via Copilot
+      // review: content-box (the default) adds this element's 16px padding + 1px border on TOP
+      // of maxWidth, so the calc(100vw - 32px) cap above would still let the rendered box overflow
+      // the viewport by ~34px in the boundary case it exists to prevent.
+      style={{ background: 'var(--__s9cmpx-static-layer-standard, #fff)', border: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.12)', padding: 16, width: 'fit-content', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', position: 'relative' }}
     >
       {onClose && (
         <button
@@ -46,37 +63,69 @@ export function AppSwitcher({ apps, onClose, onAppClick, message, tileSize = 'de
           <Icon name="close" size={14} />
         </button>
       )}
-      <div className="__s9cmpx-app-switcher-module__items-wrapper" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+      {/* overflowX handles the boundary case a fixed 120px tile width creates once MAX_COLUMNS=3
+          apps land on a viewport narrow enough that the popover's own maxWidth (above) caps below
+          3 tiles' real combined width (3*120 + gaps + padding) -- rather than letting the grid's
+          content visually spill past this dialog's own rounded border, it scrolls within it. Not
+          a real case for either of this workspace's own consumers today (both pass exactly 2
+          apps), but a real one for the day a 3rd app is added. */}
+      <div className="__s9cmpx-app-switcher-module__items-wrapper" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 4, overflowX: 'auto' }}>
         {apps.map((app) => (
           <a
             key={app.id}
-            href={app.href ?? '#'}
+            // A noPermission tile never carries its real href, full stop -- not just a
+            // preventDefault in onClick. Confirmed via Copilot review (a second real gap this
+            // one caught): a click handler alone only blocks the 'click' event itself, not
+            // "open link in new tab"/"copy link address"/middle-click, all of which read the
+            // anchor's own href attribute directly and never fire a 'click' at all. Only
+            // removing the real URL from the DOM closes every one of those paths at once.
+            href={app.noPermission ? '#' : (app.href ?? '#')}
             className={cx('__s9cmpx-app-launcher-tile', tileSize !== 'default' && `__s9cmpx-app-launcher-tile--${tileSize}`, app.noPermission && '__s9cmpx-app-launcher-tile--no-permission')}
             onClick={(e) => {
-              if (!app.href) e.preventDefault();
+              // Defense in depth alongside the href fix above, for a plain click specifically:
+              // even a bare '#' href would otherwise still fire onAppClick below and jump the
+              // page to its own top (the default action for an empty-fragment href).
+              if (app.noPermission || !app.href) e.preventDefault();
               if (!app.noPermission) onAppClick?.(app.id);
             }}
             aria-disabled={app.noPermission}
+            // A native <a href> is focusable by default -- tabIndex={-1} is the only way to
+            // pull a noPermission tile out of the tab order to match its aria-disabled/
+            // pointer-events:none state (same convention FileUpload.tsx already uses for its
+            // own disabled state); omitted (not 0) for an enabled tile, since an anchor's
+            // default tab-order behavior already covers that case.
+            tabIndex={app.noPermission ? -1 : undefined}
             style={{
               display: 'flex',
               flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
               gap: 8,
-              padding: 12,
-              borderRadius: 3,
-              border: '1px solid var(--__s9cmpx-static-divider-weak, rgba(31,31,31,0.08))',
+              padding: '14px 6px',
+              borderRadius: 8,
               textDecoration: 'none',
               color: 'inherit',
+              textAlign: 'center',
               opacity: app.noPermission ? 0.45 : 1,
               cursor: app.noPermission ? 'default' : 'pointer',
-              minWidth: 170,
+              width: 120,
             }}
             onMouseEnter={(e) => !app.noPermission && (e.currentTarget.style.background = 'var(--__s9cmpx-interactive-overlay-primary-hover, rgba(31,31,31,0.08))')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             <span className="__s9cmpx-app-launcher-tile__box" style={{ display: 'inline-flex' }}>
-              <Logo markSrc={app.markSrc} wordmark={app.wordmark} accent={app.accent} accentColor={app.accentColor} height={20} />
+              <img src={app.markSrc} alt="" style={{ width: 40, height: 40, objectFit: 'contain', display: 'block' }} />
             </span>
-            <span className="__s9cmpx-app-launcher-tile__name __s9cmpx-label3">{app.name}</span>
+            {/* Two real rows, not a 1-line-then-ellipsis truncation -- tile width above is sized
+                so both real consumers' longest word ("Intelligence") fits a row on its own;
+                minHeight of two lines reserves consistent tile height whether a given name
+                actually wraps to one row or two, so tiles in the same grid row stay level. */}
+            <span
+              className="__s9cmpx-app-launcher-tile__name __s9cmpx-label3"
+              style={{ whiteSpace: 'normal', lineHeight: 1.3, minHeight: 'calc(1.3em * 2)' }}
+            >
+              {app.name}
+            </span>
           </a>
         ))}
       </div>
