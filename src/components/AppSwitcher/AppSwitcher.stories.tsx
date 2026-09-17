@@ -40,9 +40,11 @@ const meta: Meta<typeof AppSwitcher> = {
       { id: 'green', markSrc: syenaMark, wordmark: 'Syena', accent: 'Green', accentColor: '#0f5c5c', name: 'Syena Green' },
       { id: 'blue', markSrc: syenaMark, wordmark: 'Syena', accent: 'Blue', accentColor: 'var(--__s9cmpx-color-blue-600, #1c5ece)', name: 'Syena Blue' },
       // href set deliberately (unlike a bare noPermission tile with no href) -- this is the
-      // exact shape a Copilot review on this component's own PR flagged as a real gap: the
-      // click handler only called preventDefault when href was MISSING, so a noPermission tile
-      // that also carried a real href would still follow it on click.
+      // exact shape two rounds of Copilot review on this component's own PR flagged real gaps
+      // in: first, the click handler only called preventDefault when href was MISSING; then,
+      // even after that was fixed, the anchor's own href attribute still carried this real URL,
+      // reachable via "open in new tab"/"copy link address"/middle-click -- none of which ever
+      // fire a 'click' event at all, so no onClick-based fix alone could ever close that gap.
       { id: 'connect', markSrc: syenaMark, wordmark: 'Syena', name: 'Syena Premium', noPermission: true, href: '#restricted' },
     ],
     message: 'You do not have access to Apps shown in gray. Contact Syena Systems for access.',
@@ -66,11 +68,16 @@ export const Playground: Story = {
     const images = canvasElement.querySelectorAll('.__s9cmpx-app-launcher-tile img');
     await expect(images).toHaveLength(args.apps!.length);
 
-    // Regression guard for the Copilot-flagged noPermission+href gap above: the onClick
-    // handler itself must preventDefault whenever noPermission is set, not only when href
-    // happens to be absent.
-    const noPermissionApp = args.apps!.find((app) => app.noPermission)!;
-    const noPermissionTile = canvasElement.querySelector(`a[href="${noPermissionApp.href}"]`) as HTMLAnchorElement;
+    // Regression guard for both Copilot-flagged noPermission+href gaps above. Selected by the
+    // no-permission class, not by its own configured href -- the real fix means that href is
+    // never actually rendered on the tile at all, so selecting by it would find nothing.
+    const noPermissionTile = canvasElement.querySelector('.__s9cmpx-app-launcher-tile--no-permission') as HTMLAnchorElement;
+    // The href-exposure gap: the rendered anchor must never carry the app's own real href,
+    // regardless of what was configured -- this is what actually closes "open in new tab"/
+    // "copy link address"/middle-click, none of which a click-handler fix alone can reach.
+    await expect(noPermissionTile.getAttribute('href')).toBe('#');
+    // The earlier, already-fixed click-handler gap: still verified directly (defense in depth,
+    // and this handler is also what stops a bare '#' from jumping the page to its own top).
     const clickEvent = dispatchClick(noPermissionTile);
     await expect(clickEvent.defaultPrevented).toBe(true);
   },
@@ -88,18 +95,18 @@ export const NoPermissionBlocksNavigation: Story = {
   play: async ({ canvasElement, args }) => {
     const onAppClick = args.onAppClick!;
 
-    // Real navigation here would be a real bug regression (the component should already
-    // prevent it), so this can safely use the plain `dispatchClick` and read `defaultPrevented`
-    // the same way the Playground story's own noPermission regression does.
-    const restrictedTile = canvasElement.querySelector('a[href="#restricted"]') as HTMLAnchorElement;
+    // Selected by the no-permission class (see the Playground story's own comment above for
+    // why, not by its own configured href).
+    const restrictedTile = canvasElement.querySelector('.__s9cmpx-app-launcher-tile--no-permission') as HTMLAnchorElement;
+    await expect(restrictedTile.getAttribute('href')).toBe('#');
     const restrictedClickEvent = dispatchClick(restrictedTile);
     await expect(restrictedClickEvent.defaultPrevented).toBe(true);
     await expect(onAppClick).not.toHaveBeenCalled();
 
-    // The allowed tile correctly does NOT call preventDefault on its own real click -- this
-    // test only cares whether onAppClick fired with the right id, not the navigation itself,
-    // so it uses dispatchClickWithoutNavigating to keep that real navigation from ever
-    // reaching the browser (see that helper's own comment above for why).
+    // The allowed tile correctly keeps its real href and does NOT call preventDefault on its
+    // own real click -- this test only cares whether onAppClick fired with the right id, not
+    // the navigation itself, so it uses dispatchClickWithoutNavigating to keep that real
+    // navigation from ever reaching the browser (see that helper's own comment above for why).
     const allowedTile = canvasElement.querySelector('a[href="#allowed"]') as HTMLAnchorElement;
     dispatchClickWithoutNavigating(allowedTile);
     await expect(onAppClick).toHaveBeenCalledWith('allowed');

@@ -69,13 +69,18 @@ export function AppSwitcher({ apps, onClose, onAppClick, message, tileSize = 'de
         {apps.map((app) => (
           <a
             key={app.id}
-            href={app.href ?? '#'}
+            // A noPermission tile never carries its real href, full stop -- not just a
+            // preventDefault in onClick. Confirmed via Copilot review (a second real gap this
+            // one caught): a click handler alone only blocks the 'click' event itself, not
+            // "open link in new tab"/"copy link address"/middle-click, all of which read the
+            // anchor's own href attribute directly and never fire a 'click' at all. Only
+            // removing the real URL from the DOM closes every one of those paths at once.
+            href={app.noPermission ? '#' : (app.href ?? '#')}
             className={cx('__s9cmpx-app-launcher-tile', tileSize !== 'default' && `__s9cmpx-app-launcher-tile--${tileSize}`, app.noPermission && '__s9cmpx-app-launcher-tile--no-permission')}
             onClick={(e) => {
-              // noPermission must block navigation even when the caller also supplied a real
-              // href -- a grayed-out, aria-disabled tile that still followed its own link on
-              // click would contradict `noPermission`'s whole purpose (confirmed real: no
-              // current caller does this today, but the prop's own contract allows it).
+              // Defense in depth alongside the href fix above, for a plain click specifically:
+              // even a bare '#' href would otherwise still fire onAppClick below and jump the
+              // page to its own top (the default action for an empty-fragment href).
               if (app.noPermission || !app.href) e.preventDefault();
               if (!app.noPermission) onAppClick?.(app.id);
             }}
