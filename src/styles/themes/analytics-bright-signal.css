@@ -267,6 +267,20 @@
   fill: var(--__s9cmpx-chart-surface-text-weak) !important;
 }
 
+/* C6: same fix as analytics-bright-tidewater.css's identical rule, applied preemptively here
+   since this theme has the same structural risk -- canvas (--static-background-weak,
+   #F3F6FD) and card (--static-background-standard, #FFFFFF) are close pale tones, so
+   ChartCard.tsx's inline darkening-toward-canvas (right for `analytics`, whose navy tones are
+   far enough apart) would flatten this theme's white-card/dark-panel/pale-canvas hierarchy
+   the same way it did on Tidewater's Historical Trends. No consumer uses this theme yet, but
+   it's the same family and the same bug would reproduce the moment one does. See the
+   Tidewater file's identical rule for the full rationale (vendor-default restoration, why
+   `!important` is required over an inline style, why scoping to .__s9cmpx-card generally is
+   safe). */
+[data-theme="analytics-bright-signal"] .__s9cmpx-card {
+  --__s9cmpx-c-card-background-color-default: var(--__s9cmpx-static-background-standard) !important;
+}
+
 /* AG Grid (ag-theme-s9cmpx hardcodes light values, so override --ag-* here).
    Header rows go pale cobalt with cobalt labels — the table reads as part of the
    accent system rather than as a grey band. */
