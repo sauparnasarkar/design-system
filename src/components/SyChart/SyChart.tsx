@@ -58,7 +58,7 @@ export interface SyChartSeries {
    * rendering a real colorbar legend. Takes precedence over `pointColors`/`color`.
    */
   colorValues?: Array<number | null>;
-  /** Plotly colorscale — array of [stop 0–1, CSS color] pairs. Defaults to green→lightgrey→crimson. */
+  /** Plotly colorscale — array of [stop 0–1, CSS color] pairs. Defaults to the theme's diverging scale (brown → chart-surface → teal). */
   colorScale?: Array<[number, string]>;
   /**
    * Pins the color axis to a fixed range (same units as `colorValues`, i.e. pre-log values
@@ -196,16 +196,40 @@ function cssVar(el: Element, name: string, fallback: string): string {
   return v || fallback;
 }
 
-const FALLBACK_PALETTE = ['#7accf5', '#e66066', '#d19e27', '#87ca65', '#fed26a', '#be8cd7', '#3950c4', '#a333a1', '#46b7b7'];
+// -10 matches the vendor base theme's own default for that slot (#c42338) -- this array is
+// the JS-level fallback for when no [data-theme] CSS var resolves at all (e.g. SSR), so it
+// should track the vendor base theme, not the analytics themes' own red/green-avoiding
+// constraint (that constraint lives in each analytics theme's own [data-theme] CSS, added
+// alongside their -01..-09 tokens -- see analytics.css and siblings for their -10 entries).
+const FALLBACK_PALETTE = ['#7accf5', '#e66066', '#d19e27', '#87ca65', '#fed26a', '#be8cd7', '#3950c4', '#a333a1', '#46b7b7', '#c42338'];
 
+// Brown/teal ColorBrewer "BrBG" endpoints (independently verified colorblind-safe for a
+// diverging encoding, unlike red/green) with a neutral midpoint -- syDivergingScale below
+// re-points that midpoint at the theme's own dark chart panel instead of this literal grey,
+// which only applies when no [data-theme] CSS var resolves at all.
 const DEFAULT_CONTINUOUS_SCALE: Array<[number, string]> = [
-  [0, 'green'],
-  [0.5, 'lightgrey'],
-  [1, 'crimson'],
+  [0, '#D8B365'],
+  [0.5, '#E5E5E5'],
+  [1, '#5AB4AC'],
 ];
 
 function syPalette(el: Element): string[] {
-  return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--__s9cmpx-chart-categorical-default-0${i + 1}`, fb));
+  return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--__s9cmpx-chart-categorical-default-${String(i + 1).padStart(2, '0')}`, fb));
+}
+
+/**
+ * Theme-aware diverging scale for `colorValues` series with no explicit `colorScale` --
+ * reads --__s9cmpx-chart-diverging-low/-mid/-high (published per analytics theme; the
+ * midpoint resolves to that theme's own --__s9cmpx-chart-surface, so near-zero values sit
+ * quietly on the panel rather than as the brightest thing on it) and falls back to the
+ * literal BrBG triple above where no theme defines them.
+ */
+function syDivergingScale(el: Element): Array<[number, string]> {
+  return [
+    [0, cssVar(el, '--__s9cmpx-chart-diverging-low', DEFAULT_CONTINUOUS_SCALE[0][1])],
+    [0.5, cssVar(el, '--__s9cmpx-chart-diverging-mid', DEFAULT_CONTINUOUS_SCALE[1][1])],
+    [1, cssVar(el, '--__s9cmpx-chart-diverging-high', DEFAULT_CONTINUOUS_SCALE[2][1])],
+  ];
 }
 
 /**
@@ -261,6 +285,7 @@ export function SyChart({
     const el = ref.current;
     if (!el) return;
     const palette = syPalette(el);
+    const divergingScale = syDivergingScale(el);
     const font = {
       family: cssVar(el, '--__s9cmpx-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
       size: 12,
@@ -333,7 +358,7 @@ export function SyChart({
           hovertemplate: s.hoverUnit
             ? `%{location}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
             : '%{location}<br>%{customdata:,.0f}<extra></extra>',
-          colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+          colorscale: s.colorScale ?? divergingScale,
           showscale: s.showColorbar ?? true,
           marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
           // Horizontal, positioned below the map -- a vertical colorbar spans the full geo
@@ -405,7 +430,7 @@ export function SyChart({
                     // the same convention already relied on for `z`/`customdata` elsewhere in this
                     // file, just not modeled for this specific field in `@types/plotly.js`.
                     colors: s.colorValues as unknown as Color[],
-                    colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+                    colorscale: s.colorScale ?? divergingScale,
                     // Plotly auto-scales a continuous colorscale to the actual min/max of the
                     // provided values, not to a fixed zero-centered range -- with no colorScale
                     // override (i.e. the default green/lightgrey/crimson "below/above a
@@ -466,6 +491,14 @@ export function SyChart({
       }
       if (s.kind === 'line') {
         const showMarkers = s.showMarkers ?? s.x.length < 10;
+        // A series index past the palette's length repeats an earlier series' color (the
+        // `palette[i % palette.length]` wrap above) -- on a dense chart (e.g. 10+ countries)
+        // that reads as the SAME series twice rather than a coincidental color collision.
+        // Varying dash/marker shape here is the load-bearing fix (a 10th palette token alone
+        // only moves the collision to the 11th series); `s.dashed` is an existing per-series
+        // caller override and takes precedence over this automatic cue rather than being
+        // silently overwritten by it.
+        const isWrapped = i >= palette.length;
         return [
           {
             type: 'scatter',
@@ -473,15 +506,15 @@ export function SyChart({
             name: s.name,
             x: s.x,
             y: s.y,
-            line: { color, width: 2.75, dash: s.dashed ? 'dot' : 'solid' },
-            ...(showMarkers ? { marker: { color, size: 5 } } : {}),
+            line: { color, width: 2.75, dash: s.dashed ? 'dot' : isWrapped ? 'dash' : 'solid' },
+            ...(showMarkers ? { marker: { color, size: 5, symbol: isWrapped ? 'diamond' : 'circle' } } : {}),
           },
         ];
       }
       const marker = s.colorValues
         ? {
             color: s.colorValues,
-            colorscale: s.colorScale ?? DEFAULT_CONTINUOUS_SCALE,
+            colorscale: s.colorScale ?? divergingScale,
             // See the treemap branch's identical cmid comment above -- same auto-range skew
             // risk applies to bar's marker.color continuous scaling.
             cmid: s.colorScale ? undefined : 0,

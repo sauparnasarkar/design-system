@@ -201,7 +201,7 @@ Current themes:
   match their pixel values after this, though the order stays monotonic
   (which is what components actually rely on). Reserved for a future
   consumer as of this writing; not yet adopted by any app.
-- **analytics-bright-signal-tidewater** — a sibling of `analytics-bright-
+- **analytics-bright-tidewater** — a sibling of `analytics-bright-
   signal`, not a replacement (Signal stays exactly as it is): same
   structure (cool bright canvas, white cards, dark chart panels, rounder
   geometry, one hue per metric group), primary moved from cobalt `#1B4DFF`
