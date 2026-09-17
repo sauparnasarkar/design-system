@@ -46,7 +46,11 @@ export function AppSwitcher({ apps, onClose, onAppClick, message, tileSize = 'de
       className={cx('__s9cmpx-app-switcher-module', className)}
       role="dialog"
       aria-label="App switcher"
-      style={{ background: 'var(--__s9cmpx-static-layer-standard, #fff)', border: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.12)', padding: 16, width: 'fit-content', maxWidth: 'calc(100vw - 32px)', position: 'relative' }}
+      // boxSizing: border-box is load-bearing for maxWidth's own math -- confirmed via Copilot
+      // review: content-box (the default) adds this element's 16px padding + 1px border on TOP
+      // of maxWidth, so the calc(100vw - 32px) cap above would still let the rendered box overflow
+      // the viewport by ~34px in the boundary case it exists to prevent.
+      style={{ background: 'var(--__s9cmpx-static-layer-standard, #fff)', border: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.12)', padding: 16, width: 'fit-content', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', position: 'relative' }}
     >
       {onClose && (
         <button
@@ -85,6 +89,12 @@ export function AppSwitcher({ apps, onClose, onAppClick, message, tileSize = 'de
               if (!app.noPermission) onAppClick?.(app.id);
             }}
             aria-disabled={app.noPermission}
+            // A native <a href> is focusable by default -- tabIndex={-1} is the only way to
+            // pull a noPermission tile out of the tab order to match its aria-disabled/
+            // pointer-events:none state (same convention FileUpload.tsx already uses for its
+            // own disabled state); omitted (not 0) for an enabled tile, since an anchor's
+            // default tab-order behavior already covers that case.
+            tabIndex={app.noPermission ? -1 : undefined}
             style={{
               display: 'flex',
               flexDirection: 'column',

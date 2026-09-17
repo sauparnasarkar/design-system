@@ -80,6 +80,10 @@ export const Playground: Story = {
     // and this handler is also what stops a bare '#' from jumping the page to its own top).
     const clickEvent = dispatchClick(noPermissionTile);
     await expect(clickEvent.defaultPrevented).toBe(true);
+    // Regression guard for the keyboard-focus gap Copilot review also flagged: a noPermission
+    // tile is aria-disabled and pointer-events:none, but a plain <a href> stays in the tab
+    // order by default regardless -- tabIndex={-1} is the only thing that actually pulls it out.
+    await expect(noPermissionTile.tabIndex).toBe(-1);
   },
 };
 
