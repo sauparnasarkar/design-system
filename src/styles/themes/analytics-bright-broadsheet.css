@@ -220,8 +220,15 @@
   --__s9cmpx-c-header-background-color: #16150F;
   border-bottom: 3px solid #D8361B;
 }
+/* __center's selector excludes SearchInput's own clear button (confirmed via Copilot
+   review): a descendant selector on __center also matches it, and this rule's own
+   !important would clobber Header.tsx's separate --static-text-weak/-strong remapping
+   for the search field's inverse surface (see Header.tsx's own inline comment on that
+   remap) the moment a consumer enables `searchPlaceholder` alongside a `centerActions`
+   button in this theme -- not exercised by either of this workspace's real consumers
+   today, but a real latent conflict this exclusion closes before it's needed. */
 [data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__left button,
-[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__center button,
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__center button:not(.__s9cmpx-search-input__clear-indicator),
 [data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__right button {
   color: #CFCABE !important;
 }
