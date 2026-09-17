@@ -221,6 +221,7 @@
   border-bottom: 3px solid #D8361B;
 }
 [data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__left button,
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__center button,
 [data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__right button {
   color: #CFCABE !important;
 }

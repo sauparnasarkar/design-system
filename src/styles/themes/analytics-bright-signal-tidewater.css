@@ -256,6 +256,7 @@
   border-bottom: 2px solid #12A0C4;
 }
 [data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-header__left button,
+[data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-header__center button,
 [data-theme="analytics-bright-signal-tidewater"] .__s9cmpx-header__right button {
   color: #94B4C0 !important;
 }
