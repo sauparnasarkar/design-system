@@ -22,9 +22,24 @@ export const FOCUSABLE_SELECTOR = [
  */
 export function getFocusableElements(container: ParentNode): HTMLElement[] {
   const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+  const radioOwners = new WeakMap<object, number>();
+  let nextOwnerId = 0;
+  const getRadioGroupKey = (el: HTMLInputElement) => {
+    const owner = el.form ?? el.getRootNode();
+    if (!radioOwners.has(owner)) radioOwners.set(owner, nextOwnerId++);
+    return `${el.name}::${radioOwners.get(owner)}`;
+  };
+  const radioGroups = new Map<string, HTMLInputElement[]>();
+  for (const el of focusable) {
+    if (!(el instanceof HTMLInputElement) || el.type !== 'radio' || !el.name) continue;
+    const key = getRadioGroupKey(el);
+    const group = radioGroups.get(key) ?? [];
+    group.push(el);
+    radioGroups.set(key, group);
+  }
   return focusable.filter((el, _, all) => {
     if (!(el instanceof HTMLInputElement) || el.type !== 'radio' || !el.name) return true;
-    const group = all.filter((candidate): candidate is HTMLInputElement => (
+    const group = radioGroups.get(getRadioGroupKey(el)) ?? all.filter((candidate): candidate is HTMLInputElement => (
       candidate instanceof HTMLInputElement
       && candidate.type === 'radio'
       && candidate.name === el.name
