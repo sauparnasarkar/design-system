@@ -24,6 +24,10 @@ type SyChartTrace = Partial<PlotData> & { meta?: string; zmid?: number };
 // `cmid` (colorscale zero-midpoint) is likewise a real, standard Plotly marker field not declared
 // on `PlotMarker` in this version of `@types/plotly.js`.
 type SyChartMarker = Partial<PlotMarker> & { cmid?: number };
+// `uniformtext` is a real, standard Plotly layout field (enforces a legible size floor on
+// treemap/pie/bar text, hiding anything that can't fit at that floor) not declared on `Layout`
+// in this version of `@types/plotly.js`.
+type SyChartLayout = Partial<Layout> & { uniformtext?: { minsize?: number; mode?: 'hide' | 'show' } };
 
 export interface SyChartSeries {
   name: string;
@@ -463,6 +467,23 @@ export function SyChart({
                       outlinewidth: 0,
                       tickfont: font,
                     },
+                    // A 1px stroke so adjacent tiles (and a near-zero tile against the panel)
+                    // stay separable by outline even when their fills land close together --
+                    // most likely right where a diverging scale's midpoint region puts several
+                    // near-zero tiles at nearly the same fill. Same precedent as the
+                    // choropleth branch's own marker.line above, but NOT the same token:
+                    // --__s9cmpx-static-divider-weak reads fine against a light choropleth
+                    // border but is only ~1.1-1.5:1 against this theme's own dark near-zero
+                    // tones (e.g. analytics: divider-weak #263757 vs. a consumer resolving its
+                    // diverging midpoint to --__s9cmpx-color-brand-100 #263a5e -- nearly
+                    // identical, invisible exactly where this border matters most).
+                    // --__s9cmpx-chart-surface-text-weak is already published on every theme
+                    // with a dark chart panel specifically as ink that reads there, and clears
+                    // brand-100 with real margin (analytics 8.6:1, Tidewater 5.9:1). Scoped to
+                    // this colorValues-driven branch only, not the discrete-fallback branch
+                    // below -- "stay separable near zero" is a diverging-scale concern with no
+                    // equivalent in a flat per-tile categorical fill.
+                    line: { color: cssVar(el, '--__s9cmpx-chart-surface-text-weak', 'rgba(0,0,0,0.15)'), width: 1 },
                   } as SyChartMarker,
                 }
               : // No continuous `colorValues` to scale a gradient from -- fall back to the same
@@ -587,10 +608,23 @@ export function SyChart({
       font: { ...font, size: 11 },
     }));
     const allAnnotations = [...referenceAnnotation, ...customAnnotations];
-    const layout: Partial<Layout> = {
+    const layout: SyChartLayout = {
       barmode,
       height,
       font,
+      // Without this, Plotly free-shrinks a treemap's tile labels to whatever fits, which on a
+      // narrow tile means illegibly small text (confirmed: "South Africa" on the Scenario
+      // Comparison's Moderate view). `mode: 'hide'` is Plotly's own "enforce a floor, hide
+      // below it" behavior -- a label that can't fit at minsize disappears rather than
+      // shrinking further, which is the right trade for a treemap tile: hover/tap already
+      // surfaces the value, so a missing label on a tiny tile costs less than an unreadable
+      // one. 10px chosen as a floor 2px under this chart's own nominal 12px text -- enough
+      // shrink room for a merely-narrow tile without going small enough to fail basic
+      // legibility. Harmless for every non-treemap chart this component renders: Plotly's
+      // `uniformtext` only affects text-bearing trace types (treemap/pie/sunburst/icicle/
+      // funnelarea, plus `bar` traces that set `textposition`, which this component's own bar
+      // branch never does).
+      ...(hasTreemap ? { uniformtext: { minsize: 10, mode: 'hide' as const } } : {}),
       // Choropleths have no axis titles/ticks to reserve room for -- the default left
       // margin (sized for a y-axis title) would otherwise reduce usable map width and
       // shift it off-center. Bottom margin is sized for the horizontal colorbar (title +
@@ -864,7 +898,7 @@ export function SyChart({
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, useFixedTooltip]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip]);
 
   // Deliberately separate from the main effect above -- animationFrame is meant to update at
   // high frequency (e.g. once per ~600ms animation tick) via a direct Plotly.restyle, which

@@ -211,6 +211,25 @@
   --__s9cmpx-chart-diverging-mid: var(--__s9cmpx-chart-surface);
   --__s9cmpx-chart-diverging-high: #5AB4AC;
 
+  /* Light-background diverging text pair, parallel to --__s9cmpx-static-text-sentiment-
+     positive/-negative (the conventional red/green pair) above, but brown/teal-hued to match
+     an inline signed figure to a brown/teal chart elsewhere on the same page (e.g. the
+     Overview narrative panel's "+9,806 MtCO2" reading as the same color family as the
+     Historical Trends/Scenario diverging charts, not introducing a second, unrelated
+     sentiment encoding). NOT the same values as --__s9cmpx-chart-diverging-low/-high above --
+     those are tuned for this theme's DARK #061E28 chart panel and are far too pale to read as
+     text on this theme's WHITE cards (--__s9cmpx-static-background-standard); these are
+     genuinely new, darker values at the same hues (41°/175°), contrast-checked against that
+     white card specifically: #7D5B12 (negative/"bad", brown) 6.2:1, #1D726B
+     (positive/"good", teal) 5.7:1 -- both comfortably past the 4.5:1 AA text minimum, in the
+     same range as the existing red/green pair's own 5.4:1/6.5:1. Positive/negative direction
+     matches the diverging scale's own convention (brown = low/bad, teal = high/good) -- see
+     C1's fix, where a CO2 increase reading as the "positive" teal end was the actual bug.
+     Not yet published for Broadsheet/Signal -- add there too if a consumer of either needs
+     the same substitution; nothing here is Tidewater-specific beyond the exact hex values. */
+  --__s9cmpx-static-text-sentiment-diverging-positive: #1D726B;
+  --__s9cmpx-static-text-sentiment-diverging-negative: #7D5B12;
+
   /* Gauge.tsx falls back to --__s9cmpx-chart-categorical-default-01 for its default fill when
      no `color` prop is passed, so re-spacing that slot below for C2 would otherwise silently
      turn every default-colored Gauge on this theme from its original cyan-blue to the new
