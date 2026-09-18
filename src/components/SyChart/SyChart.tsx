@@ -624,6 +624,18 @@ export function SyChart({
       // `uniformtext` only affects text-bearing trace types (treemap/pie/sunburst/icicle/
       // funnelarea, plus `bar` traces that set `textposition`, which this component's own bar
       // branch never does).
+      //
+      // `mode: 'hide'` trades "illegibly small" for "entirely missing," which isn't free: a
+      // caller whose values can put a tile just above whatever grouping cutoff it uses to
+      // collapse small entries into an "Other" tile can end up with an individually-rendered
+      // tile that has nowhere to fall back to -- confirmed live in
+      // climate-emissions-analysis-project's Scenario Comparison, where this exact fix (for
+      // the "South Africa" tile above) turned into a missing label for that same tile at a
+      // different value distribution (1.223%, just above that app's then-1% "Other" cutoff),
+      // since squarified layout happened to give it a narrow slot there. Resolved app-side by
+      // widening that cutoff, not here -- a caller with no equivalent grouping mechanism
+      // should expect occasional missing labels on individually-rendered small tiles, not a
+      // guarantee that raising minsize alone will always produce one.
       ...(hasTreemap ? { uniformtext: { minsize: 10, mode: 'hide' as const } } : {}),
       // Choropleths have no axis titles/ticks to reserve room for -- the default left
       // margin (sized for a y-axis title) would otherwise reduce usable map width and
