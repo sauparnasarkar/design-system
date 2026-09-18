@@ -281,10 +281,13 @@ export function SyChart({
   // the whole array. Undefined when the corresponding trace doesn't exist this render (e.g. no
   // no-data trace when nothing is null).
   const traceIndexRef = React.useRef<{ data?: number; noData?: number }>({});
-  // The choropleth series' own locations/zLog, captured so the animationFrame effect can
-  // recompute the no-data trace's membership and apply the same log transform without needing
-  // the full `series` prop (which must stay referentially stable across animation frames).
-  const choroplethMetaRef = React.useRef<{ locations: string[]; zLog?: boolean }>({ locations: [] });
+  // The choropleth series' own locations/locationNames/zLog, captured so the animationFrame
+  // effect can recompute the no-data trace's membership (locations) and hover labels
+  // (locationNames) and apply the same log transform without needing the full `series` prop
+  // (which must stay referentially stable across animation frames).
+  const choroplethMetaRef = React.useRef<{ locations: string[]; locationNames?: string[]; zLog?: boolean }>({
+    locations: [],
+  });
   const hasChoropleth = series.some((s) => s.kind === 'choropleth');
   const hasTreemap = series.some((s) => s.kind === 'treemap');
   // hovermode: 'x unified' below renders one label box per hovered x, positioned by Plotly
@@ -737,7 +740,11 @@ export function SyChart({
     // Assumes a single choropleth series -- same precedent as the treemap onTileClick handler
     // below. animationFrame is a single (not per-series) prop for exactly this reason.
     const choroplethSeries = series.find((s) => s.kind === 'choropleth');
-    choroplethMetaRef.current = { locations: choroplethSeries?.locations ?? [], zLog: choroplethSeries?.zLog };
+    choroplethMetaRef.current = {
+      locations: choroplethSeries?.locations ?? [],
+      locationNames: choroplethSeries?.locationNames,
+      zLog: choroplethSeries?.zLog,
+    };
 
     // "Reset view" control (rendered below, choropleth only). Verified live (Storybook +
     // direct Plotly state inspection) that re-supplying the original layout via Plotly.react
@@ -942,7 +949,7 @@ export function SyChart({
   React.useEffect(() => {
     const el = ref.current;
     if (!animationFrame || !el || !plotDrawnRef.current) return;
-    const { locations, zLog } = choroplethMetaRef.current;
+    const { locations, locationNames, zLog } = choroplethMetaRef.current;
     const colorValues = animationFrame.colorValues;
     const z = zLog ? colorValues.map((v) => (v != null && v > 0 ? Math.log10(v) : null)) : colorValues;
     if (traceIndexRef.current.data != null) {
@@ -950,13 +957,22 @@ export function SyChart({
     }
     if (traceIndexRef.current.noData != null) {
       const noDataLocations = locations.filter((_, idx) => colorValues[idx] == null);
+      // Restyled alongside `locations` -- without this, the no-data trace's `text` stays frozen
+      // at whichever countries had no data on the *first* frame, so once a later frame's no-data
+      // membership changes (e.g. a country reports data in a later year, or a new one drops
+      // out), `%{text}` in the tooltip shows a stale/wrong country name for the gray trace
+      // (Copilot review, PR #78). Only meaningful when the caller supplied `locationNames` in
+      // the first place -- otherwise the no-data hovertemplate reads `%{location}`, not `%{text}`.
+      const noDataNames = locationNames?.filter((_, idx) => colorValues[idx] == null);
       // restyle wraps each targeted trace's new value in an outer array (confirmed working via
       // the identical convention on `z`/`customdata` above, which `PlotData` types as
-      // `Datum[] | Datum[][] | ...` for exactly this reason) -- but `PlotData.locations` is only
-      // typed `Datum[]`, missing the `Datum[][]` variant `z`/`customdata` already have.
-      Plotly.restyle(el, { locations: [noDataLocations] } as unknown as Partial<Data>, [
-        traceIndexRef.current.noData,
-      ]);
+      // `Datum[] | Datum[][] | ...` for exactly this reason) -- but `PlotData.locations`/`text`
+      // are only typed `Datum[]`, missing the `Datum[][]` variant `z`/`customdata` already have.
+      Plotly.restyle(
+        el,
+        { locations: [noDataLocations], ...(noDataNames ? { text: [noDataNames] } : {}) } as unknown as Partial<Data>,
+        [traceIndexRef.current.noData],
+      );
     }
   }, [animationFrame]);
 
