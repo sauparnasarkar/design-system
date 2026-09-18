@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardHeader } from '../Card/Card';
 import { Icon } from '../Icon/Icon';
 import { useFocusTrap } from '../../lib/useFocusTrap';
+import { cx } from '../../lib/cx';
 
 export interface ChartCardProps {
   title: React.ReactNode;
@@ -73,7 +74,13 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
   const card = (
     <Card
       id={id}
-      className={className}
+      // `__s9cmpx-chart-card` is a stable hook a theme can target to opt a chart-bearing card
+      // back out of the darkening below (see the bright themes' own C6 override, e.g.
+      // analytics-bright-tidewater.css) without also matching an ordinary Card that isn't
+      // rendered through this component -- `.__s9cmpx-card` alone is too broad a target for
+      // that, since a plain Card can legitimately set this same inline custom property for its
+      // own unrelated reasons (Copilot review, PR #75).
+      className={cx('__s9cmpx-chart-card', className)}
       withBorder
       // paper_bgcolor/plot_bgcolor in SyChart are transparent, so the chart inherits whatever's
       // behind it -- the general card surface (--static-background-standard, #1e2f52) is one

@@ -275,9 +275,10 @@
    the same way it did on Tidewater's Historical Trends. No consumer uses this theme yet, but
    it's the same family and the same bug would reproduce the moment one does. See the
    Tidewater file's identical rule for the full rationale (vendor-default restoration, why
-   `!important` is required over an inline style, why scoping to .__s9cmpx-card generally is
-   safe). */
-[data-theme="analytics-bright-signal"] .__s9cmpx-card {
+   `!important` is required over an inline style, why scoping to `.__s9cmpx-chart-card` --
+   not the broader `.__s9cmpx-card` -- avoids clobbering an ordinary Card's own legitimate
+   inline use of this same custom property). */
+[data-theme="analytics-bright-signal"] .__s9cmpx-chart-card {
   --__s9cmpx-c-card-background-color-default: var(--__s9cmpx-static-background-standard) !important;
 }
 

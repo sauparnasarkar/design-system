@@ -227,13 +227,16 @@
      every other slot, especially since a 10-country chart choosing all ten is the exact
      scenario this fix exists for.
 
-     All ten hues sit at least ~21° apart from every other one (not just its neighbors), with
-     both exclusion bands widened past the letter of "avoid the sentiment hues" to the fuller
-     perceptual zones a reader would actually call "red" or "green": >=32° from red (~3°,
-     static-text-sentiment-negative) and >=25° from the nearest edge of the full green/
-     yellow-green band (roughly 80°-160°, not just green's own ~151° hue) -- notably narrower
-     than old-04/kept-teal's 170° (already an established "teal, not green" precedent), so
-     nothing here leans on that precedent being cut any finer. Ordered brightest-first by WCAG
+     All ten hues sit at least 20.9° apart from every other one, not just their neighbors
+     (narrowest pair: 08/#B286F9 vs 10/#8A86F9). Each is also checked against this theme's own
+     red (~3°, static-text-sentiment-negative) and green (~151°, static-text-sentiment-positive)
+     hues individually -- not a wider invented "band" around them, which an earlier revision of
+     this comment claimed without actually building it in (Copilot review, PR #75): the real
+     margins are >=32° from red (narrowest: 03/#FFB54D, 32.1°) and >=25° from green (narrowest:
+     02/#67E4DC, 25.2°). 02's margin is deliberately in the same range as this theme's own
+     pre-C2 teal (170° hue, ~19° from green) -- an already-established "teal, not green"
+     precedent in this theme, not reused here but still the right comparison -- and is in fact
+     wider than that precedent, not narrower. Ordered brightest-first by WCAG
      relative luminance, matching every sibling theme's ordering rationale. Contrast against
      this theme's #061E28 panel: 01 12.5:1, 02 11.2:1, 03 9.8:1, 04 9.3:1, 05 6.6:1, 06 6.5:1,
      07 6.3:1, 08 6.3:1, 09 6.1:1, 10 5.6:1 -- all comfortably past the 3:1 non-text minimum. */
@@ -377,12 +380,12 @@
    Restores the vendor's own unmodified default for this token (confirmed in sy-design-
    system.min.css: --__s9cmpx-c-card-background-color-default resolves to this exact same
    token by default) rather than inventing a new value -- ChartCard's override is what's
-   removed, not replaced with a different one. Scoped to .__s9cmpx-card generally rather than
-   to ChartCard specifically (no distinguishing class exists to target only its instances),
-   which is safe because ChartCard.tsx is the only place in this codebase that sets this
-   property inline at all -- an ordinary Card already resolves to this same value with no
-   override in play, so this rule is a no-op for every other card. */
-[data-theme="analytics-bright-tidewater"] .__s9cmpx-card {
+   removed, not replaced with a different one. Scoped to `.__s9cmpx-chart-card`, a stable
+   class ChartCard.tsx now adds specifically for theme overrides like this one (Copilot
+   review, PR #75) -- `.__s9cmpx-card` alone would also `!important`-clobber any ordinary
+   Card that legitimately sets this same inline custom property for its own unrelated
+   reason, which the plain class was never meant to reach. */
+[data-theme="analytics-bright-tidewater"] .__s9cmpx-chart-card {
   --__s9cmpx-c-card-background-color-default: var(--__s9cmpx-static-background-standard) !important;
 }
 
