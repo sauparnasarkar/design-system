@@ -267,10 +267,8 @@ export function SidebarNav({
       <nav
         ref={navRef}
         aria-label="Sidebar Navigation"
-        aria-hidden={isMobile && !open ? true : undefined}
         role={isMobile && open ? 'dialog' : undefined}
         aria-modal={isMobile && open ? true : undefined}
-        inert={isMobile && !open ? true : undefined}
         className={cx('__s9cmpx-sidebar-nav', className)}
         style={
           isMobile
@@ -289,7 +287,9 @@ export function SidebarNav({
         }
       >
         <div
+          aria-hidden={isMobile && !open ? true : undefined}
           className={cx('__s9cmpx-sidebar-nav__sidebar', open && '__s9cmpx-sidebar-nav__sidebar--open', !open && '__s9cmpx-sidebar-nav__sidebar--collapsed-mode')}
+          inert={isMobile && !open ? true : undefined}
           style={{ display: 'flex', flexDirection: 'column', height: '100%', width: isMobile ? 240 : open ? 240 : 56 }}
         >
           <button
