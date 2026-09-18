@@ -192,14 +192,24 @@ export const MobileDrawerRendersMobileOnlyContent: Story = {
       />
     ),
   },
+  render: (args) => (
+    <div>
+      <button type="button">Outside control</button>
+      <SidebarNav {...args} />
+    </div>
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const outsideButton = canvas.getByRole('button', { name: 'Outside control' });
+    outsideButton.focus();
+    await expect(outsideButton).toHaveFocus();
 
     await expect(canvas.queryByRole('radio', { name: 'Light' })).not.toBeInTheDocument();
 
     setMobileMatch?.(true);
 
     await waitFor(() => expect(canvas.getByRole('button', { name: 'Open menu' })).toBeInTheDocument());
+    await expect(outsideButton).toHaveFocus();
     await expect(canvas.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument();
     await expect(canvas.queryByRole('radio', { name: 'Light' })).not.toBeInTheDocument();
 
@@ -215,7 +225,8 @@ export const MobileDrawerRendersMobileOnlyContent: Story = {
     await expect(lightRadio).toHaveFocus();
 
     await userEvent.click(closeButton);
-    await waitFor(() => expect(canvas.getByRole('button', { name: 'Open menu' })).toBeInTheDocument());
+    const openButton = await waitFor(() => canvas.getByRole('button', { name: 'Open menu' }));
+    await expect(openButton).toHaveFocus();
     await expect(canvas.queryByRole('radio', { name: 'Light' })).not.toBeInTheDocument();
   },
 };

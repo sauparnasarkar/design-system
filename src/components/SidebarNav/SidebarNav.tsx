@@ -81,6 +81,9 @@ export function SidebarNav({
   const navRef = React.useRef<HTMLElement>(null);
   const openButtonRef = React.useRef<HTMLButtonElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
+  const previousIsMobileRef = React.useRef(isMobile);
+  const previousOpenRef = React.useRef(open);
+  const restoreFocusOnCloseRef = React.useRef(false);
 
   const setOpenState = (next: boolean) => {
     setInternalOpen(next);
@@ -100,13 +103,28 @@ export function SidebarNav({
   // only responds to a mouse click) and focus is left sitting on whatever
   // triggered it, behind the drawer.
   React.useEffect(() => {
-    if (!isMobile) return;
-    if (open) {
-      closeButtonRef.current?.focus();
-    } else {
-      openButtonRef.current?.focus();
+    const wasMobile = previousIsMobileRef.current;
+    const wasOpen = previousOpenRef.current;
+
+    if (!isMobile) {
+      restoreFocusOnCloseRef.current = false;
+    } else if (wasMobile) {
+      if (!wasOpen && open) {
+        closeButtonRef.current?.focus();
+      } else if (wasOpen && !open && restoreFocusOnCloseRef.current) {
+        restoreFocusOnCloseRef.current = false;
+        openButtonRef.current?.focus();
+      }
     }
+
+    previousIsMobileRef.current = isMobile;
+    previousOpenRef.current = open;
   }, [isMobile, open]);
+
+  const openMobileDrawer = () => {
+    restoreFocusOnCloseRef.current = true;
+    setOpenState(true);
+  };
 
   React.useEffect(() => {
     if (!isMobile || !open) return;
@@ -188,7 +206,7 @@ export function SidebarNav({
             type="button"
             ref={openButtonRef}
             aria-label="Open menu"
-            onClick={() => setOpenState(true)}
+            onClick={openMobileDrawer}
             style={{
               position: 'fixed',
               top: 12,
