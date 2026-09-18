@@ -347,6 +347,22 @@
   fill: var(--__s9cmpx-chart-surface-text-weak) !important;
 }
 
+/* C6: not called out for this theme in the original review (only "Tidewater (and Signal)"),
+   but the same bug is present here too, and worse by the numbers -- WCAG contrast between
+   this theme's canvas (--static-background-weak, #F4F2ED) and its card
+   (--static-background-standard, #FFFFFF) is 1.12:1, actually LOWER than Tidewater's
+   DCE8ED-vs-FFFFFF pair (1.25:1) that the original review flagged live (Copilot review,
+   PR #75). ChartCard.tsx's inline darkening-toward-canvas is right for `analytics` (navy
+   tones far enough apart) and wrong here for the same structural reason it's wrong on
+   Tidewater/Signal: this theme has TWO live consumers (the India Allocation Monitor and
+   India IPO Intelligence), so unlike Signal this isn't a preemptive fix for a future
+   adopter. See analytics-bright-tidewater.css's identical rule for the full rationale
+   (vendor-default restoration, why `!important` is required over an inline style, why
+   `.__s9cmpx-chart-card` rather than the broader `.__s9cmpx-card`). */
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-chart-card {
+  --__s9cmpx-c-card-background-color-default: var(--__s9cmpx-static-background-standard) !important;
+}
+
 /* AG Grid (ag-theme-s9cmpx hardcodes light values, so override --ag-* here).
    Header rows go ink so the table reads as a masthead, not another grey band. */
 [data-theme="analytics-bright-broadsheet"] .ag-theme-s9cmpx {

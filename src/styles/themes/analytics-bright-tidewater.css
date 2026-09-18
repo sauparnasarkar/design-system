@@ -211,28 +211,59 @@
   --__s9cmpx-chart-diverging-mid: var(--__s9cmpx-chart-surface);
   --__s9cmpx-chart-diverging-high: #5AB4AC;
 
-  /* Series palette, validated on the #061E28 panel, brightest-first, and clear
-     of the red and green sentiment bands. -04 is a teal rather than a green:
-     it sits with the brand rather than with sentiment. */
-  --__s9cmpx-chart-categorical-default-01: #58C8F0;
-  --__s9cmpx-chart-categorical-default-02: #FFB84D;
-  --__s9cmpx-chart-categorical-default-03: #C08CFF;
-  --__s9cmpx-chart-categorical-default-04: #7FE0D0;
-  --__s9cmpx-chart-categorical-default-05: #FF6FA8;
-  --__s9cmpx-chart-categorical-default-06: #E6F2F7;
-  --__s9cmpx-chart-categorical-default-07: #9AD7FF;
-  --__s9cmpx-chart-categorical-default-08: #FFD08A;
-  --__s9cmpx-chart-categorical-default-09: #B8A0FF;
-  /* -10 (A4): the categorical ramp ran out at 9 while consumers offer up to 10 series (this
-     theme's own Historical Trends chart offers 10 by default -- see C2 for why a 10th color
-     alone doesn't fix that chart specifically: its existing nine already collapse into four
-     hue families, which is a separate re-spacing problem this single addition doesn't solve).
-     SyChart.tsx's syPalette() had a zero-padding bug that silently dropped this slot even for
-     themes that defined it (fixed there too). Continues this theme's own red/green exclusion;
-     not independently re-validated for max hue-separation from every other slot beyond that --
-     see SyChart.tsx's wrap-around dash/marker cue for the fix that actually matters once a
-     chart needs an 11th series anyway. */
-  --__s9cmpx-chart-categorical-default-10: #C9B65A;
+  /* Gauge.tsx falls back to --__s9cmpx-chart-categorical-default-01 for its default fill when
+     no `color` prop is passed, so re-spacing that slot below for C2 would otherwise silently
+     turn every default-colored Gauge on this theme from its original cyan-blue to the new
+     slot 01's gold (Copilot review, PR #75). Pinned here to the value slot 01 held before this
+     re-space, so any existing Tidewater gauge with no explicit `color` renders exactly as it
+     did before this palette change -- the categorical ramp and the gauge default are now
+     independently adjustable, which they were only accidentally coupled together before. */
+  --__s9cmpx-gauge-fill-color: #58C8F0;
+
+  /* Series palette, re-spaced for C2 (revised after Copilot review, PR #75). The previous nine
+     occupied only four real hue families -- old-01/06/07 were all the same cyan-blue
+     (196°/198°/204°), old-02/08 were an identical amber (36°/36°), and old-03/09 were the same
+     purple twelve degrees apart (267°/255°) -- because each "bright" hue had a paler
+     near-duplicate rather than a genuinely different one. With the default ten-country
+     selection on Historical Trends that produced real collisions (China/Australia identical,
+     US/UK both amber, India/South Africa both purple -- see C2 for the live evidence).
+
+     Redesigned as ten hues from scratch, not nine-plus-one: an earlier version of this fix
+     re-spaced only -01..-09 and patched -10 on top, reasoning that SyChart.tsx's wrap-around
+     dash/marker cue (A4) would cover it -- wrong, since that cue only triggers at
+     `i >= palette.length` (an 11th+ series); with all ten tokens now defined, the 10th series
+     lands on this real, un-cued -10 token, so it needs the same genuine hue separation as
+     every other slot, especially since a 10-country chart choosing all ten is the exact
+     scenario this fix exists for.
+
+     All ten hues sit at least 17.8° apart from every other one, not just their neighbors.
+     Sentiment-adjacency was checked (and a prior revision of this fix got wrong -- Copilot
+     review, PR #75) against the theme's STATIC sentiment tokens (static-text-sentiment-
+     positive/-negative, tuned for this theme's light card). Those are never drawn on this
+     same #061E28 panel, so they're the wrong comparison; the categorical series here shares a
+     surface with signed values drawn via --__s9cmpx-chart-sentiment-positive/-negative
+     (#4FD69B / #EA5B62, published for A5), and that pair is what a reader could actually
+     confuse a series color with. Every hue here is now checked against those two directly:
+     >=38° from #4FD69B (narrowest: 02/#5FD8F7, 38.5°) and >=38° from #EA5B62 (narrowest:
+     03/#FFB54D, 38.0°) -- both comfortably past the ~20-28° margins that turned out, on the
+     correct reference tokens, to be too tight in the prior revision. Kept to just two warm
+     hues (01, 03) rather than three: a third candidate in the 90-110° range cleared every
+     numeric check here but is a color most people would call green on sight, which is worse
+     for a theme that reserves green for sentiment than a numeric pass makes it look. Ordered
+     brightest-first by WCAG relative luminance, matching every sibling theme's ordering
+     rationale. Contrast against this theme's #061E28 panel: 01 12.6:1, 02 10.3:1, 03 9.8:1,
+     04 7.5:1, 05 6.4:1, 06 6.1:1, 07 6.0:1, 08 5.9:1, 09 5.8:1, 10 5.7:1 -- all comfortably
+     past the 3:1 non-text minimum. */
+  --__s9cmpx-chart-categorical-default-01: #D7E740;
+  --__s9cmpx-chart-categorical-default-02: #5FD8F7;
+  --__s9cmpx-chart-categorical-default-03: #FFB54D;
+  --__s9cmpx-chart-categorical-default-04: #69B0F7;
+  --__s9cmpx-chart-categorical-default-05: #F263F2;
+  --__s9cmpx-chart-categorical-default-06: #F75FC9;
+  --__s9cmpx-chart-categorical-default-07: #CC74F1;
+  --__s9cmpx-chart-categorical-default-08: #7791F8;
+  --__s9cmpx-chart-categorical-default-09: #AE7EF7;
+  --__s9cmpx-chart-categorical-default-10: #9186F9;
 
   /* Rounder geometry, inherited from the Signal theme's character (10px cards,
      8px controls, pill chips).
@@ -347,6 +378,29 @@
 [data-theme="analytics-bright-tidewater"] .js-plotly-plot .ytitle,
 [data-theme="analytics-bright-tidewater"] .js-plotly-plot .gtitle {
   fill: var(--__s9cmpx-chart-surface-text-weak) !important;
+}
+
+/* C6: ChartCard.tsx (SyChart/ChartCard.tsx) sets --__s9cmpx-c-card-background-color-default
+   as an INLINE style to darken chart-bearing cards toward the page tone -- right for
+   `analytics`, whose navy card/canvas tones are far enough apart to still read as distinct.
+   Wrong here: this theme's canvas (--static-background-weak, #DCE8ED) and its cards
+   (--static-background-standard, #FFFFFF) are already close, and darkening the chart card
+   toward the canvas leaves only the 1px hairline separating them -- confirmed live on
+   Historical Trends, which reads as one flat pale-blue wash with charts floating in it rather
+   than the white-card/dark-panel/pale-canvas hierarchy this theme was designed around.
+   `!important` is required for the same reason it's already required for Header's inline
+   colors above and the Plotly tick-color rule below: a plain class rule can't beat an inline
+   style of the same property on the same element, but a stylesheet `!important` rule does.
+   Restores the vendor's own unmodified default for this token (confirmed in sy-design-
+   system.min.css: --__s9cmpx-c-card-background-color-default resolves to this exact same
+   token by default) rather than inventing a new value -- ChartCard's override is what's
+   removed, not replaced with a different one. Scoped to `.__s9cmpx-chart-card`, a stable
+   class ChartCard.tsx now adds specifically for theme overrides like this one (Copilot
+   review, PR #75) -- `.__s9cmpx-card` alone would also `!important`-clobber any ordinary
+   Card that legitimately sets this same inline custom property for its own unrelated
+   reason, which the plain class was never meant to reach. */
+[data-theme="analytics-bright-tidewater"] .__s9cmpx-chart-card {
+  --__s9cmpx-c-card-background-color-default: var(--__s9cmpx-static-background-standard) !important;
 }
 
 /* AG Grid (ag-theme-s9cmpx hardcodes light values, so override --ag-* here).
