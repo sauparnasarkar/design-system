@@ -1,6 +1,7 @@
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
-import { SidebarNav } from './SidebarNav';
+import { SidebarNav, type SidebarNavProps } from './SidebarNav';
 import { SegmentedControl } from '../SegmentedControl/SegmentedControl';
 import { MOBILE_QUERY } from '../../hooks/useIsMobile';
 
@@ -67,6 +68,17 @@ function installMatchMediaStub(initialMobile = false) {
     setMobileMatch = undefined;
     window.matchMedia = originalMatchMedia;
   };
+}
+
+function ControlledMobileSidebarNavStory(args: SidebarNavProps) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <div>
+      <button type="button" onClick={() => setOpen(true)}>Launch controlled drawer</button>
+      <SidebarNav {...args} open={open} onToggle={setOpen} />
+    </div>
+  );
 }
 
 export const Playground: Story = {};
@@ -228,5 +240,46 @@ export const MobileDrawerRendersMobileOnlyContent: Story = {
     const openButton = await waitFor(() => canvas.getByRole('button', { name: 'Open menu' }));
     await expect(openButton).toHaveFocus();
     await expect(canvas.queryByRole('radio', { name: 'Light' })).not.toBeInTheDocument();
+  },
+};
+
+export const ControlledMobileDrawerRestoresTriggerFocus: Story = {
+  beforeEach: () => {
+    restoreMatchMediaStub = installMatchMediaStub(true);
+  },
+  afterEach: () => {
+    restoreMatchMediaStub?.();
+    restoreMatchMediaStub = undefined;
+  },
+  args: {
+    open: undefined,
+    mobileOnlyContent: (
+      <SegmentedControl
+        name="theme-toggle-controlled-mobile"
+        items={[
+          { value: 'light', label: 'Light' },
+          { value: 'dark', label: 'Dark' },
+        ]}
+        value="light"
+      />
+    ),
+  },
+  render: (args) => <ControlledMobileSidebarNavStory {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const launchButton = canvas.getByRole('button', { name: 'Launch controlled drawer' });
+
+    launchButton.focus();
+    await expect(launchButton).toHaveFocus();
+
+    await userEvent.click(launchButton);
+
+    const closeButton = await waitFor(() => canvas.getByRole('button', { name: 'Close menu' }));
+    await expect(closeButton).toHaveFocus();
+
+    await userEvent.click(closeButton);
+
+    await waitFor(() => expect(canvas.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument());
+    await expect(launchButton).toHaveFocus();
   },
 };

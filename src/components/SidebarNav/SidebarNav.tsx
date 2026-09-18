@@ -83,7 +83,9 @@ export function SidebarNav({
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
   const previousIsMobileRef = React.useRef(isMobile);
   const previousOpenRef = React.useRef(open);
-  const restoreFocusOnCloseRef = React.useRef(false);
+  const hasMountedRef = React.useRef(false);
+  const restoreFocusToRef = React.useRef<HTMLElement | null>(null);
+  const shouldRestoreFocusRef = React.useRef(false);
 
   const setOpenState = (next: boolean) => {
     setInternalOpen(next);
@@ -105,24 +107,39 @@ export function SidebarNav({
   React.useEffect(() => {
     const wasMobile = previousIsMobileRef.current;
     const wasOpen = previousOpenRef.current;
+    const enteringMobile = !wasMobile && isMobile;
+    const shouldSuppressUncontrolledDesktopToMobileCarryover =
+      enteringMobile && openProp === undefined && open;
+    const didOpenAsMobileDrawer = isMobile && open && (
+      !hasMountedRef.current
+      || (wasMobile ? !wasOpen : true)
+    );
 
     if (!isMobile) {
-      restoreFocusOnCloseRef.current = false;
-    } else if (wasMobile) {
-      if (!wasOpen && open) {
-        closeButtonRef.current?.focus();
-      } else if (wasOpen && !open && restoreFocusOnCloseRef.current) {
-        restoreFocusOnCloseRef.current = false;
-        openButtonRef.current?.focus();
+      shouldRestoreFocusRef.current = false;
+      restoreFocusToRef.current = null;
+    } else if (didOpenAsMobileDrawer && !shouldSuppressUncontrolledDesktopToMobileCarryover) {
+      if (!shouldRestoreFocusRef.current) {
+        restoreFocusToRef.current = document.activeElement as HTMLElement | null;
+        shouldRestoreFocusRef.current = true;
       }
+      closeButtonRef.current?.focus();
+    } else if (wasMobile && wasOpen && !open && shouldRestoreFocusRef.current) {
+      const restoreFocusTo = restoreFocusToRef.current;
+      shouldRestoreFocusRef.current = false;
+      restoreFocusToRef.current = null;
+      if (restoreFocusTo?.isConnected) restoreFocusTo.focus();
+      else openButtonRef.current?.focus();
     }
 
+    hasMountedRef.current = true;
     previousIsMobileRef.current = isMobile;
     previousOpenRef.current = open;
-  }, [isMobile, open]);
+  }, [isMobile, open, openProp]);
 
   const openMobileDrawer = () => {
-    restoreFocusOnCloseRef.current = true;
+    restoreFocusToRef.current = openButtonRef.current;
+    shouldRestoreFocusRef.current = true;
     setOpenState(true);
   };
 
