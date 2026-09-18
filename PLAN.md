@@ -1018,3 +1018,22 @@ inside it, which still paints at its own natural size and overflows unclipped if
 exceeds the track. Any future "reserve space for a floating overlay" fix in this header needs to
 either constrain the actual content (not just the track) or stop rendering that content at the
 breakpoint where it no longer fits, not lean on padding/margin arithmetic alone.
+
+**Addendum: Copilot review caught a real focus-trap gap in the same PR.** `SidebarNav`'s mobile
+drawer Tab-trap used its own inline selector (`a[href], button:not([disabled]),
+[tabindex]:not([tabindex="-1"])`) — no `input`/`select`/`textarea` clause. `mobileOnlyContent`
+(added above) is exactly where a plain native form control lands, and the consumer's own PR fills
+it with a `SegmentedControl` (renders `<input type="radio">`, no explicit `tabindex`). If that
+control ended up the last tabbable element in the drawer, Tab escaped into the page behind it
+instead of wrapping — confirmed live via a dispatched `Tab` keydown before/after. Fixed by
+exporting `FOCUSABLE_SELECTOR` from `useFocusTrap.ts` (Modal/Drawer's own shared trap, already
+correct) and having `SidebarNav` import it instead of maintaining a second, narrower copy.
+
+Also worth recording: the `@copilot review` fallback on this PR was unreliable across several
+cycles — one pass pushed an incomplete, `tsc`-failing commit mid-refactor ("Changes before error
+encountered"), a later pass failed outright in ~18s with no output, and it eventually needed a
+manual "resume review" nudge (a usage-budget stall, not a code issue) before it produced this
+finding. Don't treat silence or a failed `copilot` check-run as "reviewed, nothing to flag" —
+verify via the timeline events/check-run discipline in `copilot-review-loop`'s own Step 3a, and
+treat any commit the coding-agent pushes directly to the branch with the same scrutiny as a human
+PR — including running `tsc`/tests against it — before accepting it, not just its comments.
