@@ -7,7 +7,14 @@ import Plotly from 'plotly.js-dist-min';
 // file is type-checked from a consuming project via a path-mapped alias).
 import type { Color, Data, Layout, PlotData, PlotMarker } from 'plotly.js';
 import { cx } from '../../lib/cx';
-import { formatChartValue, logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
+import {
+  choroplethHovertemplate,
+  filterNoData,
+  formatChartValue,
+  logColorbarTicks,
+  noDataHovertemplate,
+  withAlpha,
+} from './chartMath';
 
 // `PlotData.type: PlotType` already covers every trace kind this component emits (bar/scatter/
 // choropleth/treemap), so a single `Partial<PlotData>` element type is enough -- no need for a
@@ -344,11 +351,11 @@ export function SyChart({
         // no-data highlighting for every later frame that does introduce one (Copilot review,
         // PR #28) -- an empty-locations trace costs nothing and renders nothing, so there's no
         // reason to make its existence conditional at all.
-        const noDataLocations = (s.locations ?? []).filter((_, idx) => colorValues[idx] == null);
-        // Filtered by the exact same predicate as noDataLocations above, so index i of each
-        // array still refers to the same location -- undefined (not filtered out) whenever the
-        // caller didn't supply locationNames at all, matching noDataHovertemplate's useText flag.
-        const noDataNames = s.locationNames?.filter((_, idx) => colorValues[idx] == null);
+        // filterNoData (chartMath.ts) is the single source of truth for "which entries have no
+        // data" -- reused verbatim by the animationFrame restyle effect below, so the two paths
+        // can't drift into filtering locations and locationNames by different predicates.
+        const noDataLocations = filterNoData(s.locations ?? [], colorValues) ?? [];
+        const noDataNames = filterNoData(s.locationNames, colorValues);
         traces.push({
           type: 'choropleth',
           meta: 'sychart-choropleth-nodata',
@@ -385,16 +392,7 @@ export function SyChart({
           // hovertemplate reads from here instead of the implicit %{z} fallback, which would
           // otherwise show the raw log10 number rather than the actual MtCO2 figure.
           customdata: s.colorValues,
-          // %{text} (locationNames, e.g. "South Africa") when the caller supplied one, else the
-          // raw %{location} code (e.g. "ZAF") -- same fallback as noDataHovertemplate's useText
-          // flag above, so the two traces of one choropleth never show mismatched hover labels.
-          hovertemplate: s.locationNames
-            ? s.hoverUnit
-              ? `%{text}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
-              : '%{text}<br>%{customdata:,.0f}<extra></extra>'
-            : s.hoverUnit
-              ? `%{location}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
-              : '%{location}<br>%{customdata:,.0f}<extra></extra>',
+          hovertemplate: choroplethHovertemplate(s.hoverUnit, !!s.locationNames),
           colorscale: s.colorScale ?? divergingScale,
           showscale: s.showColorbar ?? true,
           marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
@@ -956,14 +954,15 @@ export function SyChart({
       Plotly.restyle(el, { z: [z], customdata: [colorValues] }, [traceIndexRef.current.data]);
     }
     if (traceIndexRef.current.noData != null) {
-      const noDataLocations = locations.filter((_, idx) => colorValues[idx] == null);
-      // Restyled alongside `locations` -- without this, the no-data trace's `text` stays frozen
-      // at whichever countries had no data on the *first* frame, so once a later frame's no-data
-      // membership changes (e.g. a country reports data in a later year, or a new one drops
-      // out), `%{text}` in the tooltip shows a stale/wrong country name for the gray trace
-      // (Copilot review, PR #78). Only meaningful when the caller supplied `locationNames` in
-      // the first place -- otherwise the no-data hovertemplate reads `%{location}`, not `%{text}`.
-      const noDataNames = locationNames?.filter((_, idx) => colorValues[idx] == null);
+      // Same filterNoData helper as the initial trace construction above -- without restyling
+      // `text` alongside `locations` here, it would stay frozen at whichever countries had no
+      // data on the *first* frame, so once a later frame's no-data membership changes (e.g. a
+      // country reports data in a later year, or a new one drops out), `%{text}` in the tooltip
+      // would show a stale/wrong country name for the gray trace (Copilot review, PR #78). Only
+      // meaningful when the caller supplied `locationNames` in the first place -- otherwise the
+      // no-data hovertemplate reads `%{location}`, not `%{text}`.
+      const noDataLocations = filterNoData(locations, colorValues) ?? [];
+      const noDataNames = filterNoData(locationNames, colorValues);
       // restyle wraps each targeted trace's new value in an outer array (confirmed working via
       // the identical convention on `z`/`customdata` above, which `PlotData` types as
       // `Datum[] | Datum[][] | ...` for exactly this reason) -- but `PlotData.locations`/`text`

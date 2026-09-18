@@ -51,9 +51,35 @@ export function logColorbarTicks(values: Array<number | null>): { tickvals: numb
 /** Hover text for a choropleth's no-data trace -- 'No data reported' by default, or a
  * caller-supplied override (SyChartSeries.noDataHoverText). `useText` swaps the leading label
  * from `%{location}` (the raw ISO code) to `%{text}` (SyChartSeries.locationNames, e.g. the full
- * country name) when the caller supplied one -- see the identical swap on the data trace's own
- * hovertemplate in SyChart.tsx. Kept a plain function (not inlined at the trace-construction
- * site) so it's unit-testable without pulling in plotly.js-dist-min. */
+ * country name) when the caller supplied one -- see the identical swap in
+ * `choroplethHovertemplate` below, which builds the sibling data trace's hovertemplate by the
+ * same rule. Kept a plain function (not inlined at the trace-construction site) so it's
+ * unit-testable without pulling in plotly.js-dist-min. */
 export function noDataHovertemplate(noDataHoverText?: string, useText?: boolean): string {
   return `${useText ? '%{text}' : '%{location}'}<br>${noDataHoverText ?? 'No data reported'}<extra></extra>`;
+}
+
+/** Hover text for a choropleth's main data trace -- the location label (`%{location}`, the raw
+ * ISO code, or `%{text}`/SyChartSeries.locationNames when `useText` is set -- same swap as
+ * `noDataHovertemplate` above, so a choropleth's two traces are always built by the same rule
+ * and can never show mismatched labels for the same country) followed by the real
+ * (untransformed) value from `customdata` and an optional `hoverUnit` suffix. Extracted here,
+ * not inlined at the trace-construction site, so the four label/unit combinations are
+ * unit-testable without pulling in plotly.js-dist-min (Copilot review, PR #78). */
+export function choroplethHovertemplate(hoverUnit?: string, useText?: boolean): string {
+  const label = useText ? '%{text}' : '%{location}';
+  const unit = hoverUnit ? ` ${hoverUnit}` : '';
+  return `${label}<br>%{customdata:,.0f}${unit}<extra></extra>`;
+}
+
+/** Filters `items` (a choropleth's `locations` or its parallel `locationNames`) down to just the
+ * entries whose same-index `colorValues` slot is `null` -- i.e. the no-data trace's membership.
+ * Shared by the initial trace construction and the `animationFrame` restyle path in SyChart.tsx
+ * so both stay index-aligned by construction (one filter, reused) rather than by two
+ * independently-maintained copies of the same predicate risking drift between locations and
+ * locationNames as a caller's data changes (Copilot review, PR #78). Returns `undefined` when
+ * `items` itself is `undefined` -- `locationNames` is optional; `locations` is always a real
+ * array at both call sites (defaulted to `[]`), so that branch never observes `undefined` here. */
+export function filterNoData<T>(items: T[] | undefined, colorValues: Array<number | null>): T[] | undefined {
+  return items?.filter((_, idx) => colorValues[idx] == null);
 }
