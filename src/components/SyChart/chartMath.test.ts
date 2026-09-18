@@ -83,4 +83,8 @@ describe('noDataHovertemplate', () => {
       '%{location}<br>Not yet reported<extra></extra>',
     );
   });
+
+  it('swaps to %{text} when useText is set', () => {
+    expect(noDataHovertemplate(undefined, true)).toBe('%{text}<br>No data reported<extra></extra>');
+  });
 });

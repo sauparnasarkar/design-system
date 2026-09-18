@@ -110,6 +110,14 @@ export interface SyChartSeries {
   showMarkers?: boolean;
   /** 'choropleth' only: one location code per data point (see `locationmode`) */
   locations?: string[];
+  /**
+   * 'choropleth' only: one display name per data point (e.g. the full country name), parallel to
+   * `locations`, shown in the hover tooltip in place of the raw location code. Without this, the
+   * tooltip falls back to `locations` itself -- fine for a code a reader can decode (a US state
+   * abbreviation) but not for the ISO-3 codes this app's country choropleth uses (`worldMapSeries
+   * .iso_codes`, e.g. "ZAF" for South Africa), which most readers can't.
+   */
+  locationNames?: string[];
   /** 'choropleth' only: Plotly location mode. Defaults to 'ISO-3'. */
   locationmode?: PlotData['locationmode'];
   /**
@@ -334,11 +342,16 @@ export function SyChart({
         // PR #28) -- an empty-locations trace costs nothing and renders nothing, so there's no
         // reason to make its existence conditional at all.
         const noDataLocations = (s.locations ?? []).filter((_, idx) => colorValues[idx] == null);
+        // Filtered by the exact same predicate as noDataLocations above, so index i of each
+        // array still refers to the same location -- undefined (not filtered out) whenever the
+        // caller didn't supply locationNames at all, matching noDataHovertemplate's useText flag.
+        const noDataNames = s.locationNames?.filter((_, idx) => colorValues[idx] == null);
         traces.push({
           type: 'choropleth',
           meta: 'sychart-choropleth-nodata',
           name: `${s.name} (no data)`,
           locations: noDataLocations,
+          text: noDataNames,
           locationmode: s.locationmode ?? 'ISO-3',
           z: noDataLocations.map(() => 0),
           colorscale: [
@@ -346,7 +359,7 @@ export function SyChart({
             [1, s.noDataColor ?? '#4a4a4a'],
           ],
           showscale: false,
-          hovertemplate: noDataHovertemplate(s.noDataHoverText),
+          hovertemplate: noDataHovertemplate(s.noDataHoverText, !!s.locationNames),
           marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
         });
         traces.push({
@@ -354,6 +367,7 @@ export function SyChart({
           meta: 'sychart-choropleth-data',
           name: s.name,
           locations: s.locations,
+          text: s.locationNames,
           locationmode: s.locationmode ?? 'ISO-3',
           z,
           ...(s.colorRange ? { zmin, zmax, zauto: false } : {}),
@@ -368,9 +382,16 @@ export function SyChart({
           // hovertemplate reads from here instead of the implicit %{z} fallback, which would
           // otherwise show the raw log10 number rather than the actual MtCO2 figure.
           customdata: s.colorValues,
-          hovertemplate: s.hoverUnit
-            ? `%{location}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
-            : '%{location}<br>%{customdata:,.0f}<extra></extra>',
+          // %{text} (locationNames, e.g. "South Africa") when the caller supplied one, else the
+          // raw %{location} code (e.g. "ZAF") -- same fallback as noDataHovertemplate's useText
+          // flag above, so the two traces of one choropleth never show mismatched hover labels.
+          hovertemplate: s.locationNames
+            ? s.hoverUnit
+              ? `%{text}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
+              : '%{text}<br>%{customdata:,.0f}<extra></extra>'
+            : s.hoverUnit
+              ? `%{location}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
+              : '%{location}<br>%{customdata:,.0f}<extra></extra>',
           colorscale: s.colorScale ?? divergingScale,
           showscale: s.showColorbar ?? true,
           marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },

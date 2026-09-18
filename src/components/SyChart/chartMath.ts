@@ -49,8 +49,11 @@ export function logColorbarTicks(values: Array<number | null>): { tickvals: numb
 }
 
 /** Hover text for a choropleth's no-data trace -- 'No data reported' by default, or a
- * caller-supplied override (SyChartSeries.noDataHoverText). Kept a plain function (not inlined
- * at the trace-construction site) so it's unit-testable without pulling in plotly.js-dist-min. */
-export function noDataHovertemplate(noDataHoverText?: string): string {
-  return `%{location}<br>${noDataHoverText ?? 'No data reported'}<extra></extra>`;
+ * caller-supplied override (SyChartSeries.noDataHoverText). `useText` swaps the leading label
+ * from `%{location}` (the raw ISO code) to `%{text}` (SyChartSeries.locationNames, e.g. the full
+ * country name) when the caller supplied one -- see the identical swap on the data trace's own
+ * hovertemplate in SyChart.tsx. Kept a plain function (not inlined at the trace-construction
+ * site) so it's unit-testable without pulling in plotly.js-dist-min. */
+export function noDataHovertemplate(noDataHoverText?: string, useText?: boolean): string {
+  return `${useText ? '%{text}' : '%{location}'}<br>${noDataHoverText ?? 'No data reported'}<extra></extra>`;
 }
