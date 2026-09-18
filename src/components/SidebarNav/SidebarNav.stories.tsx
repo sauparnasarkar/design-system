@@ -25,6 +25,7 @@ export default meta;
 type Story = StoryObj<typeof SidebarNav>;
 
 let setMobileMatch: ((matches: boolean) => void) | undefined;
+let restoreMatchMediaStub: (() => void) | undefined;
 
 function installMatchMediaStub(initialMobile = false) {
   const originalMatchMedia = window.matchMedia;
@@ -171,7 +172,13 @@ export const DesktopOmitsMobileOnlyContent: Story = {
 };
 
 export const MobileDrawerRendersMobileOnlyContent: Story = {
-  beforeEach: () => installMatchMediaStub(false),
+  beforeEach: () => {
+    restoreMatchMediaStub = installMatchMediaStub(false);
+  },
+  afterEach: () => {
+    restoreMatchMediaStub?.();
+    restoreMatchMediaStub = undefined;
+  },
   args: {
     open: undefined,
     mobileOnlyContent: (
