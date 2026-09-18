@@ -67,3 +67,4 @@ export { Header } from './components/Header/Header';
 export { SidebarNav } from './components/SidebarNav/SidebarNav';
 export { Footer } from './components/Footer/Footer';
 export { useReducedMotion } from './hooks/useReducedMotion';
+export { useIsMobile } from './hooks/useIsMobile';

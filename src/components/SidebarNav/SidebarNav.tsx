@@ -3,22 +3,8 @@ import { cx } from '../../lib/cx';
 import { Icon, type IconName } from '../Icon/Icon';
 import { Button } from '../Button/Button';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
-
-const MOBILE_QUERY = '(max-width: 768px)';
-
-/** True below the tablet breakpoint, where the rail becomes an off-canvas drawer instead of narrowing in place. */
-function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = React.useState(
-    () => typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches,
-  );
-  React.useEffect(() => {
-    const mql = window.matchMedia(MOBILE_QUERY);
-    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, []);
-  return isMobile;
-}
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { getFocusableElements } from '../../lib/useFocusTrap';
 
 export interface SidebarNavItem {
   id: string;
@@ -63,6 +49,14 @@ export interface SidebarNavProps {
     onClick: () => void;
     active?: boolean;
   };
+  /** Rendered only inside the mobile off-canvas drawer, below the regular nav items/footerItems --
+   * never in the desktop rail (collapsed or expanded), which has no equivalent narrow-viewport
+   * constraint. For host-header controls that lose their layout space once the header's own grid
+   * columns collapse at the mobile breakpoint (e.g. a theme switcher) and need a reachable home on
+   * a phone instead of just disappearing. The host is responsible for not also rendering the same
+   * control in its header on mobile (via this same package's `useIsMobile`) -- this prop doesn't
+   * hide anything on the host's behalf. */
+  mobileOnlyContent?: React.ReactNode;
 }
 
 export function SidebarNav({
@@ -75,6 +69,7 @@ export function SidebarNav({
   className,
   mobileToggleSide = 'left',
   persistentAction,
+  mobileOnlyContent,
 }: SidebarNavProps) {
   // Normalize to a single list-of-groups shape internally, regardless of
   // which prop the consumer passed — `items` becomes one unlabeled group, so
@@ -86,6 +81,11 @@ export function SidebarNav({
   const navRef = React.useRef<HTMLElement>(null);
   const openButtonRef = React.useRef<HTMLButtonElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
+  const previousIsMobileRef = React.useRef(isMobile);
+  const previousOpenRef = React.useRef(open);
+  const hasMountedRef = React.useRef(false);
+  const restoreFocusToRef = React.useRef<HTMLElement | null>(null);
+  const shouldRestoreFocusRef = React.useRef(false);
 
   const setOpenState = (next: boolean) => {
     setInternalOpen(next);
@@ -105,13 +105,43 @@ export function SidebarNav({
   // only responds to a mouse click) and focus is left sitting on whatever
   // triggered it, behind the drawer.
   React.useEffect(() => {
-    if (!isMobile) return;
-    if (open) {
+    const wasMobile = previousIsMobileRef.current;
+    const wasOpen = previousOpenRef.current;
+    const enteringMobile = !wasMobile && isMobile;
+    const shouldSuppressUncontrolledDesktopToMobileCarryover =
+      enteringMobile && openProp === undefined && open;
+    const didOpenAsMobileDrawer = isMobile && open && (
+      !hasMountedRef.current
+      || (wasMobile ? !wasOpen : true)
+    );
+
+    if (!isMobile) {
+      shouldRestoreFocusRef.current = false;
+      restoreFocusToRef.current = null;
+    } else if (didOpenAsMobileDrawer && !shouldSuppressUncontrolledDesktopToMobileCarryover) {
+      if (!shouldRestoreFocusRef.current) {
+        restoreFocusToRef.current = document.activeElement as HTMLElement | null;
+        shouldRestoreFocusRef.current = true;
+      }
       closeButtonRef.current?.focus();
-    } else {
-      openButtonRef.current?.focus();
+    } else if (wasMobile && wasOpen && !open && shouldRestoreFocusRef.current) {
+      const restoreFocusTo = restoreFocusToRef.current;
+      shouldRestoreFocusRef.current = false;
+      restoreFocusToRef.current = null;
+      if (restoreFocusTo?.isConnected) restoreFocusTo.focus();
+      else openButtonRef.current?.focus();
     }
-  }, [isMobile, open]);
+
+    hasMountedRef.current = true;
+    previousIsMobileRef.current = isMobile;
+    previousOpenRef.current = open;
+  }, [isMobile, open, openProp]);
+
+  const openMobileDrawer = () => {
+    restoreFocusToRef.current = openButtonRef.current;
+    shouldRestoreFocusRef.current = true;
+    setOpenState(true);
+  };
 
   React.useEffect(() => {
     if (!isMobile || !open) return;
@@ -123,10 +153,10 @@ export function SidebarNav({
       if (e.key !== 'Tab' || !navRef.current) return;
       // Basic focus trap: while the drawer is open, Tab should cycle within
       // it rather than escaping into the (visually hidden, off-canvas) page
-      // content behind it.
-      const focusable = navRef.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      );
+      // content behind it. Shares useFocusTrap's own "real sequential tab stops" helper rather
+      // than a second hand-rolled list -- this catches native form controls and radio-group
+      // semantics the browser itself applies (only the checked radio tabs, not every enabled one).
+      const focusable = getFocusableElements(navRef.current);
       if (focusable.length === 0) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -193,7 +223,7 @@ export function SidebarNav({
             type="button"
             ref={openButtonRef}
             aria-label="Open menu"
-            onClick={() => setOpenState(true)}
+            onClick={openMobileDrawer}
             style={{
               position: 'fixed',
               top: 12,
@@ -271,6 +301,8 @@ export function SidebarNav({
       )}
       <nav
         ref={navRef}
+        aria-hidden={isMobile && !open ? true : undefined}
+        inert={isMobile && !open ? true : undefined}
         aria-label="Sidebar Navigation"
         role={isMobile && open ? 'dialog' : undefined}
         aria-modal={isMobile && open ? true : undefined}
@@ -371,6 +403,12 @@ export function SidebarNav({
               <ul role="menu" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                 {footerItems.map(renderItem)}
               </ul>
+            </>
+          )}
+          {isMobile && mobileOnlyContent && (
+            <>
+              <hr className="__s9cmpx-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
+              <div style={{ padding: '10px 14px' }}>{mobileOnlyContent}</div>
             </>
           )}
         </div>
