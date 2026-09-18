@@ -4,7 +4,7 @@ import { Icon, type IconName } from '../Icon/Icon';
 import { Button } from '../Button/Button';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { FOCUSABLE_SELECTOR } from '../../lib/useFocusTrap';
+import { getFocusableElements } from '../../lib/useFocusTrap';
 
 export interface SidebarNavItem {
   id: string;
@@ -118,12 +118,10 @@ export function SidebarNav({
       if (e.key !== 'Tab' || !navRef.current) return;
       // Basic focus trap: while the drawer is open, Tab should cycle within
       // it rather than escaping into the (visually hidden, off-canvas) page
-      // content behind it. Shares its selector with useFocusTrap (Modal/Drawer's own trap)
-      // rather than a second hand-rolled list -- this one previously omitted input/select/
-      // textarea entirely, so a native form control in mobileOnlyContent (e.g. SegmentedControl
-      // or Toggle, both plain <input>s) being the last tabbable element let Tab escape the
-      // open drawer into the page behind it.
-      const focusable = navRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      // content behind it. Shares useFocusTrap's own "real sequential tab stops" helper rather
+      // than a second hand-rolled list -- this catches native form controls and radio-group
+      // semantics the browser itself applies (only the checked radio tabs, not every enabled one).
+      const focusable = getFocusableElements(navRef.current);
       if (focusable.length === 0) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -269,8 +267,10 @@ export function SidebarNav({
       <nav
         ref={navRef}
         aria-label="Sidebar Navigation"
+        aria-hidden={isMobile && !open ? true : undefined}
         role={isMobile && open ? 'dialog' : undefined}
         aria-modal={isMobile && open ? true : undefined}
+        inert={isMobile && !open ? true : undefined}
         className={cx('__s9cmpx-sidebar-nav', className)}
         style={
           isMobile

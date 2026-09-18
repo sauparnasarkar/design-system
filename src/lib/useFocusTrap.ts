@@ -16,6 +16,26 @@ export const FOCUSABLE_SELECTOR = [
 ].join(',');
 
 /**
+ * Native radio groups do not put every enabled radio into the sequential Tab order: only the
+ * checked member is tabbable, or the first enabled member when nothing is checked yet. Filtering
+ * to those real tab stops keeps focus wrapping aligned with what the browser itself will do.
+ */
+export function getFocusableElements(container: ParentNode): HTMLElement[] {
+  const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+  return focusable.filter((el, _, all) => {
+    if (!(el instanceof HTMLInputElement) || el.type !== 'radio' || !el.name) return true;
+    const group = all.filter((candidate): candidate is HTMLInputElement => (
+      candidate instanceof HTMLInputElement
+      && candidate.type === 'radio'
+      && candidate.name === el.name
+      && candidate.form === el.form
+    ));
+    const checked = group.find((candidate) => candidate.checked);
+    return checked ? el === checked : el === group[0];
+  });
+}
+
+/**
  * Traps focus within a dialog-like container while `open` is true: moves focus into the
  * container on open, wraps Tab/Shift+Tab at its first/last focusable descendant, and
  * restores focus to whatever was focused before opening once `open` becomes false.
@@ -31,7 +51,7 @@ export function useFocusTrap<T extends HTMLElement>(open: boolean): React.RefObj
 
     const container = containerRef.current;
     const focusFirst = () => {
-      const focusable = container?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      const focusable = container ? getFocusableElements(container) : undefined;
       (focusable?.[0] ?? container)?.focus();
     };
     // Focus after paint so the container (often just-mounted) is actually focusable.
@@ -39,7 +59,7 @@ export function useFocusTrap<T extends HTMLElement>(open: boolean): React.RefObj
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Tab' || !container) return;
-      const focusable = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      const focusable = getFocusableElements(container);
       if (focusable.length === 0) {
         e.preventDefault();
         return;

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, fn, userEvent, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { SidebarNav } from './SidebarNav';
+import { SegmentedControl } from '../SegmentedControl/SegmentedControl';
+import { MOBILE_QUERY } from '../../hooks/useIsMobile';
 
 const meta: Meta<typeof SidebarNav> = {
   title: 'Shell/SidebarNav',
@@ -21,6 +23,50 @@ const meta: Meta<typeof SidebarNav> = {
 };
 export default meta;
 type Story = StoryObj<typeof SidebarNav>;
+
+let setMobileMatch: ((matches: boolean) => void) | undefined;
+
+function installMatchMediaStub(initialMobile = false) {
+  const originalMatchMedia = window.matchMedia;
+  const listeners = new Map<string, Set<(event: MediaQueryListEvent) => void>>();
+  const matchesByQuery = new Map<string, boolean>([[MOBILE_QUERY, initialMobile]]);
+
+  window.matchMedia = ((query: string) => ({
+    get matches() {
+      return matchesByQuery.get(query) ?? false;
+    },
+    media: query,
+    onchange: null,
+    addEventListener: (_type: 'change', listener: (event: MediaQueryListEvent) => void) => {
+      const queryListeners = listeners.get(query) ?? new Set<(event: MediaQueryListEvent) => void>();
+      queryListeners.add(listener);
+      listeners.set(query, queryListeners);
+    },
+    removeEventListener: (_type: 'change', listener: (event: MediaQueryListEvent) => void) => {
+      listeners.get(query)?.delete(listener);
+    },
+    addListener: (listener: (event: MediaQueryListEvent) => void) => {
+      const queryListeners = listeners.get(query) ?? new Set<(event: MediaQueryListEvent) => void>();
+      queryListeners.add(listener);
+      listeners.set(query, queryListeners);
+    },
+    removeListener: (listener: (event: MediaQueryListEvent) => void) => {
+      listeners.get(query)?.delete(listener);
+    },
+    dispatchEvent: () => true,
+  })) as typeof window.matchMedia;
+
+  setMobileMatch = (matches: boolean) => {
+    matchesByQuery.set(MOBILE_QUERY, matches);
+    const event = { matches, media: MOBILE_QUERY } as MediaQueryListEvent;
+    listeners.get(MOBILE_QUERY)?.forEach((listener) => listener(event));
+  };
+
+  return () => {
+    setMobileMatch = undefined;
+    window.matchMedia = originalMatchMedia;
+  };
+}
 
 export const Playground: Story = {};
 
@@ -101,5 +147,68 @@ export const LabeledGroups: Story = {
       },
     ],
     footerItems: [{ id: 'about', label: 'About', icon: 'info' }],
+  },
+};
+
+export const DesktopOmitsMobileOnlyContent: Story = {
+  args: {
+    mobileOnlyContent: (
+      <SegmentedControl
+        name="theme-toggle-desktop"
+        items={[
+          { value: 'light', label: 'Light' },
+          { value: 'dark', label: 'Dark' },
+        ]}
+        value="light"
+      />
+    ),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole('radio', { name: 'Light' })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('button', { name: 'Open menu' })).not.toBeInTheDocument();
+  },
+};
+
+export const MobileDrawerRendersMobileOnlyContent: Story = {
+  beforeEach: async () => installMatchMediaStub(false),
+  args: {
+    open: undefined,
+    mobileOnlyContent: (
+      <SegmentedControl
+        name="theme-toggle-mobile"
+        items={[
+          { value: 'light', label: 'Light' },
+          { value: 'dark', label: 'Dark' },
+        ]}
+        value="light"
+      />
+    ),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await expect(canvas.queryByRole('radio', { name: 'Light' })).not.toBeInTheDocument();
+
+    setMobileMatch?.(true);
+
+    await waitFor(() => expect(canvas.getByRole('button', { name: 'Open menu' })).toBeInTheDocument());
+    await expect(canvas.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('radio', { name: 'Light' })).not.toBeInTheDocument();
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Open menu' }));
+
+    const closeButton = await waitFor(() => canvas.getByRole('button', { name: 'Close menu' }));
+    const lightRadio = canvas.getByRole('radio', { name: 'Light' });
+    await expect(lightRadio).toBeChecked();
+    lightRadio.focus();
+    await userEvent.tab();
+    await expect(closeButton).toHaveFocus();
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}');
+    await expect(lightRadio).toHaveFocus();
+
+    await userEvent.click(closeButton);
+    await waitFor(() => expect(canvas.getByRole('button', { name: 'Open menu' })).toBeInTheDocument());
+    await expect(canvas.queryByRole('radio', { name: 'Light' })).not.toBeInTheDocument();
   },
 };
