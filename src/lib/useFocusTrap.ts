@@ -1,6 +1,12 @@
 import React from 'react';
 
-const FOCUSABLE_SELECTOR = [
+// Exported so SidebarNav's own hand-rolled mobile-drawer Tab-trap (it also needs Escape-to-close
+// and a specific initial-focus target, so it can't just call useFocusTrap wholesale) stays in
+// sync with this list instead of re-declaring a second, narrower copy that silently misses
+// native form controls -- confirmed live: mobileOnlyContent can render a SegmentedControl or
+// Toggle (both plain <input>s, no [tabindex]), and SidebarNav's old inline selector had no
+// input/select/textarea clause at all, so Tab from that control escaped the open drawer.
+export const FOCUSABLE_SELECTOR = [
   'a[href]',
   'button:not([disabled])',
   'textarea:not([disabled])',
