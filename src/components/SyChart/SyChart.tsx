@@ -7,7 +7,14 @@ import Plotly from 'plotly.js-dist-min';
 // file is type-checked from a consuming project via a path-mapped alias).
 import type { Color, Data, Layout, PlotData, PlotMarker } from 'plotly.js';
 import { cx } from '../../lib/cx';
-import { formatChartValue, logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
+import {
+  choroplethHovertemplate,
+  filterNoData,
+  formatChartValue,
+  logColorbarTicks,
+  noDataHovertemplate,
+  withAlpha,
+} from './chartMath';
 
 // `PlotData.type: PlotType` already covers every trace kind this component emits (bar/scatter/
 // choropleth/treemap), so a single `Partial<PlotData>` element type is enough -- no need for a
@@ -110,6 +117,14 @@ export interface SyChartSeries {
   showMarkers?: boolean;
   /** 'choropleth' only: one location code per data point (see `locationmode`) */
   locations?: string[];
+  /**
+   * 'choropleth' only: one display name per data point (e.g. the full country name), parallel to
+   * `locations`, shown in the hover tooltip in place of the raw location code. Without this, the
+   * tooltip falls back to `locations` itself -- fine for a code a reader can decode (a US state
+   * abbreviation) but not for the ISO-3 codes this app's country choropleth uses (`worldMapSeries
+   * .iso_codes`, e.g. "ZAF" for South Africa), which most readers can't.
+   */
+  locationNames?: string[];
   /** 'choropleth' only: Plotly location mode. Defaults to 'ISO-3'. */
   locationmode?: PlotData['locationmode'];
   /**
@@ -273,10 +288,13 @@ export function SyChart({
   // the whole array. Undefined when the corresponding trace doesn't exist this render (e.g. no
   // no-data trace when nothing is null).
   const traceIndexRef = React.useRef<{ data?: number; noData?: number }>({});
-  // The choropleth series' own locations/zLog, captured so the animationFrame effect can
-  // recompute the no-data trace's membership and apply the same log transform without needing
-  // the full `series` prop (which must stay referentially stable across animation frames).
-  const choroplethMetaRef = React.useRef<{ locations: string[]; zLog?: boolean }>({ locations: [] });
+  // The choropleth series' own locations/locationNames/zLog, captured so the animationFrame
+  // effect can recompute the no-data trace's membership (locations) and hover labels
+  // (locationNames) and apply the same log transform without needing the full `series` prop
+  // (which must stay referentially stable across animation frames).
+  const choroplethMetaRef = React.useRef<{ locations: string[]; locationNames?: string[]; zLog?: boolean }>({
+    locations: [],
+  });
   const hasChoropleth = series.some((s) => s.kind === 'choropleth');
   const hasTreemap = series.some((s) => s.kind === 'treemap');
   // hovermode: 'x unified' below renders one label box per hovered x, positioned by Plotly
@@ -333,12 +351,17 @@ export function SyChart({
         // no-data highlighting for every later frame that does introduce one (Copilot review,
         // PR #28) -- an empty-locations trace costs nothing and renders nothing, so there's no
         // reason to make its existence conditional at all.
-        const noDataLocations = (s.locations ?? []).filter((_, idx) => colorValues[idx] == null);
+        // filterNoData (chartMath.ts) is the single source of truth for "which entries have no
+        // data" -- reused verbatim by the animationFrame restyle effect below, so the two paths
+        // can't drift into filtering locations and locationNames by different predicates.
+        const noDataLocations = filterNoData(s.locations ?? [], colorValues) ?? [];
+        const noDataNames = filterNoData(s.locationNames, colorValues);
         traces.push({
           type: 'choropleth',
           meta: 'sychart-choropleth-nodata',
           name: `${s.name} (no data)`,
           locations: noDataLocations,
+          text: noDataNames,
           locationmode: s.locationmode ?? 'ISO-3',
           z: noDataLocations.map(() => 0),
           colorscale: [
@@ -346,7 +369,7 @@ export function SyChart({
             [1, s.noDataColor ?? '#4a4a4a'],
           ],
           showscale: false,
-          hovertemplate: noDataHovertemplate(s.noDataHoverText),
+          hovertemplate: noDataHovertemplate(s.noDataHoverText, !!s.locationNames),
           marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
         });
         traces.push({
@@ -354,6 +377,7 @@ export function SyChart({
           meta: 'sychart-choropleth-data',
           name: s.name,
           locations: s.locations,
+          text: s.locationNames,
           locationmode: s.locationmode ?? 'ISO-3',
           z,
           ...(s.colorRange ? { zmin, zmax, zauto: false } : {}),
@@ -368,9 +392,7 @@ export function SyChart({
           // hovertemplate reads from here instead of the implicit %{z} fallback, which would
           // otherwise show the raw log10 number rather than the actual MtCO2 figure.
           customdata: s.colorValues,
-          hovertemplate: s.hoverUnit
-            ? `%{location}<br>%{customdata:,.0f} ${s.hoverUnit}<extra></extra>`
-            : '%{location}<br>%{customdata:,.0f}<extra></extra>',
+          hovertemplate: choroplethHovertemplate(s.hoverUnit, !!s.locationNames),
           colorscale: s.colorScale ?? divergingScale,
           showscale: s.showColorbar ?? true,
           marker: { line: { color: cssVar(el, '--__s9cmpx-static-divider-weak', 'rgba(31,31,31,0.08)'), width: 0.5 } },
@@ -716,7 +738,11 @@ export function SyChart({
     // Assumes a single choropleth series -- same precedent as the treemap onTileClick handler
     // below. animationFrame is a single (not per-series) prop for exactly this reason.
     const choroplethSeries = series.find((s) => s.kind === 'choropleth');
-    choroplethMetaRef.current = { locations: choroplethSeries?.locations ?? [], zLog: choroplethSeries?.zLog };
+    choroplethMetaRef.current = {
+      locations: choroplethSeries?.locations ?? [],
+      locationNames: choroplethSeries?.locationNames,
+      zLog: choroplethSeries?.zLog,
+    };
 
     // "Reset view" control (rendered below, choropleth only). Verified live (Storybook +
     // direct Plotly state inspection) that re-supplying the original layout via Plotly.react
@@ -921,21 +947,44 @@ export function SyChart({
   React.useEffect(() => {
     const el = ref.current;
     if (!animationFrame || !el || !plotDrawnRef.current) return;
-    const { locations, zLog } = choroplethMetaRef.current;
+    const { locations, locationNames, zLog } = choroplethMetaRef.current;
     const colorValues = animationFrame.colorValues;
     const z = zLog ? colorValues.map((v) => (v != null && v > 0 ? Math.log10(v) : null)) : colorValues;
     if (traceIndexRef.current.data != null) {
       Plotly.restyle(el, { z: [z], customdata: [colorValues] }, [traceIndexRef.current.data]);
     }
     if (traceIndexRef.current.noData != null) {
-      const noDataLocations = locations.filter((_, idx) => colorValues[idx] == null);
+      // Same filterNoData helper as the initial trace construction above -- without restyling
+      // `text` alongside `locations` here, it would stay frozen at whichever countries had no
+      // data on the *first* frame, so once a later frame's no-data membership changes (e.g. a
+      // country reports data in a later year, or a new one drops out), `%{text}` in the tooltip
+      // would show a stale/wrong country name for the gray trace (Copilot review, PR #78). Only
+      // meaningful when the caller supplied `locationNames` in the first place -- otherwise the
+      // no-data hovertemplate reads `%{location}`, not `%{text}`.
+      const noDataLocations = filterNoData(locations, colorValues) ?? [];
+      const noDataNames = filterNoData(locationNames, colorValues);
       // restyle wraps each targeted trace's new value in an outer array (confirmed working via
       // the identical convention on `z`/`customdata` above, which `PlotData` types as
-      // `Datum[] | Datum[][] | ...` for exactly this reason) -- but `PlotData.locations` is only
-      // typed `Datum[]`, missing the `Datum[][]` variant `z`/`customdata` already have.
-      Plotly.restyle(el, { locations: [noDataLocations] } as unknown as Partial<Data>, [
-        traceIndexRef.current.noData,
-      ]);
+      // `Datum[] | Datum[][] | ...` for exactly this reason) -- but `PlotData.locations`/`text`
+      // are only typed `Datum[]`, missing the `Datum[][]` variant `z`/`customdata` already have.
+      //
+      // `z` restyled alongside `locations`/`text` -- a pre-existing gap (predates locationNames
+      // entirely): this trace's `z` was only ever set once, at initial construction, sized to
+      // that first frame's noDataLocations. A later frame with *more* no-data entries than the
+      // first would restyle `locations` to a longer array while `z` stayed at its original
+      // (shorter) length, a locations/z length mismatch Plotly doesn't handle predictably --
+      // some no-data regions could fail to render or hover correctly (Copilot review, PR #78).
+      // One zero per entry, same as the initial construction's `z: noDataLocations.map(() => 0)`
+      // -- the no-data trace's color is flat (`noDataColor`), so the actual value never matters.
+      Plotly.restyle(
+        el,
+        {
+          locations: [noDataLocations],
+          z: [noDataLocations.map(() => 0)],
+          ...(noDataNames ? { text: [noDataNames] } : {}),
+        } as unknown as Partial<Data>,
+        [traceIndexRef.current.noData],
+      );
     }
   }, [animationFrame]);
 

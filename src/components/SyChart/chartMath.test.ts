@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatChartValue, logColorbarTicks, noDataHovertemplate, withAlpha } from './chartMath';
+import {
+  choroplethHovertemplate,
+  filterNoData,
+  formatChartValue,
+  logColorbarTicks,
+  noDataHovertemplate,
+  withAlpha,
+} from './chartMath';
 
 describe('withAlpha', () => {
   it('converts a 6-digit hex color to rgba with the given alpha', () => {
@@ -82,5 +89,48 @@ describe('noDataHovertemplate', () => {
     expect(noDataHovertemplate('Not yet reported')).toBe(
       '%{location}<br>Not yet reported<extra></extra>',
     );
+  });
+
+  it('swaps to %{text} when useText is set', () => {
+    expect(noDataHovertemplate(undefined, true)).toBe('%{text}<br>No data reported<extra></extra>');
+  });
+});
+
+describe('choroplethHovertemplate', () => {
+  it('defaults to the raw %{location} code with no unit suffix', () => {
+    expect(choroplethHovertemplate()).toBe('%{location}<br>%{customdata:,.0f}<extra></extra>');
+  });
+
+  it('appends the unit when hoverUnit is given', () => {
+    expect(choroplethHovertemplate('MtCO₂')).toBe('%{location}<br>%{customdata:,.0f} MtCO₂<extra></extra>');
+  });
+
+  it('swaps to %{text} when useText is set, unit or no unit', () => {
+    expect(choroplethHovertemplate(undefined, true)).toBe('%{text}<br>%{customdata:,.0f}<extra></extra>');
+    expect(choroplethHovertemplate('MtCO₂', true)).toBe('%{text}<br>%{customdata:,.0f} MtCO₂<extra></extra>');
+  });
+});
+
+describe('filterNoData', () => {
+  it('keeps only the entries whose colorValues slot is null', () => {
+    expect(filterNoData(['CHN', 'USA', 'IND'], [100, null, 50])).toEqual(['USA']);
+  });
+
+  it('keeps two parallel arrays index-aligned across the same colorValues', () => {
+    const colorValues = [100, null, null, 50];
+    const locations = ['CHN', 'USA', 'IND', 'RUS'];
+    const locationNames = ['China', 'United States', 'India', 'Russia'];
+    expect(filterNoData(locations, colorValues)).toEqual(['USA', 'IND']);
+    expect(filterNoData(locationNames, colorValues)).toEqual(['United States', 'India']);
+  });
+
+  it('returns undefined when items itself is undefined (optional locationNames)', () => {
+    expect(filterNoData(undefined, [100, null])).toBeUndefined();
+  });
+
+  it('reflects a changed colorValues membership across two calls, as with an animation frame', () => {
+    const locations = ['CHN', 'USA', 'IND'];
+    expect(filterNoData(locations, [100, null, 50])).toEqual(['USA']);
+    expect(filterNoData(locations, [100, 200, null])).toEqual(['IND']);
   });
 });
