@@ -55,7 +55,14 @@ export function Gauge({ value, min = 0, max = 100, suffix = '', color, height = 
   React.useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const fill = color ?? cssVar(el, '--__s9cmpx-chart-categorical-default-01', '#7accf5');
+    // Falls back to the categorical palette's slot 01 for any theme that doesn't publish its
+    // own --__s9cmpx-gauge-fill-color, matching every theme's behavior before this token
+    // existed. That fallback is also the reason a categorical palette re-space can silently
+    // change every default-colored Gauge's fill along with it (Copilot review, PR #75, on
+    // Tidewater's C2 re-space turning gauges lime along with slot 01) -- a theme that wants
+    // its re-spaced slot 01 NOT to double as the gauge default should set this token
+    // explicitly, the same opt-out shape as --__s9cmpx-gauge-track-color below.
+    const fill = color ?? (cssVar(el, '--__s9cmpx-gauge-fill-color', '') || cssVar(el, '--__s9cmpx-chart-categorical-default-01', '#7accf5'));
     const font = {
       family: cssVar(el, '--__s9cmpx-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
       // The gauge's own indicator track (bgcolor below) reads --__s9cmpx-color-brand-100,

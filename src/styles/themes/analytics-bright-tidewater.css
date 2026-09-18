@@ -211,6 +211,15 @@
   --__s9cmpx-chart-diverging-mid: var(--__s9cmpx-chart-surface);
   --__s9cmpx-chart-diverging-high: #5AB4AC;
 
+  /* Gauge.tsx falls back to --__s9cmpx-chart-categorical-default-01 for its default fill when
+     no `color` prop is passed, so re-spacing that slot below for C2 would otherwise silently
+     turn every default-colored Gauge on this theme from its original cyan-blue to the new
+     slot 01's gold (Copilot review, PR #75). Pinned here to the value slot 01 held before this
+     re-space, so any existing Tidewater gauge with no explicit `color` renders exactly as it
+     did before this palette change -- the categorical ramp and the gauge default are now
+     independently adjustable, which they were only accidentally coupled together before. */
+  --__s9cmpx-gauge-fill-color: #58C8F0;
+
   /* Series palette, re-spaced for C2 (revised after Copilot review, PR #75). The previous nine
      occupied only four real hue families -- old-01/06/07 were all the same cyan-blue
      (196°/198°/204°), old-02/08 were an identical amber (36°/36°), and old-03/09 were the same
