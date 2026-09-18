@@ -967,9 +967,22 @@ export function SyChart({
       // the identical convention on `z`/`customdata` above, which `PlotData` types as
       // `Datum[] | Datum[][] | ...` for exactly this reason) -- but `PlotData.locations`/`text`
       // are only typed `Datum[]`, missing the `Datum[][]` variant `z`/`customdata` already have.
+      //
+      // `z` restyled alongside `locations`/`text` -- a pre-existing gap (predates locationNames
+      // entirely): this trace's `z` was only ever set once, at initial construction, sized to
+      // that first frame's noDataLocations. A later frame with *more* no-data entries than the
+      // first would restyle `locations` to a longer array while `z` stayed at its original
+      // (shorter) length, a locations/z length mismatch Plotly doesn't handle predictably --
+      // some no-data regions could fail to render or hover correctly (Copilot review, PR #78).
+      // One zero per entry, same as the initial construction's `z: noDataLocations.map(() => 0)`
+      // -- the no-data trace's color is flat (`noDataColor`), so the actual value never matters.
       Plotly.restyle(
         el,
-        { locations: [noDataLocations], ...(noDataNames ? { text: [noDataNames] } : {}) } as unknown as Partial<Data>,
+        {
+          locations: [noDataLocations],
+          z: [noDataLocations.map(() => 0)],
+          ...(noDataNames ? { text: [noDataNames] } : {}),
+        } as unknown as Partial<Data>,
         [traceIndexRef.current.noData],
       );
     }
