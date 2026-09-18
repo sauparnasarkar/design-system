@@ -211,45 +211,42 @@
   --__s9cmpx-chart-diverging-mid: var(--__s9cmpx-chart-surface);
   --__s9cmpx-chart-diverging-high: #5AB4AC;
 
-  /* Series palette, re-spaced for C2: the previous nine occupied only four real hue families
-     -- old-01/06/07 were all the same cyan-blue (196°/198°/204°), old-02/08 were an identical
-     amber (36°/36°), and old-03/09 were the same purple twelve degrees apart (267°/255°) --
-     because each "bright" hue had a paler near-duplicate rather than a genuinely different
-     one. With the default ten-country selection on Historical Trends that produced real
-     collisions (China/Australia identical, US/UK both amber, India/South Africa both purple --
-     see C2 for the live evidence). A4's wrap-around dash cue (SyChart.tsx) fixes the wrap at
-     slot 10; it does nothing for these within-nine duplicates, since a 3rd-vs-9th-series
-     collision was never a "ran out of palette" problem.
+  /* Series palette, re-spaced for C2 (revised after Copilot review, PR #75). The previous nine
+     occupied only four real hue families -- old-01/06/07 were all the same cyan-blue
+     (196°/198°/204°), old-02/08 were an identical amber (36°/36°), and old-03/09 were the same
+     purple twelve degrees apart (267°/255°) -- because each "bright" hue had a paler
+     near-duplicate rather than a genuinely different one. With the default ten-country
+     selection on Historical Trends that produced real collisions (China/Australia identical,
+     US/UK both amber, India/South Africa both purple -- see C2 for the live evidence).
 
-     Five of the old nine hues were already distinct and are kept, unchanged, just reassigned
-     to new slots below (old-04 #7FE0D0 teal, old-02 #FFB84D amber, old-01 #58C8F0 cyan, old-03
-     #C08CFF purple, old-05 #FF6FA8 pink); the four duplicates are replaced with new hues
-     chosen to fill the real gaps between them. Every pair across the full nine is now at least
-     ~22° apart in hue (the closest pair, new-01 vs new-03, also differ in lightness: 0.70 vs
-     0.56 relative luminance) -- and re-verified against this theme's own red (~3°,
-     static-text-sentiment-negative) and green (~151°, static-text-sentiment-positive) bands
-     with real margin, not just against each other: new-01 sits at 58° (closer to amber than to
-     green) and 04 stays at the theme's existing 170° (already the established "teal, not
-     green" precedent this slot's comment used to carry alone). Contrast against this theme's
-     #061E28 panel, computed via WCAG relative luminance: 01 12.2:1, 02 11.0:1, 03 10.0:1,
-     04 8.9:1, 05 6.9:1, 06 6.9:1, 07 6.6:1, 08 6.3:1, 09 5.7:1 -- all comfortably past the 3:1
-     non-text minimum. */
-  --__s9cmpx-chart-categorical-default-01: #E4DF44;
-  --__s9cmpx-chart-categorical-default-02: #7FE0D0;
-  --__s9cmpx-chart-categorical-default-03: #FFB84D;
-  --__s9cmpx-chart-categorical-default-04: #58C8F0;
-  --__s9cmpx-chart-categorical-default-05: #EC79EA;
-  --__s9cmpx-chart-categorical-default-06: #C08CFF;
-  --__s9cmpx-chart-categorical-default-07: #FF6FA8;
-  --__s9cmpx-chart-categorical-default-08: #6E9CF7;
-  --__s9cmpx-chart-categorical-default-09: #8E86F9;
-  /* -10 (A4): the categorical ramp ran out at 9 while consumers offer up to 10 series (this
-     theme's own Historical Trends chart offers 10 by default). Re-spaced alongside -01..-09
-     above (its previous value, #C9B65A at hue 50°, would have sat only 8° from the new -01
-     above) -- still the least-separated slot in the set (~17° from its nearest neighbors), but
-     that's an acceptable trade for a slot only reached on an 11th+ series, where SyChart.tsx's
-     wrap-around dash/marker cue already provides a redundant, non-color cue anyway. */
-  --__s9cmpx-chart-categorical-default-10: #C56CE5;
+     Redesigned as ten hues from scratch, not nine-plus-one: an earlier version of this fix
+     re-spaced only -01..-09 and patched -10 on top, reasoning that SyChart.tsx's wrap-around
+     dash/marker cue (A4) would cover it -- wrong, since that cue only triggers at
+     `i >= palette.length` (an 11th+ series); with all ten tokens now defined, the 10th series
+     lands on this real, un-cued -10 token, so it needs the same genuine hue separation as
+     every other slot, especially since a 10-country chart choosing all ten is the exact
+     scenario this fix exists for.
+
+     All ten hues sit at least ~21° apart from every other one (not just its neighbors), with
+     both exclusion bands widened past the letter of "avoid the sentiment hues" to the fuller
+     perceptual zones a reader would actually call "red" or "green": >=32° from red (~3°,
+     static-text-sentiment-negative) and >=25° from the nearest edge of the full green/
+     yellow-green band (roughly 80°-160°, not just green's own ~151° hue) -- notably narrower
+     than old-04/kept-teal's 170° (already an established "teal, not green" precedent), so
+     nothing here leans on that precedent being cut any finer. Ordered brightest-first by WCAG
+     relative luminance, matching every sibling theme's ordering rationale. Contrast against
+     this theme's #061E28 panel: 01 12.5:1, 02 11.2:1, 03 9.8:1, 04 9.3:1, 05 6.6:1, 06 6.5:1,
+     07 6.3:1, 08 6.3:1, 09 6.1:1, 10 5.6:1 -- all comfortably past the 3:1 non-text minimum. */
+  --__s9cmpx-chart-categorical-default-01: #DFE444;
+  --__s9cmpx-chart-categorical-default-02: #67E4DC;
+  --__s9cmpx-chart-categorical-default-03: #FFB54D;
+  --__s9cmpx-chart-categorical-default-04: #64CBF7;
+  --__s9cmpx-chart-categorical-default-05: #D47EF1;
+  --__s9cmpx-chart-categorical-default-06: #F368E3;
+  --__s9cmpx-chart-categorical-default-07: #6E9CF7;
+  --__s9cmpx-chart-categorical-default-08: #B286F9;
+  --__s9cmpx-chart-categorical-default-09: #F764B0;
+  --__s9cmpx-chart-categorical-default-10: #8A86F9;
 
   /* Rounder geometry, inherited from the Signal theme's character (10px cards,
      8px controls, pill chips).
