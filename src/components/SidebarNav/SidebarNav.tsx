@@ -266,7 +266,8 @@ export function SidebarNav({
       )}
       <nav
         ref={navRef}
-        hidden={isMobile && !open}
+        aria-hidden={isMobile && !open ? true : undefined}
+        inert={isMobile && !open ? true : undefined}
         aria-label="Sidebar Navigation"
         role={isMobile && open ? 'dialog' : undefined}
         aria-modal={isMobile && open ? true : undefined}
