@@ -375,7 +375,15 @@ a single always-visible action rendered next to the menu toggle, present in
 every state (expanded, collapsed-to-rail, and the mobile drawer's closed
 floating-button state) unlike a regular nav item, for a feature prominent
 enough to want a persistent entry point rather than living inside the page
-list), SidebarNavFlyout, AppSwitcher, Footer
+list; optional `mobileOnlyContent`: rendered only inside the mobile
+off-canvas drawer, for a host-header control — e.g. a theme switcher — that
+has nowhere left to render once `Header`'s own grid columns collapse at the
+mobile breakpoint. Exports `useIsMobile` (`src/hooks/useIsMobile.ts`) so a
+host can gate its own header content at the exact same 768px breakpoint
+`SidebarNav` itself switches on, rather than a second hardcoded query that
+could drift out of sync — see PLAN.md's "mobile header toggle overlap"
+entry for the live bug this was extracted to fix), SidebarNavFlyout,
+AppSwitcher, Footer
 
 **Composed page stories** (not exported components — demonstrate
 composition) — `Shell/AppShell`, `Templates/ClimateDashboard`

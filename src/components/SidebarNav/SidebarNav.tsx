@@ -3,22 +3,7 @@ import { cx } from '../../lib/cx';
 import { Icon, type IconName } from '../Icon/Icon';
 import { Button } from '../Button/Button';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
-
-const MOBILE_QUERY = '(max-width: 768px)';
-
-/** True below the tablet breakpoint, where the rail becomes an off-canvas drawer instead of narrowing in place. */
-function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = React.useState(
-    () => typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches,
-  );
-  React.useEffect(() => {
-    const mql = window.matchMedia(MOBILE_QUERY);
-    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, []);
-  return isMobile;
-}
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export interface SidebarNavItem {
   id: string;
@@ -63,6 +48,14 @@ export interface SidebarNavProps {
     onClick: () => void;
     active?: boolean;
   };
+  /** Rendered only inside the mobile off-canvas drawer, below the regular nav items/footerItems --
+   * never in the desktop rail (collapsed or expanded), which has no equivalent narrow-viewport
+   * constraint. For host-header controls that lose their layout space once the header's own grid
+   * columns collapse at the mobile breakpoint (e.g. a theme switcher) and need a reachable home on
+   * a phone instead of just disappearing. The host is responsible for not also rendering the same
+   * control in its header on mobile (via this same package's `useIsMobile`) -- this prop doesn't
+   * hide anything on the host's behalf. */
+  mobileOnlyContent?: React.ReactNode;
 }
 
 export function SidebarNav({
@@ -75,6 +68,7 @@ export function SidebarNav({
   className,
   mobileToggleSide = 'left',
   persistentAction,
+  mobileOnlyContent,
 }: SidebarNavProps) {
   // Normalize to a single list-of-groups shape internally, regardless of
   // which prop the consumer passed — `items` becomes one unlabeled group, so
@@ -371,6 +365,12 @@ export function SidebarNav({
               <ul role="menu" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                 {footerItems.map(renderItem)}
               </ul>
+            </>
+          )}
+          {isMobile && mobileOnlyContent && (
+            <>
+              <hr className="__s9cmpx-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
+              <div style={{ padding: '10px 14px' }}>{mobileOnlyContent}</div>
             </>
           )}
         </div>

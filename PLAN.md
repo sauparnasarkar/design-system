@@ -971,3 +971,50 @@ presses, not a programmatic `.focus()` shortcut) and Enter fires the same naviga
 click does; a table with no `onRowActivate` (e.g. Taxonomy Drill-Down) still correctly refuses
 `.focus()` on its cells, confirming zero regression to the "don't Tab-trap a read-only table"
 behavior every other consumer relies on.
+
+## SidebarNav `mobileOnlyContent` + shared `useIsMobile`: fixing a live mobile header overlap (2026-09-18)
+
+Reported directly by the GHG dashboard's mentor, from a real phone screenshot: the sparkle
+"Ask the Agent" floating button rendered on top of the header's Light/Dark theme toggle on a
+393px-wide viewport. Confirmed live in the consumer's own dev server via a same-origin iframe
+sized to 393px (real window resize wasn't available in that debugging session, and CSS `zoom`
+doesn't affect `matchMedia`/`innerWidth` the way an actual viewport resize does — an iframe with
+its own `src` gives a genuinely independent `contentWindow` instead).
+
+**Root cause: a previous fix (climate-dashboard-react's own `styles.css`, 2026-09-04) shrank the
+header's content box via `padding-right: 112px` at ≤768px, intending to reserve room for
+`SidebarNav`'s fixed mobile toggle + persistent-action buttons. That reservation shrinks the
+*grid track* (`getComputedStyle` confirmed `grid-template-columns: 257px 0px 0px` at 393px — the
+center track carrying the theme toggle collapsed to 0), but the toggle itself doesn't shrink to
+fit a 0px track — it just overflows past it, unclipped (`overflow: visible` is the default), and
+lands exactly in the now-reserved zone anyway.** Measured live: the toggle spanned x=256–338,
+the floating "Ask the Agent" button x=282–314 — direct overlap, matching the reported screenshot
+pixel-for-pixel. Padding the *container* can't stop *content that doesn't shrink* from painting
+outside it — the fix has to either shrink the content or stop rendering it there at all.
+
+Given the choice (asked directly: hide the toggle on mobile vs. relocate it), the mentor chose
+relocation, so this shipped as a small SidebarNav capability rather than a CSS-only patch:
+
+1. **Extracted `SidebarNav`'s previously-private `useIsMobile` (768px `matchMedia`, same
+   subscribe/cleanup shape as `useReducedMotion`) into its own hook, exported from `src/index.ts`.**
+   A host app needs the *exact same* breakpoint SidebarNav itself uses to decide "does this
+   header control have anywhere to render," not a second hardcoded `768px` that could drift.
+2. **New optional `mobileOnlyContent?: React.ReactNode` prop**, rendered only when
+   `isMobile` (SidebarNav's own internal check, not something the host has to gate), directly
+   below `footerItems` in the same off-canvas drawer markup, behind its own divider. Never
+   rendered in the desktop rail (collapsed or expanded) — there's no equivalent space problem
+   there.
+3. Consumer side (climate-dashboard-react, its own PR): `useIsMobile()` gates the Header's
+   `centerActions` prop directly (`isMobile ? undefined : themeToggle` — the toggle is simply
+   never rendered in the header on a narrow viewport, no CSS trying to hide/reserve/shrink it
+   after the fact) and passes the same toggle element to `SidebarNav`'s new `mobileOnlyContent`.
+   The now-provably-ineffective `padding-right: 112px` mobile rule was removed rather than left
+   in place — nothing renders in that zone anymore, so the reservation is moot, and keeping dead
+   CSS that reads as a fix for a bug it doesn't actually fix is worse than removing it.
+
+Lesson for `Header`'s 3-column grid generally: shrinking a `minmax(auto|0, X)` track via outer
+padding only changes *layout accounting* for that track — it does nothing to whatever's rendered
+inside it, which still paints at its own natural size and overflows unclipped if that size
+exceeds the track. Any future "reserve space for a floating overlay" fix in this header needs to
+either constrain the actual content (not just the track) or stop rendering that content at the
+breakpoint where it no longer fits, not lean on padding/margin arithmetic alone.
