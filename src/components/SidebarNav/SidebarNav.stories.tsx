@@ -171,7 +171,7 @@ export const DesktopOmitsMobileOnlyContent: Story = {
 };
 
 export const MobileDrawerRendersMobileOnlyContent: Story = {
-  beforeEach: async () => installMatchMediaStub(false),
+  beforeEach: () => installMatchMediaStub(false),
   args: {
     open: undefined,
     mobileOnlyContent: (
