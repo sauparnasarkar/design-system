@@ -251,6 +251,13 @@ export const Choropleth: Story = {
 export const ChoroplethAnimated: Story = {
   render: () => {
     const countries = ['CHN', 'USA', 'IND', 'RUS', 'JPN', 'DEU', 'BRA', 'GBR', 'ZAF', 'AUS'];
+    // Parallel to `countries` -- lets this story double as manual coverage for locationNames'
+    // hover-text behavior, including the animation-frame case (Copilot review, PR #78): frame 0
+    // has no data for Australia (last entry, null), frame 1 does, so hovering it across Play
+    // exercises the no-data trace's `text` restyle alongside its `locations` restyle.
+    const countryNames = [
+      'China', 'United States', 'India', 'Russia', 'Japan', 'Germany', 'Brazil', 'United Kingdom', 'South Africa', 'Australia',
+    ];
     const frames = [
       [8200, 4300, 900, 1500, 950, 580, 300, 400, 300, null],
       [9600, 4700, 1400, 1600, 1000, 610, 380, 370, 380, 250],
@@ -281,6 +288,7 @@ export const ChoroplethAnimated: Story = {
           y: [],
           kind: 'choropleth' as const,
           locations: countries,
+          locationNames: countryNames,
           zLog: true,
           colorValues: frames[0],
           colorRange,
