@@ -1,5 +1,7 @@
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from 'storybook/test';
+import { MOBILE_QUERY } from '../../hooks/useIsMobile';
 import { SidebarNav } from './SidebarNav';
 
 const meta: Meta<typeof SidebarNav> = {
@@ -21,6 +23,30 @@ const meta: Meta<typeof SidebarNav> = {
 };
 export default meta;
 type Story = StoryObj<typeof SidebarNav>;
+
+function installMobileMatchMediaStub() {
+  const originalMatchMedia = window.matchMedia;
+  window.matchMedia = ((query: string) => ({
+    matches: query === MOBILE_QUERY,
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  })) as typeof window.matchMedia;
+  return () => {
+    window.matchMedia = originalMatchMedia;
+  };
+}
+
+function MobileDrawerShell(args: React.ComponentProps<typeof SidebarNav>) {
+  const restoreMatchMediaRef = React.useRef<(() => void) | undefined>(undefined);
+  if (typeof window !== 'undefined' && !restoreMatchMediaRef.current) {
+    restoreMatchMediaRef.current = installMobileMatchMediaStub();
+  }
+  React.useEffect(() => () => restoreMatchMediaRef.current?.(), []);
+  return (
+    <SidebarNav {...args} open mobileOnlyContent={<button type="button">Light/Dark</button>} />
+  );
+}
 
 export const Playground: Story = {};
 
@@ -76,6 +102,17 @@ export const PersistentActionActiveState: Story = {
     // gets), not a one-off style, so this is a real assertion on shared behavior, not just a
     // className string match.
     await expect(actionButton.className).toContain('__s9cmpx-sidebar-nav__sidebar-item-button--active');
+  },
+};
+
+export const MobileOnlyContentMovesIntoDrawer: Story = {
+  render: (args) => <MobileDrawerShell {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    const drawer = await canvas.findByRole('dialog', { name: 'Sidebar Navigation' });
+    await expect(within(drawer).getByRole('button', { name: 'Light/Dark' })).toBeInTheDocument();
+    await expect(canvas.getAllByRole('button', { name: 'Light/Dark' })).toHaveLength(1);
   },
 };
 

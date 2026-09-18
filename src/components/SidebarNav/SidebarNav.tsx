@@ -263,12 +263,11 @@ export function SidebarNav({
           style={{ position: 'fixed', inset: 0, background: 'rgba(8, 12, 10, 0.5)', zIndex: 24 }}
         />
       )}
-      <nav
+      <div
         ref={navRef}
-        aria-label="Sidebar Navigation"
         role={isMobile && open ? 'dialog' : undefined}
         aria-modal={isMobile && open ? true : undefined}
-        className={cx('__s9cmpx-sidebar-nav', className)}
+        aria-label={isMobile && open ? 'Sidebar Navigation' : undefined}
         style={
           isMobile
             ? {
@@ -285,96 +284,102 @@ export function SidebarNav({
             : { height: '100%', minHeight: 480, width: open ? 240 : 56, flexShrink: 0, transition: widthTransition }
         }
       >
-        <div
-          className={cx('__s9cmpx-sidebar-nav__sidebar', open && '__s9cmpx-sidebar-nav__sidebar--open', !open && '__s9cmpx-sidebar-nav__sidebar--collapsed-mode')}
-          style={{ display: 'flex', flexDirection: 'column', height: '100%', width: isMobile ? 240 : open ? 240 : 56 }}
+        <nav
+          aria-label="Sidebar Navigation"
+          className={cx('__s9cmpx-sidebar-nav', className)}
+          style={{ height: '100%' }}
         >
-          <button
-            type="button"
-            ref={closeButtonRef}
-            aria-label={isMobile ? 'Close menu' : 'Toggle Menu'}
-            onClick={() => setOpenState(!open)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'none', border: 0, cursor: 'pointer', color: 'inherit' }}
+          <div
+            className={cx('__s9cmpx-sidebar-nav__sidebar', open && '__s9cmpx-sidebar-nav__sidebar--open', !open && '__s9cmpx-sidebar-nav__sidebar--collapsed-mode')}
+            style={{ display: 'flex', flexDirection: 'column', height: '100%', width: isMobile ? 240 : open ? 240 : 56 }}
           >
-            <Icon name={isMobile ? 'close' : 'menu'} size={20} />
-          </button>
-          {persistentAction && (
-            // Stacked directly below the toggle, not side by side -- the collapsed desktop rail
-            // is only 56px wide, too narrow for two buttons in one row the way the expanded
-            // (240px) state could fit them, so a single layout that works at both widths is
-            // simpler than a conditional row/column switch. Active styling reuses the real
-            // sidebar-item-button--active class (and its own icon/text sub-selectors) rather than
-            // guessing new CSS variables, so this matches a regular active nav item exactly.
             <button
               type="button"
-              aria-label={persistentAction.label}
-              title={open ? undefined : persistentAction.label}
-              onClick={persistentAction.onClick}
-              className={cx('__s9cmpx-sidebar-nav__sidebar-item-button', persistentAction.active && '__s9cmpx-sidebar-nav__sidebar-item-button--active')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '10px 14px',
-                // Conditional, not a flat 'none' like the plain toggle button above -- an inline
-                // style always wins over a CSS class regardless of class order, so a hardcoded
-                // 'none' here would silently defeat the --active class's own background-color
-                // rule. `undefined` (no inline background property at all) when active lets that
-                // class's rule apply, matching how renderItem's own <a> handles this same case.
-                background: persistentAction.active ? undefined : 'none',
-                border: 0,
-                cursor: 'pointer',
-                color: 'inherit',
-                width: '100%',
-              }}
+              ref={closeButtonRef}
+              aria-label={isMobile ? 'Close menu' : 'Toggle Menu'}
+              onClick={() => setOpenState(!open)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'none', border: 0, cursor: 'pointer', color: 'inherit' }}
             >
-              <Icon name={persistentAction.icon} size={20} />
-              {open && (
-                <span className="__s9cmpx-sidebar-nav__sidebar-item-text __s9cmpx-label2" style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {persistentAction.label}
-                </span>
-              )}
+              <Icon name={isMobile ? 'close' : 'menu'} size={20} />
             </button>
-          )}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            {renderedGroups.map((group, i) => (
-              <React.Fragment key={group.label ?? i}>
-                {i > 0 && (
-                  <hr
-                    className="__s9cmpx-sidebar-nav__sidebar-item--divider"
-                    style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }}
-                  />
-                )}
-                {group.label && open && (
-                  <span
-                    className="__s9cmpx-sidebar-nav__group-label __s9cmpx-label3"
-                    style={{ display: 'block', padding: '8px 14px 4px', color: 'var(--__s9cmpx-static-text-weak)', textTransform: 'uppercase' }}
-                  >
-                    {group.label}
+            {persistentAction && (
+              // Stacked directly below the toggle, not side by side -- the collapsed desktop rail
+              // is only 56px wide, too narrow for two buttons in one row the way the expanded
+              // (240px) state could fit them, so a single layout that works at both widths is
+              // simpler than a conditional row/column switch. Active styling reuses the real
+              // sidebar-item-button--active class (and its own icon/text sub-selectors) rather than
+              // guessing new CSS variables, so this matches a regular active nav item exactly.
+              <button
+                type="button"
+                aria-label={persistentAction.label}
+                title={open ? undefined : persistentAction.label}
+                onClick={persistentAction.onClick}
+                className={cx('__s9cmpx-sidebar-nav__sidebar-item-button', persistentAction.active && '__s9cmpx-sidebar-nav__sidebar-item-button--active')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '10px 14px',
+                  // Conditional, not a flat 'none' like the plain toggle button above -- an inline
+                  // style always wins over a CSS class regardless of class order, so a hardcoded
+                  // 'none' here would silently defeat the --active class's own background-color
+                  // rule. `undefined` (no inline background property at all) when active lets that
+                  // class's rule apply, matching how renderItem's own <a> handles this same case.
+                  background: persistentAction.active ? undefined : 'none',
+                  border: 0,
+                  cursor: 'pointer',
+                  color: 'inherit',
+                  width: '100%',
+                }}
+              >
+                <Icon name={persistentAction.icon} size={20} />
+                {open && (
+                  <span className="__s9cmpx-sidebar-nav__sidebar-item-text __s9cmpx-label2" style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {persistentAction.label}
                   </span>
                 )}
-                <ul className="__s9cmpx-sidebar-nav__menu-list" role="menu" aria-label={group.label} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                  {group.items.map(renderItem)}
+              </button>
+            )}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              {renderedGroups.map((group, i) => (
+                <React.Fragment key={group.label ?? i}>
+                  {i > 0 && (
+                    <hr
+                      className="__s9cmpx-sidebar-nav__sidebar-item--divider"
+                      style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }}
+                    />
+                  )}
+                  {group.label && open && (
+                    <span
+                      className="__s9cmpx-sidebar-nav__group-label __s9cmpx-label3"
+                      style={{ display: 'block', padding: '8px 14px 4px', color: 'var(--__s9cmpx-static-text-weak)', textTransform: 'uppercase' }}
+                    >
+                      {group.label}
+                    </span>
+                  )}
+                  <ul className="__s9cmpx-sidebar-nav__menu-list" role="menu" aria-label={group.label} style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                    {group.items.map(renderItem)}
+                  </ul>
+                </React.Fragment>
+              ))}
+            </div>
+            {footerItems.length > 0 && (
+              <>
+                <hr className="__s9cmpx-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
+                <ul role="menu" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {footerItems.map(renderItem)}
                 </ul>
-              </React.Fragment>
-            ))}
+              </>
+            )}
+            {isMobile && mobileOnlyContent && (
+              <>
+                <hr className="__s9cmpx-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
+                <div style={{ padding: '10px 14px' }}>{mobileOnlyContent}</div>
+              </>
+            )}
           </div>
-          {footerItems.length > 0 && (
-            <>
-              <hr className="__s9cmpx-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
-              <ul role="menu" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                {footerItems.map(renderItem)}
-              </ul>
-            </>
-          )}
-          {isMobile && mobileOnlyContent && (
-            <>
-              <hr className="__s9cmpx-sidebar-nav__sidebar-item--divider" style={{ border: 0, borderTop: '1px solid var(--__s9cmpx-static-divider-standard, rgba(31,31,31,0.16))', margin: '4px 12px' }} />
-              <div style={{ padding: '10px 14px' }}>{mobileOnlyContent}</div>
-            </>
-          )}
-        </div>
-      </nav>
+        </nav>
+      </div>
     </>
   );
 }
