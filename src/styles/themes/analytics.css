@@ -203,6 +203,20 @@
   --__s9cmpx-chart-diverging-mid: var(--__s9cmpx-chart-surface);
   --__s9cmpx-chart-diverging-high: #5AB4AC;
 
+  /* Diverging text pair, parallel to --__s9cmpx-static-text-sentiment-positive/-negative
+     above but brown/teal-hued (see analytics-bright-tidewater.css's identical pair for the
+     full rationale: matching an inline signed figure to a brown/teal chart elsewhere on the
+     same page). Unlike Tidewater, this theme's own card background
+     (--__s9cmpx-static-background-standard, #1e2f52) is close enough in tone to the dark
+     panel --__s9cmpx-chart-diverging-low/-high were already validated against that those same
+     values read fine as text here too -- confirmed via WCAG relative luminance against
+     #1e2f52 specifically (not just the darker #121e35 canvas the panel tokens were originally
+     checked against): #D8B365 6.7:1, #5AB4AC 5.4:1, both comfortably past the 4.5:1 AA text
+     minimum. Aliased rather than given a second literal value, same reasoning as the
+     chart-sentiment alias above. */
+  --__s9cmpx-static-text-sentiment-diverging-positive: var(--__s9cmpx-chart-diverging-high);
+  --__s9cmpx-static-text-sentiment-diverging-negative: var(--__s9cmpx-chart-diverging-low);
+
   /* Series palette, validated on the #1e2f52 surface. Ordered brightest-first (by relative
      luminance) so the first-assigned series in any chart are automatically most prominent --
      mean luminance 0.529, mean contrast 7.31:1 vs. this surface (previous ramp: 0.253 / 3.83:1;
