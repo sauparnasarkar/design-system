@@ -1,0 +1,555 @@
+/*
+ * Analytics Admiralty
+ * Deep-ink dark theme for data-intensive apps: a flat, low-glare navy canvas, brass-gold
+ * section labels, a blue table rule, Poppins type, and soft mint / coral sentiment. Derived
+ * from a report ("Scoreboard") whose canvas and zebra tones were measured from a screenshot;
+ * everything else is the `analytics` theme's own tokens, so it is a drop-in sibling: same
+ * cyan interactive layer, same validated chart palette, same gloss layer.
+ *
+ * Opt-in, and independent of `analytics`: nothing in that file changed. A theme here is a
+ * full token set scoped to its own [data-theme], not an inheritance chain, so this file is a
+ * complete copy that diverges in the ways below. If `analytics` gains a fix, port it here.
+ *
+ * What differs from `analytics`:
+ *  - Surface ladder one step deeper. Canvas #0e1b2e and zebra/card #162541 are measured;
+ *    -strong (#1e3152) and layer (#273f68) are extrapolated at the same hue.
+ *  - Ink: weak #a2aec1 (was #8fa2c4), strong #f6f8fc (was #fff), weak divider #233043.
+ *  - Sentiment text: mint #7ec7a4 and coral #e77982. The source design's own red (#c67275)
+ *    is only 4.41:1 on its zebra tone, so this coral is raised just enough to clear AA
+ *    (4.5:1 on canvas, card, strong and the negative wash).
+ *  - Two new opt-in tokens: --__s9cmpx-static-text-accent (gold, for section labels) and
+ *    --__s9cmpx-static-divider-accent (blue table/section rule). Nothing consumes them
+ *    automatically; use them with a fallback to the standard tokens.
+ *  - Poppins. Requires the consumer to import @fontsource/poppins (400/500/600/700), else it
+ *    falls back to the system stack. AG Grid ignores the design-system font tokens, hence
+ *    --ag-font-family below. Poppins is wider than the system stack, so font-size-adjust:
+ *    0.52 is set on the theme root to match `analytics` optically (see that rule); prose is
+ *    still ~5% wider, so check dense tables for truncation.
+ *  - Tables: blue header rule, muted medium-weight header labels, hairline row borders, and
+ *    zebra that starts shaded on the first row.
+ *
+ * Deliberately NOT changed: the cyan brand / interactive tokens, the chart palette (its
+ * contrast only improves on the deeper surfaces: worst case 5.37:1 vs 4.66:1), the border
+ * radii, and header casing (not uppercased: unit symbols such as Mt / Gt are case-sensitive).
+ * The source design is flat; this theme keeps the `analytics` gloss layer (last block of this
+ * file) for parity. Delete that block for a flat look.
+ *
+ * Hex literals quoted in comments below (#121e35, #1e2f52, ...) are the ORIGINAL SciChart
+ * Navy values inherited from `analytics`, kept as provenance.
+ *
+ * This is a full dark override of the semantic token layer (static-*, interactive-*), so
+ * every component that consumes semantic tokens flips. AG Grid needs its own --ag-* block
+ * because ag-theme-s9cmpx hardcodes light values rather than reading semantic tokens.
+ */
+[data-theme="analytics-admiralty"] {
+  /* Brand ramp — navy → cyan, dark-mode ordered (low steps surface-tinted;
+     SyChart reads 100/200 as gridline/zeroline) */
+  --__s9cmpx-color-brand-50: #0e1a2e;
+  --__s9cmpx-color-brand-100: #263a5e;
+  --__s9cmpx-color-brand-200: #31476e;
+  --__s9cmpx-color-brand-300: #3a5c8a;
+  --__s9cmpx-color-brand-400: #2d7fa3;
+  --__s9cmpx-color-brand-500: #2d9cbd;
+  --__s9cmpx-color-brand-600: #50c7e0;
+  --__s9cmpx-color-brand-700: #7fd6ea;
+  --__s9cmpx-color-brand-800: #a9e3f1;
+  --__s9cmpx-color-brand-900: #d0f0f8;
+  --__s9cmpx-color-brand-1000: #eaf9fd;
+
+  /* Surfaces (SciChart Navy): page canvas / cards+inputs / elevated */
+  --__s9cmpx-static-background-weak: #0e1b2e;
+  --__s9cmpx-static-background-standard: #162541;
+  --__s9cmpx-static-background-strong: #1e3152;
+  --__s9cmpx-static-surface-weak: #0e1b2e;
+  --__s9cmpx-static-surface-standard: #162541;
+  --__s9cmpx-static-surface-strong: #1e3152;
+  --__s9cmpx-static-layer-standard: #273f68; /* menus, popovers, toasts */
+
+  /* Inverse surfaces flip to light (chips, tooltips, "dark" accents) */
+  --__s9cmpx-static-background-inverse-weak: #e8eefb;
+  --__s9cmpx-static-background-inverse-standard: #d7e0f0;
+  --__s9cmpx-static-background-inverse-strong: #b4c6e4;
+
+  /* Ink */
+  --__s9cmpx-static-text-strong: #f6f8fc;
+  --__s9cmpx-static-text-standard: #d7e0f0;
+  --__s9cmpx-static-text-weak: #a2aec1;
+  --__s9cmpx-static-text-inverse-strong: #121e35;
+  --__s9cmpx-static-text-inverse-standard: #2c3e63;
+  --__s9cmpx-static-text-inverse-weak: #4a5f85;
+
+  /* Hairlines & dividers (inverse = on the light inverse surfaces) */
+  --__s9cmpx-static-divider-weak: #233043;
+  --__s9cmpx-static-divider-standard: #2c3e63;
+  --__s9cmpx-static-divider-strong: #3d5580;
+  --__s9cmpx-static-divider-inverse-weak: #14233c3d;
+  --__s9cmpx-static-divider-inverse-standard: #14233c52;
+  --__s9cmpx-static-divider-inverse-strong: #14233c7a;
+
+  /* Opt-in accents taken from the reference. Nothing consumes these automatically; use
+     them for section labels (text-accent) and table/section rules (divider-accent), with a
+     fallback to the standard tokens if the page may render under another theme. */
+  --__s9cmpx-static-text-accent: #cdb279;
+  --__s9cmpx-static-divider-accent: #3d63a8;
+
+  /* Typeface: Poppins (self-hosted via @fontsource/poppins, weights 400/500/600/700 --
+     the consumer must import them, see README). The system stack stays as the fallback so
+     a failed font load degrades to the previous look rather than to a browser default.
+     Every per-style family token is repointed, not just primary/secondary, because the
+     vendor CSS consumes the per-style tokens (--__s9cmpx-web-body-1-font-family, ...).
+     AG Grid does NOT read any of these -- see --ag-font-family in the grid block below.
+     SyChart reads --__s9cmpx-font-families-primary for Plotly text, so charts follow. */
+  --__s9cmpx-font-families-primary: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Ubuntu", "Helvetica Neue", sans-serif;
+  --__s9cmpx-font-families-secondary: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-display-1-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-display-2-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-headline-1-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-headline-2-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-headline-3-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-headline-4-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-headline-5-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-headline-6-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-headline-7-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-headline-8-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-button-1-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-button-2-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-button-3-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-link-1-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-link-2-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-body-1-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-body-2-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-body-3-short-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-body-3-long-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-body-4-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-caption-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-tag-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-label-1-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-label-2-font-family: var(--__s9cmpx-font-families-primary);
+  --__s9cmpx-web-label-3-font-family: var(--__s9cmpx-font-families-primary);
+
+  /* Sentiment tints (tags, alerts, TrendCell fills): dark washes… */
+  --__s9cmpx-static-background-sentiment-info: #1e3a5e;
+  --__s9cmpx-static-background-sentiment-negative: #4a2230;
+  --__s9cmpx-static-background-sentiment-neutral: #2c3a55;
+  --__s9cmpx-static-background-sentiment-notice: #453516;
+  --__s9cmpx-static-background-sentiment-positive: #16443a;
+  /* …with light ink on top */
+  --__s9cmpx-static-text-sentiment-info: #7fb3f5;
+  --__s9cmpx-static-text-sentiment-negative: #e77982;
+  --__s9cmpx-static-text-sentiment-neutral: #9db0cf;
+  --__s9cmpx-static-text-sentiment-notice: #e5b955;
+  --__s9cmpx-static-text-sentiment-positive: #7ec7a4;
+  --__s9cmpx-static-text-sentiment-standard-info: #50c7e0;
+  --__s9cmpx-static-text-sentiment-standard-negative: #e77982;
+  --__s9cmpx-static-text-sentiment-standard-neutral: #a2aec1;
+  --__s9cmpx-static-text-sentiment-standard-notice: #e5b955;
+  --__s9cmpx-static-text-sentiment-standard-positive: #7ec7a4;
+  --__s9cmpx-static-outline-sentiment-info: #6ba7f0;
+  --__s9cmpx-static-outline-sentiment-negative: #e4677d;
+  --__s9cmpx-static-outline-sentiment-neutral: #a2aec1;
+  --__s9cmpx-static-outline-sentiment-notice: #d9a83c;
+  --__s9cmpx-static-outline-sentiment-positive: #3bbd8e;
+  --__s9cmpx-interactive-fill-sentiment-info: #6ba7f047;
+  --__s9cmpx-interactive-fill-sentiment-negative: #e4677d47;
+  --__s9cmpx-interactive-fill-sentiment-neutral: #a2aec147;
+  --__s9cmpx-interactive-fill-sentiment-notice: #d9a83c47;
+  --__s9cmpx-interactive-fill-sentiment-positive: #3bbd8e47;
+
+  /* Primary interactive — SciChart cyan */
+  --__s9cmpx-interactive-fill-primary-default: #2d9cbd;
+  --__s9cmpx-interactive-fill-primary-hover: #2789a6;
+  --__s9cmpx-interactive-fill-primary-pressed: #1f7590;
+  --__s9cmpx-interactive-fill-primary-disabled: #2d9cbd26;
+  --__s9cmpx-interactive-fill-primary-onprimary: #ffffff;
+  --__s9cmpx-interactive-fill-primary-onprimarydisabled: #7fa8b8;
+
+  /* Secondary (solid) buttons flip to light-on-dark */
+  --__s9cmpx-interactive-fill-secondary-default: #e8eefb;
+  --__s9cmpx-interactive-fill-secondary-hover: #d7e0f0;
+  --__s9cmpx-interactive-fill-secondary-pressed: #b4c6e4;
+  --__s9cmpx-interactive-fill-secondary-disabled: #ffffff1f;
+  --__s9cmpx-interactive-fill-secondary-onsecondary: #121e35;
+  --__s9cmpx-interactive-fill-secondary-onsecondarydisabled: #6b7f9e;
+
+  /* Tertiary/ghost fills: white-alpha instead of black-alpha */
+  --__s9cmpx-interactive-fill-tertiary-default: #ffffff14;
+  --__s9cmpx-interactive-fill-tertiary-hover: #ffffff1f;
+  --__s9cmpx-interactive-fill-tertiary-pressed: #ffffff29;
+  --__s9cmpx-interactive-fill-tertiary-disabled: #ffffff0a;
+  --__s9cmpx-interactive-fill-tertiary-ontertiary: #ffffff;
+  --__s9cmpx-interactive-fill-tertiary-ontertiarydisabled: #a2aec1;
+
+  /* Links */
+  --__s9cmpx-interactive-fill-link-default: #6ba7f0;
+  --__s9cmpx-interactive-fill-link-hover: #8ebdf3;
+  --__s9cmpx-interactive-fill-link-pressed: #a9cdf6;
+  --__s9cmpx-interactive-fill-link-disabled: #a2aec17a;
+
+  /* Outlines: white-alpha ladder; "selected" is solid light (tab underline,
+     selected segmented-control border) */
+  --__s9cmpx-interactive-outline-primary-default: #ffffff3d;
+  --__s9cmpx-interactive-outline-primary-hover: #ffffff52;
+  --__s9cmpx-interactive-outline-primary-pressed: #ffffff6b;
+  --__s9cmpx-interactive-outline-primary-disabled: #ffffff1f;
+  --__s9cmpx-interactive-outline-primary-selected-default: #ffffff;
+  --__s9cmpx-interactive-outline-primary-selected-hover: #e8eefb;
+  --__s9cmpx-interactive-outline-primary-selected-pressed: #d7e0f0;
+  --__s9cmpx-interactive-outline-secondary-default: #3a4f7a;
+  --__s9cmpx-interactive-outline-secondary-hover: #4a6295;
+  --__s9cmpx-interactive-outline-secondary-pressed: #5a74ab;
+  --__s9cmpx-interactive-outline-secondary-disabled: #2c3e63;
+  --__s9cmpx-interactive-outline-secondary-selected-default: #ffffff;
+  --__s9cmpx-interactive-outline-secondary-selected-hover: #e8eefb;
+  --__s9cmpx-interactive-outline-secondary-selected-pressed: #d7e0f0;
+  --__s9cmpx-interactive-outline-focus: #50c7e0;
+
+  /* Hover/selection overlays: white-alpha; solid "selected" chips go navy */
+  --__s9cmpx-interactive-overlay-primary-default: #ffffff00;
+  --__s9cmpx-interactive-overlay-primary-hover: #ffffff14;
+  --__s9cmpx-interactive-overlay-primary-pressed: #ffffff1f;
+  --__s9cmpx-interactive-overlay-primary-selected-default: #31476e;
+  --__s9cmpx-interactive-overlay-primary-selected-hover: #3a5580;
+  --__s9cmpx-interactive-overlay-primary-selected-pressed: #446093;
+  --__s9cmpx-interactive-overlay-secondary-default: #ffffff00;
+  --__s9cmpx-interactive-overlay-secondary-hover: #ffffff14;
+  --__s9cmpx-interactive-overlay-secondary-pressed: #ffffff1f;
+  --__s9cmpx-interactive-overlay-secondary-selected-default: #31476e;
+  --__s9cmpx-interactive-overlay-secondary-selected-hover: #3a5580;
+  --__s9cmpx-interactive-overlay-secondary-selected-pressed: #446093;
+
+  --__s9cmpx-button-primary-default-background: #2d9cbd;
+  --__s9cmpx-button-primary-default-border: #2d9cbd;
+  --__s9cmpx-button-primary-default-label: #ffffff;
+  --__s9cmpx-button-primary-hover-background: #2789a6;
+  --__s9cmpx-button-primary-hover-border: #2789a6;
+  --__s9cmpx-button-primary-hover-label: #ffffff;
+  --__s9cmpx-button-primary-focused-background: #2d9cbd;
+  --__s9cmpx-button-primary-focused-border: #50c7e03d;
+  --__s9cmpx-button-primary-focused-label: #ffffff;
+  --__s9cmpx-button-primary-pressed-background: #1f7590;
+  --__s9cmpx-button-primary-pressed-border: #1f7590;
+  --__s9cmpx-button-primary-pressed-label: #ffffff;
+
+  /* Published for Gauge.tsx (and anything else that needs on-dark-panel ink explicitly) --
+     this theme's whole canvas is already dark, so this is the same value as
+     --__s9cmpx-static-text-standard above; kept as its own token anyway so components read
+     one consistent name across every theme that has a dark chart/gauge panel, rather than
+     Gauge needing theme-specific knowledge of which token happens to be safe here. See the
+     analytics-bright-broadsheet/-signal themes for the case where this genuinely differs
+     from static-text-standard (their canvas is light, only the chart panel is dark). */
+  --__s9cmpx-chart-surface-text-weak: #d7e0f0;
+
+  /* This theme has no separate chart-panel surface distinct from its general card tone (unlike
+     the bright themes' dedicated dark panel on a light canvas) -- ChartCard.tsx darkens
+     chart-bearing cards to exactly this value already (see that component's own comment), so
+     aliasing rather than inventing a second literal keeps both in lockstep. Published so
+     consumers/tokens (e.g. the diverging scale's midpoint below) can name "the surface a chart
+     sits on" the same way across every theme, bright or not. */
+  --__s9cmpx-chart-surface: var(--__s9cmpx-static-background-weak);
+
+  /* Gauge's unfilled track: see Gauge.tsx's own comment for why this can't just be
+     --__s9cmpx-color-brand-100 (that token is hijacked as SyChart's gridline color here, and
+     retuning it would move every gridline in the theme). This theme's gloss gradient over
+     .js-plotly-plot (below) lightens the top of the arc enough that brand-100's mid-navy
+     blended into it at low gauge values, reading as a hole punched in the card -- one step up
+     the surface ladder reads as a raised track against either end of that gradient. */
+  --__s9cmpx-gauge-track-color: var(--__s9cmpx-static-surface-strong);
+
+  /* On-chart-panel sentiment pair (A5): every OTHER theme in this family pairs a light page
+     with a dark chart panel, so their sentiment-positive/negative (tuned for a light card) fail
+     contrast once drawn inside the dark panel -- that's the actual bug (see
+     analytics-bright-broadsheet.css's identical block for the numbers). This theme's whole
+     canvas is already dark, so its ordinary sentiment tokens are already safe on both -- no
+     second value needed, just an alias so consumers read one name across all four themes
+     without theme-specific knowledge of which one happens to need a real override. */
+  --__s9cmpx-chart-sentiment-positive: var(--__s9cmpx-static-text-sentiment-positive);
+  --__s9cmpx-chart-sentiment-negative: var(--__s9cmpx-static-text-sentiment-standard-negative);
+
+  /* Diverging scale (A6): brown/teal rather than red/green (a CVD failure -- deuteranopia can't
+     separate an above/below encoding carried by hue alone across that axis) -- see the identical
+     block in analytics-bright-broadsheet.css for the ColorBrewer "BrBG" provenance and contrast
+     math. Midpoint resolves to this theme's own panel tone instead of a literal white/grey, so a
+     near-zero value sits quietly on the panel instead of becoming the brightest thing on it. */
+  --__s9cmpx-chart-diverging-low: #D8B365;
+  --__s9cmpx-chart-diverging-mid: var(--__s9cmpx-chart-surface);
+  --__s9cmpx-chart-diverging-high: #5AB4AC;
+
+  /* Diverging text pair, parallel to --__s9cmpx-static-text-sentiment-positive/-negative
+     above but brown/teal-hued (see analytics-bright-tidewater.css's identical pair for the
+     full rationale: matching an inline signed figure to a brown/teal chart elsewhere on the
+     same page). Unlike Tidewater, this theme's own card background
+     (--__s9cmpx-static-background-standard, #1e2f52) is close enough in tone to the dark
+     panel --__s9cmpx-chart-diverging-low/-high were already validated against that those same
+     values read fine as text here too -- confirmed via WCAG relative luminance against
+     #1e2f52 specifically (not just the darker #121e35 canvas the panel tokens were originally
+     checked against): #D8B365 6.7:1, #5AB4AC 5.4:1, both comfortably past the 4.5:1 AA text
+     minimum. Aliased rather than given a second literal value, same reasoning as the
+     chart-sentiment alias above. */
+  --__s9cmpx-static-text-sentiment-diverging-positive: var(--__s9cmpx-chart-diverging-high);
+  --__s9cmpx-static-text-sentiment-diverging-negative: var(--__s9cmpx-chart-diverging-low);
+
+  /* Series palette, validated on the #1e2f52 surface. Ordered brightest-first (by relative
+     luminance) so the first-assigned series in any chart are automatically most prominent --
+     mean luminance 0.529, mean contrast 7.31:1 vs. this surface (previous ramp: 0.253 / 3.83:1;
+     was saturated but occupied only a 0.098-wide luminance band, which reads as near-uniform
+     mid-grey on a dark ground where prominence tracks luminance, not saturation). -03 and -09
+     are intentionally NOT the hues a naive luminance-only reshuffle would pick (a green and a
+     red/pink) -- both are kept in a ~308deg orchid/magenta valley, ~40deg from every other hue
+     here, specifically so no categorical series can be mistaken for this app's
+     sentiment-positive/negative colors (green=decrease/good, red=increase/bad) elsewhere on the
+     same page. */
+  --__s9cmpx-chart-categorical-default-01: #ecf0f6;
+  --__s9cmpx-chart-categorical-default-02: #c3e86b;
+  --__s9cmpx-chart-categorical-default-03: #eab8e4;
+  --__s9cmpx-chart-categorical-default-04: #ffb454;
+  --__s9cmpx-chart-categorical-default-05: #5ecbf5;
+  --__s9cmpx-chart-categorical-default-06: #c89cff;
+  --__s9cmpx-chart-categorical-default-07: #ff8f6b;
+  --__s9cmpx-chart-categorical-default-08: #7aa5ff;
+  --__s9cmpx-chart-categorical-default-09: #ff4ae7;
+  /* -10 (A4): the categorical ramp ran out at 9 while consumers offer up to 10 series --
+     SyChart.tsx's syPalette() had a zero-padding bug that silently dropped this slot even for
+     themes that defined it (fixed there too). Continues this theme's own red/green exclusion;
+     not independently re-validated for max hue-separation from every other slot beyond that --
+     see SyChart.tsx's wrap-around dash/marker cue for the fix that actually matters once a
+     chart needs an 11th series anyway. */
+  --__s9cmpx-chart-categorical-default-10: #e8c34a;
+}
+
+/* The vendor reset's `body{color:#4a4a4a}` (light-mode ink, not a semantic
+   token) is what every element without its own explicit `color` rule
+   inherits -- nearly invisible on this theme's dark surfaces. Confirmed live:
+   KpiStat's value (`.__s9cmpx-headline4` sets no color of its own) and
+   Select's placeholder both rendered as this literal gray on a dark navy
+   card. Overriding `color` on the theme root fixes every such
+   not-explicitly-colored descendant in one place, rather than requiring a
+   fix per missed component every time one is found (as the two rules below,
+   which predate this one, already had to do for `strong`/`table th`).
+
+   `background-color` is set here for the same reason `color` is: the reset's
+   `html{background-color:#fff}` is what shows through everywhere this theme
+   doesn't explicitly paint its own surface -- which is everywhere outside a
+   Card/KpiStat/etc., since this token layer only supplies colors for
+   components that reference it, it never paints the page canvas itself.
+   Storybook's own preview decorator already special-cases this (see
+   `.storybook/preview.tsx`, `background: var(--__s9cmpx-static-background-
+   weak)`) precisely because the theme CSS alone doesn't do it -- confirmed
+   live in a real consumer app (not Storybook) that never added an
+   equivalent: page titles, tab bars, and any other text sitting directly on
+   the page canvas rather than inside a themed component correctly resolved
+   bright text colors (per the `color` fix above) that were then invisible
+   against the literal white canvas underneath. Matching Storybook's own
+   value here means a consuming app's `data-theme="analytics-admiralty"` wrapper needs
+   no extra decorator/background wiring of its own to get a real dark
+   canvas -- not just correct component surfaces floating on white. */
+[data-theme="analytics-admiralty"] {
+  color: var(--__s9cmpx-static-text-standard);
+  background-color: var(--__s9cmpx-static-background-weak);
+  /* Optical size match. Poppins at the same font-size reads larger than the system stack the
+     other themes use: ~4% taller x-height and ~11% wider on prose. font-size-adjust scales
+     the glyphs (not the font-size tokens, line-heights or layout) so the x-height is 0.52em,
+     which is where the system fonts sit. Measured against `analytics` at 14px: x-height
+     -1.9%, cap height -4.3%, prose width +4.8%, digits -7.0%. It inherits into AG Grid,
+     inputs and Plotly text. Lower it (0.51, 0.50) to shrink further, raise it to 0.55 for
+     Poppins's natural size. Browsers without support (pre-2024) ignore it and show the
+     natural size. */
+  font-size-adjust: 0.52;
+}
+/* Form controls: the browser's built-in control styles use the `font` shorthand, which resets
+   font-size-adjust to none, so buttons/inputs/selects would otherwise ignore the root value
+   above and render Poppins at its natural (larger) size. :where() keeps specificity at zero
+   so a component that sets its own value still wins. */
+[data-theme="analytics-admiralty"] :where(button, input, select, textarea, optgroup) {
+  font-size-adjust: inherit;
+}
+[data-theme="analytics-admiralty"] strong {
+  color: var(--__s9cmpx-static-text-strong);
+}
+[data-theme="analytics-admiralty"] table th {
+  color: var(--__s9cmpx-static-text-standard);
+}
+
+/* SidebarNav's icon wrapper and menu-toggle button have no color rule of
+   their own in the vendor CSS (--__s9cmpx-c-sidebar-menu-sidebar-item-icon-color-
+   default is defined but never actually wired to a selector, and the toggle
+   button uses color:inherit) — both fall back to the reset's
+   `body{color:#4a4a4a}`, nearly invisible against this theme's dark
+   sidebar. Set color on the sidebar container itself so anything inside
+   that doesn't set its own color inherits the theme's ink instead. */
+[data-theme="analytics-admiralty"] .__s9cmpx-sidebar-nav__sidebar {
+  color: var(--__s9cmpx-static-text-strong);
+}
+
+/* AG Grid (ag-theme-s9cmpx hardcodes light values, so override --ag-* here) */
+[data-theme="analytics-admiralty"] .ag-theme-s9cmpx {
+  --ag-alpine-active-color: #50c7e0;
+  --ag-font-family: var(--__s9cmpx-font-families-primary);
+  --ag-background-color: #162541;
+  --ag-foreground-color: #e8eefb;
+  --ag-secondary-foreground-color: #d7e0f0;
+  --ag-data-color: #e8eefb;
+  --ag-header-background-color: #0e1b2e;
+  --ag-header-foreground-color: #a2aec1;
+  /* A3: was the same value as --ag-background-color (#1e2f52), so odd/even rows were
+     identical -- the other three themes in this family each define a real odd-row tone AND
+     carry the reassertion rule below (the vendor's own zebra rule loses to a higher-specificity
+     flat-fill rule from `.__s9cmpx-table__row--default-appearance.ag-row`); this theme was the
+     one that never got either half. A small step off #1e2f52, tuned to stay clearly a band
+     rather than a visible seam -- not a contrast fix, just restoring the striping every other
+     theme already has. */
+  --ag-odd-row-background-color: #0e1b2e;
+  --ag-border-color: #233043;
+  --ag-secondary-border-color: #233043;
+  --ag-row-border-color: #233043;
+  --ag-row-hover-color: #50c7e014;
+  --ag-column-hover-color: #50c7e014;
+  --ag-selected-row-background-color: #50c7e02e;
+  --ag-range-selection-background-color: #50c7e033;
+  --ag-control-panel-background-color: #122137;
+  --ag-subheader-background-color: #162541;
+  --ag-panel-background-color: #273f68;
+  --ag-menu-background-color: #273f68;
+  --ag-tooltip-background-color: #273f68;
+  --ag-disabled-foreground-color: #e8eefb80;
+  --ag-chip-background-color: #ffffff12;
+  --ag-checkbox-unchecked-color: #a2aec1;
+  --ag-input-border-color: #3a4f7a;
+  --ag-input-focus-border-color: #50c7e066;
+  --ag-input-disabled-border-color: #2c3e63;
+  --ag-input-disabled-background-color: #122137;
+  --ag-card-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.4);
+}
+
+/* A3, continued: the vendor's own `.__s9cmpx-table__row--default-appearance.ag-row` rule paints
+   every row (odd and even alike) an identical flat fill at higher specificity than AG Grid's
+   own `.ag-row-odd { background-color: var(--ag-odd-row-background-color) }` -- silently
+   defeating striping regardless of theme (same finding as analytics-bright-broadsheet.css and
+   analytics-bright-tidewater.css's identical rule). Reasserted here at the specificity the
+   vendor rule requires, scoped to `-odd` rows only so even rows keep the vendor fill. */
+[data-theme="analytics-admiralty"] .ag-theme-s9cmpx .__s9cmpx-table__row--default-appearance.ag-row-odd {
+  background-color: var(--ag-odd-row-background-color);
+}
+
+/* Reference alignment for tables: a blue rule under the header row (the vendor already draws
+   a 2px border there; only its colour changes, from the near-invisible standard divider),
+   muted medium-weight header labels, and hairline row separators instead of the standard
+   divider, which reads as a heavy grid once rows are zebra-striped.
+
+   The header-cell colour rule is the same reassertion the bright themes carry: the vendor's
+   `.__s9cmpx-table .ag-header-cell` sets header text straight to the general body-ink token
+   at higher specificity than `.ag-header-row`'s own --ag-header-foreground-color, so that
+   variable never reached the labels here either -- it was simply invisible while header
+   ink and body ink happened to be equally pale. */
+[data-theme="analytics-admiralty"] .__s9cmpx-table .ag-header-cell {
+  border-bottom-color: var(--__s9cmpx-static-divider-accent);
+}
+[data-theme="analytics-admiralty"] .ag-theme-s9cmpx .ag-header-cell {
+  color: var(--ag-header-foreground-color);
+}
+[data-theme="analytics-admiralty"] .ag-theme-s9cmpx .ag-header-cell-text {
+  font-weight: var(--__s9cmpx-font-weights-primary-medium);
+}
+[data-theme="analytics-admiralty"] .__s9cmpx-table .__s9cmpx-table__row--default-appearance.ag-row {
+  border-bottom-color: var(--__s9cmpx-static-divider-weak);
+}
+
+/*
+ * Analytics / Gloss  —  Option 2A, carried over unchanged from the `analytics` theme. This block adds
+ * no new hues and changes no token VALUES: every colour the theme already ships (navy
+ * surfaces, cyan primary, the categorical series ramp) is untouched, so no contrast ratio, CVD
+ * check or chart-palette validation needs redoing. The gloss is entirely elevation and light —
+ * gradient sheen, a 1px inner top highlight, ambient shadow, and a chart ground that reads as a
+ * panel inset into the card.
+ *
+ * Everything here paints with `background-image`, never the `background` shorthand or
+ * `background-color`. That is deliberate and load-bearing: ChartCard.tsx sets
+ * `--__s9cmpx-c-card-background-color-default` as an INLINE style (to darken chart-bearing
+ * cards to the page tone), and Card/KpiStat resolve their own fill from that same property. A
+ * `background:` shorthand here would erase whichever value won and flatten chart cards back to
+ * the general card surface. A gradient in `background-image` composites ON TOP of whatever
+ * background-color resolved, so both the normal card tone and ChartCard's darker override keep
+ * working and both get the same sheen.
+ *
+ * All stops are white-alpha or black-alpha rather than literal navies, for the same reason: the
+ * effect has to sit correctly on three different grounds (#1e2f52 cards, #121e35 chart cards,
+ * #324c7c menus) without any of them being named here.
+ *
+ * Border radii are deliberately NOT changed. The reference mock rounds cards to 8px, but the
+ * radius scale steps are named after their default pixel values (see the caution in
+ * analytics-bright-signal.css), and gloss reads correctly at the vendor's existing 3px.
+ * Rounding is a separate decision from this one.
+ */
+
+/* Cards, KPI tiles and chart cards. KpiStat.tsx applies `__s9cmpx-card` itself
+   when `card` is true, so KPI tiles pick this up with no extra selector. */
+[data-theme="analytics-admiralty"] .__s9cmpx-card {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0) 64%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.09) inset,
+    0 10px 24px -10px rgba(3, 8, 18, 0.75);
+}
+
+/* Header. This theme never overrides --__s9cmpx-c-header-background-color
+   (unlike the Broadsheet theme, which repaints the bar ink), so the header
+   keeps its current surface and only gains the sheen, hairline and lift. */
+[data-theme="analytics-admiralty"] .__s9cmpx-header {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.07) inset,
+    0 6px 18px -6px rgba(3, 8, 18, 0.8);
+}
+
+/* Active sidebar item: a cyan wash fading left-to-right, a solid cyan rule, and
+   a cyan icon. The wash is `background-image` over the active item's existing
+   background-color, so the vendor's own
+   --__s9cmpx-c-sidebar-sidebar-item-button-background-color-active stays the
+   base tone and none of the token-cascade workarounds the Broadsheet theme
+   needed apply here (that theme had to REPLACE the token; this one layers over
+   whatever it resolves to).
+
+   The icon rule is a descendant selector, not the `--active > svg` direct-child
+   form the vendor CSS uses: the real DOM nests the svg inside a
+   `.__s9cmpx-sidebar-nav__sidebar-item-icon` wrapper span, so the vendor's own
+   rule never matches at all. Same finding as the Broadsheet theme's note. */
+[data-theme="analytics-admiralty"] .__s9cmpx-sidebar-nav__sidebar-item-button--active {
+  background-image: linear-gradient(90deg, rgba(80, 199, 224, 0.20) 0%, rgba(80, 199, 224, 0.03) 100%);
+  border-left: 2px solid #50c7e0;
+}
+[data-theme="analytics-admiralty"] .__s9cmpx-sidebar-nav__sidebar-item-button--active .__s9cmpx-sidebar-nav__sidebar-item-icon {
+  color: #50c7e0;
+}
+
+/* Primary buttons: a top-lit face and a cyan-tinted cast shadow. The glow is
+   the theme's own #2d9cbd at low alpha, so it reads as the button's own light
+   rather than as a new accent colour. */
+[data-theme="analytics-admiralty"] .__s9cmpx-button--primary {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.28) inset,
+    0 6px 16px -6px rgba(45, 156, 189, 0.55);
+}
+
+/* Chart ground. SyChart sets paper_bgcolor/plot_bgcolor transparent, so the
+   plot inherits its container — painting the Plotly root turns the plot area
+   into a recessed panel within the card, which is what separates a glossy
+   dashboard from a flat one. Alpha stops again, so this composites over
+   ChartCard's already-darkened card without naming a navy: a light top edge
+   and a darkened foot, reading as an inset well.
+
+   No tick/legend colour rules here, unlike the bright themes: this theme's
+   canvas is already dark, so Plotly's inline colours (from
+   --__s9cmpx-static-text-weak) are correct as they stand. */
+[data-theme="analytics-admiralty"] .js-plotly-plot {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.10) 100%);
+  border-radius: 6px;
+  padding: 8px 4px;
+  box-sizing: border-box;
+}
+
+/* AG Grid popups/menus. --ag-card-shadow is already declared in this file's
+   own .ag-theme-s9cmpx block above; this re-declaration wins on source order.
+   Merge it into that block instead if you'd rather not carry a duplicate. */
+[data-theme="analytics-admiralty"] .ag-theme-s9cmpx {
+  --ag-card-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.65);
+}

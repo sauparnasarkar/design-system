@@ -89,6 +89,22 @@ Current themes:
   instead of per component — if a new component looks unreadable only under
   this theme, check whether it sets its own `color` before assuming the
   theme is incomplete again.
+- **analytics-admiralty** — opt-in dark sibling of `analytics`, derived from a
+  data-report reference: a full-coverage theme (a complete copy of `analytics.css`,
+  not an override layer) with surfaces one step deeper (canvas `#0e1b2e`, card/zebra
+  `#162541`), Poppins type, soft mint/coral sentiment text, and two opt-in tokens,
+  `--__s9cmpx-static-text-accent` (gold, section labels) and
+  `--__s9cmpx-static-divider-accent` (blue table rule). Cyan brand/interactive
+  tokens, the chart palette and the gloss layer are unchanged from `analytics`.
+  Because it is a copy, a fix made to `analytics.css` must be ported by hand.
+  Font gotchas worth knowing before doing the same for another theme: (1) all 25
+  per-style `--__s9cmpx-web-*-font-family` tokens must be repointed, not just
+  `--__s9cmpx-font-families-primary`; (2) AG Grid ignores every one of those and
+  needs `--ag-font-family` set separately (cells otherwise render in Helvetica Neue);
+  (3) the consumer must import the font files; (4) Poppins reads larger than the
+  system stack at the same size, so the theme root sets `font-size-adjust: 0.52` to match
+  `analytics` optically (tune that one number if the consumer's OS font differs). Table headers are deliberately not
+  uppercased (unit symbols such as Mt/Gt are case-sensitive).
 - **analytics-bright-broadsheet** — light counterpart to `analytics`: warm
   paper canvas (`#F4F2ED`), near-black ink hierarchy, one hot accent
   (vermillion `#D8361B`), square geometry. Hierarchy comes from type size
