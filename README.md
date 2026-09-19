@@ -17,6 +17,12 @@ Switch themes with the **Theme** dropdown in the Storybook toolbar:
 - **Analytics theme** — dark data-viz look (`[data-theme="analytics"]`,
   SciChart-inspired): deep navy canvas, cyan accent, and its own vivid
   chart palette validated for the dark surface
+- **Analytics Admiralty** (`[data-theme="analytics-admiralty"]`) — opt-in dark
+  sibling of Analytics for data-intensive apps: deeper ink-navy surfaces, brass-gold
+  section-label accent, blue table rule, soft mint/coral sentiment, typeset in
+  Poppins. Same cyan interactive layer and chart palette as Analytics. The
+  consuming app must import `@fontsource/poppins` (400/500/600/700) or the
+  theme silently falls back to the system font
 - **Analytics Bright — Broadsheet** — light counterpart to Analytics
   (`[data-theme="analytics-bright-broadsheet"]`): warm paper canvas, near-black
   ink hierarchy, one vermillion accent, square geometry; chart panels stay
