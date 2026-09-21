@@ -340,22 +340,25 @@ export function SyChart({
   // See getWorldAtlas's own comment above -- null until resolved, at which point the main
   // effect below (gated on this being non-null whenever hasChoropleth) draws the plot with it.
   const [worldAtlas, setWorldAtlas] = React.useState<FeatureCollection | null>(null);
+  const [atlasRetryTick, setAtlasRetryTick] = React.useState(0);
   React.useEffect(() => {
     if (!hasChoropleth) return;
     let cancelled = false;
+    let retryTimeout: ReturnType<typeof setTimeout> | undefined;
     getWorldAtlas()
       .then((atlas) => {
         if (!cancelled) setWorldAtlas(atlas);
       })
       .catch(() => {
-        // Left null -- the main effect below stays gated off (no plot drawn) rather than
-        // falling through to Plotly's own default fetch, which would reintroduce the
-        // redundant-fetch behavior this whole cache exists to avoid.
+        // Retry while this chart stays mounted so one transient CDN/offline failure doesn't
+        // leave the choropleth blank forever for this instance.
+        if (!cancelled) retryTimeout = setTimeout(() => setAtlasRetryTick((tick) => tick + 1), 1000);
       });
     return () => {
       cancelled = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
     };
-  }, [hasChoropleth]);
+  }, [hasChoropleth, atlasRetryTick]);
   // hovermode: 'x unified' below renders one label box per hovered x, positioned by Plotly
   // near the topmost active trace's own y-pixel at that x -- which moves as that value moves,
   // and can flip from one side of the cursor to the other near the plot's edges (confirmed
@@ -370,7 +373,7 @@ export function SyChart({
     // Wait for the shared world atlas before drawing a choropleth at all -- see getWorldAtlas
     // and the worldAtlas effect above. A non-choropleth chart (worldAtlas always null) is
     // unaffected by this gate.
-    if (hasChoropleth && !worldAtlas) return;
+    if (hasChoropleth && worldAtlas === null) return;
     const palette = syPalette(el);
     const divergingScale = syDivergingScale(el);
     const font = {
