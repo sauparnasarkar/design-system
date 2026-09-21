@@ -6,6 +6,9 @@ import Plotly from 'plotly.js-dist-min';
 // access through `plotly.js-dist-min`'s `export =` re-export doesn't resolve reliably once this
 // file is type-checked from a consuming project via a path-mapped alias).
 import type { Color, Data, Layout, PlotData, PlotMarker } from 'plotly.js';
+import { feature } from 'topojson-client';
+import type { FeatureCollection } from 'geojson';
+import type { Topology } from 'topojson-specification';
 import { cx } from '../../lib/cx';
 import {
   choroplethHovertemplate,
@@ -27,7 +30,44 @@ import {
 // wrapping, null entries) are still narrower in the upstream types than plotly.js-dist-min
 // accepts at runtime; those are cast individually at their exact call sites below, each with a
 // comment explaining the real gap.
-type SyChartTrace = Partial<PlotData> & { meta?: string; zmid?: number };
+type SyChartTrace = Partial<PlotData> & { meta?: string; zmid?: number; geojson?: FeatureCollection };
+
+// A choropleth trace with no `geojson` prop falls back to Plotly's own default 'world' atlas,
+// which it fetches itself from this same CDN URL -- but Plotly only caches the *resolved*
+// result, not the in-flight request, so concurrent fetches (e.g. this component's own two
+// choropleth traces -- data + no-data -- both resolving on the same render) each start their
+// own independent download instead of sharing one. Confirmed live 2026-09-21: the Overview
+// page's single choropleth loaded this 285KB file 6 separate times. Fetching it ourselves,
+// once, into a module-level cached promise and handing Plotly the resolved GeoJSON via each
+// trace's own `geojson` field sidesteps Plotly's internal fetch path entirely -- every SyChart
+// instance on the page (and every remount) shares this one promise.
+//
+// The CDN file is raw TopoJSON (`{ type: "Topology", objects: { countries, ... } }`), not
+// GeoJSON -- Plotly's `geojson` trace attribute requires the latter, and normally does this
+// exact TopoJSON->GeoJSON conversion itself internally (via topojson-client) as part of its own
+// default fetch path. `topojson-client`'s `feature()` on the `countries` object produces a
+// FeatureCollection whose `feature.id` is the ISO-3 code (verified: USA/CHN/IND/GBR/ZAF all
+// present, matching this app's `locationmode: 'ISO-3'` traces), i.e. byte-for-byte the same
+// data Plotly's own default path would have produced -- this is a fetch-ownership change, not a
+// data or rendering change.
+let worldAtlasPromise: Promise<FeatureCollection> | undefined;
+function getWorldAtlas(): Promise<FeatureCollection> {
+  if (!worldAtlasPromise) {
+    worldAtlasPromise = fetch('https://cdn.plot.ly/un/world_110m.json')
+      .then((res) => {
+        if (!res.ok) throw new Error(`world atlas fetch failed: ${res.status}`);
+        return res.json() as Promise<Topology>;
+      })
+      .then((topology) => feature(topology, topology.objects.countries) as unknown as FeatureCollection);
+    // A failed fetch/parse (offline, CDN hiccup) shouldn't wedge every later choropleth mount
+    // behind a permanently-rejected cached promise -- clear the cache so the next mount's
+    // effect gets a fresh attempt instead of an immediate, silent failure forever.
+    worldAtlasPromise.catch(() => {
+      worldAtlasPromise = undefined;
+    });
+  }
+  return worldAtlasPromise;
+}
 // `cmid` (colorscale zero-midpoint) is likewise a real, standard Plotly marker field not declared
 // on `PlotMarker` in this version of `@types/plotly.js`.
 type SyChartMarker = Partial<PlotMarker> & { cmid?: number };
@@ -297,6 +337,25 @@ export function SyChart({
   });
   const hasChoropleth = series.some((s) => s.kind === 'choropleth');
   const hasTreemap = series.some((s) => s.kind === 'treemap');
+  // See getWorldAtlas's own comment above -- null until resolved, at which point the main
+  // effect below (gated on this being non-null whenever hasChoropleth) draws the plot with it.
+  const [worldAtlas, setWorldAtlas] = React.useState<FeatureCollection | null>(null);
+  React.useEffect(() => {
+    if (!hasChoropleth) return;
+    let cancelled = false;
+    getWorldAtlas()
+      .then((atlas) => {
+        if (!cancelled) setWorldAtlas(atlas);
+      })
+      .catch(() => {
+        // Left null -- the main effect below stays gated off (no plot drawn) rather than
+        // falling through to Plotly's own default fetch, which would reintroduce the
+        // redundant-fetch behavior this whole cache exists to avoid.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [hasChoropleth]);
   // hovermode: 'x unified' below renders one label box per hovered x, positioned by Plotly
   // near the topmost active trace's own y-pixel at that x -- which moves as that value moves,
   // and can flip from one side of the cursor to the other near the plot's edges (confirmed
@@ -308,6 +367,10 @@ export function SyChart({
   React.useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Wait for the shared world atlas before drawing a choropleth at all -- see getWorldAtlas
+    // and the worldAtlas effect above. A non-choropleth chart (worldAtlas always null) is
+    // unaffected by this gate.
+    if (hasChoropleth && !worldAtlas) return;
     const palette = syPalette(el);
     const divergingScale = syDivergingScale(el);
     const font = {
@@ -363,6 +426,9 @@ export function SyChart({
           locations: noDataLocations,
           text: noDataNames,
           locationmode: s.locationmode ?? 'ISO-3',
+          // Guaranteed non-null here -- the main effect returns before this runs whenever
+          // hasChoropleth is true and worldAtlas hasn't resolved yet (see the gate above).
+          geojson: worldAtlas ?? undefined,
           z: noDataLocations.map(() => 0),
           colorscale: [
             [0, s.noDataColor ?? '#4a4a4a'],
@@ -379,6 +445,7 @@ export function SyChart({
           locations: s.locations,
           text: s.locationNames,
           locationmode: s.locationmode ?? 'ISO-3',
+          geojson: worldAtlas ?? undefined,
           z,
           ...(s.colorRange ? { zmin, zmax, zauto: false } : {}),
           // Unlike the bar/treemap branches below, this trace has no fixed zmin/zmax by
@@ -936,7 +1003,7 @@ export function SyChart({
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip, worldAtlas]);
 
   // Deliberately separate from the main effect above -- animationFrame is meant to update at
   // high frequency (e.g. once per ~600ms animation tick) via a direct Plotly.restyle, which
