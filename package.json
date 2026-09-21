@@ -21,7 +21,8 @@
     "d3-format": "^3.1.2",
     "plotly.js-dist-min": "^3.7.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "topojson-client": "^3.1.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.2.1",
@@ -31,11 +32,14 @@
     "@storybook/addon-vitest": "^10.5.0",
     "@storybook/react-vite": "^10.5.0",
     "@types/d3-format": "^3.0.4",
+    "@types/geojson": "^7946.0.16",
     "@types/node": "^24.13.2",
     "@types/plotly.js": "^3.0.13",
     "@types/plotly.js-dist-min": "^2.3.4",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
     "@vitejs/plugin-react": "^6.0.3",
     "@vitest/browser-playwright": "^4.1.10",
     "@vitest/coverage-v8": "^4.1.10",
