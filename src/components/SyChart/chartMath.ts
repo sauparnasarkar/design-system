@@ -23,6 +23,19 @@ export function formatChartValue(value: number, spec?: string): string {
   }
 }
 
+/**
+ * Discrete (non-colorValues) treemap tile fills: the caller's own explicit `tileColors`
+ * wins when given (its job is capping/naming the palette deliberately, e.g. top-8 + a neutral
+ * "Other"/"Not classified" bucket); otherwise cycle the theme's categorical `palette`, one
+ * color per label, wrapping with no cap -- the exact behavior this replaces inline in
+ * SyChart.tsx, extracted here so the "wins/falls back" choice itself is unit-testable without
+ * pulling in plotly.js-dist-min.
+ */
+export function resolveTileColors(labels: string[], tileColors: string[] | undefined, palette: string[]): string[] {
+  if (tileColors) return tileColors;
+  return labels.map((_, idx) => palette[idx % palette.length]);
+}
+
 /** hex → rgba; anything else falls back to the raw color unchanged. */
 export function withAlpha(color: string, alpha: number): string {
   const m = color.match(/^#([0-9a-f]{6})/i);
