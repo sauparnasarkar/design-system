@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect, fn, waitFor, within } from 'storybook/test';
 import { SyChart } from './SyChart';
 import { ChartCard } from './ChartCard';
 import { Select } from '../Select/Select';
@@ -197,6 +197,48 @@ export const ConfidenceBand: Story = {
             series={[
               { name: 'Central', x: years, y: central, kind: 'line' },
               { name: '95% CI', x: years, y: upper, yLower: lower, kind: 'band', fillOpacity: 0.12 },
+            ]}
+          />
+        </ChartCard>
+      </div>
+    );
+  },
+};
+
+/**
+ * 'area' kind — every 'area' series in one chart shares a single Plotly stackgroup.
+ * `stackedAreaMode="percent"` normalizes each x position to 100% (a composition-over-time
+ * chart); the default 'value' mode stacks raw values instead.
+ */
+export const StackedArea: Story = {
+  render: () => {
+    const years = ['2019', '2020', '2021', '2022', '2023', '2024', '2025'];
+    const financials = [40, 42, 38, 35, 33, 30, 28];
+    const industrials = [25, 24, 26, 28, 27, 26, 24];
+    const healthcare = [15, 14, 16, 17, 18, 20, 22];
+    const other = [20, 20, 20, 20, 22, 24, 26];
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 16 }}>
+        <ChartCard title="100% stacked (stackedAreaMode='percent')" onDownload={() => {}}>
+          <SyChart
+            height={280}
+            stackedAreaMode="percent"
+            series={[
+              { name: 'Financials', x: years, y: financials, kind: 'area' },
+              { name: 'Industrials', x: years, y: industrials, kind: 'area' },
+              { name: 'Health Care', x: years, y: healthcare, kind: 'area' },
+              { name: 'Other', x: years, y: other, kind: 'area' },
+            ]}
+          />
+        </ChartCard>
+        <ChartCard title="Raw-value stacked (default)" onDownload={() => {}}>
+          <SyChart
+            height={280}
+            series={[
+              { name: 'Financials', x: years, y: financials, kind: 'area' },
+              { name: 'Industrials', x: years, y: industrials, kind: 'area' },
+              { name: 'Health Care', x: years, y: healthcare, kind: 'area' },
+              { name: 'Other', x: years, y: other, kind: 'area' },
             ]}
           />
         </ChartCard>
@@ -414,6 +456,30 @@ export const SharedYRange: Story = {
         </ChartCard>
       </div>
     );
+  },
+};
+
+/** Clicking a non-treemap point surfaces its x-value via `onPointClick`. */
+export const ClickableSeries: Story = {
+  args: { onPointClick: fn() },
+  render: (args) => (
+    <ChartCard title="Clickable series" onDownload={() => {}}>
+      <SyChart
+        {...args}
+        height={280}
+        showLegend={false}
+        series={[{ name: 'BAU', x: YEARS, y: [10200, 9800, 10500, 10800, 11200] }]}
+      />
+    </ChartCard>
+  ),
+  play: async ({ args, canvasElement }) => {
+    const plot = await waitFor(() => {
+      const root = canvasElement.querySelector('.js-plotly-plot');
+      expect(root).not.toBeNull();
+      return root as HTMLDivElement & { emit?: (event: 'plotly_click', payload: { points: Array<{ x: string | number }> }) => void };
+    });
+    plot.emit?.('plotly_click', { points: [{ x: '2022' }] });
+    await waitFor(() => expect(args.onPointClick).toHaveBeenCalledWith('2022'));
   },
 };
 

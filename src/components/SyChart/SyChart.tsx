@@ -5,7 +5,7 @@ import Plotly from 'plotly.js-dist-min';
 // (confirmed against climate-emissions-analysis-project's own build: dotted namespace-style type
 // access through `plotly.js-dist-min`'s `export =` re-export doesn't resolve reliably once this
 // file is type-checked from a consuming project via a path-mapped alias).
-import type { Color, Data, Layout, PlotData, PlotMarker } from 'plotly.js';
+import type { Color, Data, Layout, PlotData, PlotMarker, PlotMouseEvent } from 'plotly.js';
 import { feature } from 'topojson-client';
 import type { FeatureCollection } from 'geojson';
 import type { Topology } from 'topojson-specification';
@@ -83,8 +83,10 @@ export interface SyChartSeries {
   x: Array<string | number>;
   /** Unused for 'choropleth'/'treemap' — pass `[]` for those kinds. */
   y: Array<number | null>;
-  /** 'bar' (default), 'line', 'band' (shaded range, e.g. a confidence interval), 'choropleth', or 'treemap' */
-  kind?: 'bar' | 'line' | 'band' | 'choropleth' | 'treemap';
+  /** 'bar' (default), 'line', 'band' (shaded range, e.g. a confidence interval), 'area'
+   * (stacked filled area -- every 'area' series in one chart shares a single stack, see
+   * `stackedAreaMode` on SyChartProps), 'choropleth', or 'treemap' */
+  kind?: 'bar' | 'line' | 'band' | 'area' | 'choropleth' | 'treemap';
   /** Lower bound for kind 'band'; `y` is the upper bound */
   yLower?: Array<number | null>;
   /** Fill opacity for kind 'band' (0–1). Defaults to 0.25. */
@@ -249,6 +251,22 @@ export interface SyChartProps {
   /** Extra annotations, merged with (not replacing) the one derived from `referenceY.label` */
   annotations?: SyChartAnnotation[];
   /**
+   * Applies to every 'area'-kind series in this chart, which all share one implicit Plotly
+   * stackgroup (there is no per-series grouping — a chart mixing two independent area stacks
+   * isn't a case this component supports; use two SyChart instances instead). 'value' (default)
+   * stacks raw y values; 'percent' normalizes each x position's stack to 100% (Plotly's
+   * `groupnorm: 'percent'`) -- e.g. a 100%-stacked composition-over-time chart.
+   */
+  stackedAreaMode?: 'value' | 'percent';
+  /**
+   * Fires with the x-value of the clicked point, for any non-treemap chart (bar/line/area/
+   * band) -- treemap tiles use their own `onTileClick` instead, since Plotly's click event
+   * shape and default zoom-cancel needs differ there (see that prop's own doc comment). Plain
+   * Plotly `plotly_click`, not a drill-down affordance of its own -- e.g. Q5's "select this
+   * period" interaction, where the caller owns what "selected" means and how it's shown.
+   */
+  onPointClick?: (x: string | number) => void;
+  /**
    * 'choropleth' only: new color-value data for the existing choropleth trace(s), applied via
    * a direct `Plotly.restyle` on every change rather than the full `Plotly.react` re-render
    * every other prop change triggers. Confirmed live: `Plotly.restyle` preserves a user's
@@ -336,6 +354,8 @@ export function SyChart({
   animationFrame,
   ariaLabel,
   className,
+  stackedAreaMode = 'value',
+  onPointClick,
 }: SyChartProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
@@ -358,6 +378,7 @@ export function SyChart({
   });
   const hasChoropleth = series.some((s) => s.kind === 'choropleth');
   const hasTreemap = series.some((s) => s.kind === 'treemap');
+  const hasPointClickableSeries = series.some((s) => s.kind === undefined || (s.kind !== 'treemap' && s.kind !== 'choropleth'));
   // See getWorldAtlas's own comment above -- null until resolved, at which point the main
   // effect below (gated on this being non-null whenever hasChoropleth) draws the plot with it.
   const [worldAtlas, setWorldAtlas] = React.useState<FeatureCollection | null>(null);
@@ -669,6 +690,25 @@ export function SyChart({
           },
         ];
       }
+      if (s.kind === 'area') {
+        // Every 'area' series in this chart shares one stackgroup name -- Plotly stacks (and,
+        // with groupnorm, normalizes) all traces in the same named group; a fixed literal
+        // here is deliberate, not a caller-configurable id, since SyChartProps.stackedAreaMode
+        // is chart-level, not per-series (see its own doc comment on SyChartProps).
+        return [
+          {
+            type: 'scatter',
+            mode: 'lines',
+            name: s.name,
+            x: s.x,
+            y: s.y,
+            stackgroup: 'area',
+            groupnorm: stackedAreaMode === 'percent' ? 'percent' : '',
+            line: { color, width: 0.5 },
+            fillcolor: withAlpha(color, 0.85),
+          },
+        ];
+      }
       const marker = s.colorValues
         ? {
             color: s.colorValues,
@@ -858,12 +898,16 @@ export function SyChart({
     // click-to-zoom-in has nothing legitimate to drill into and no way back out on touch
     // (no pathbar, a second tap doesn't return to root). Cancel the zoom (return false) and
     // surface the tap via onTileClick instead, if the caller wants it.
+    let detachTreemapClick: (() => void) | undefined;
+    let detachPointClick: (() => void) | undefined;
     if (series.some((s) => s.kind === 'treemap')) {
       type TreemapClickEvent = { points?: Array<{ pointNumber: number; label: string }> };
       type PlotlyGraphDiv = HTMLDivElement & {
         on: (event: 'plotly_treemapclick', handler: (e: TreemapClickEvent) => boolean) => void;
+        removeListener?: (event: 'plotly_treemapclick', handler: (e: TreemapClickEvent) => boolean) => void;
       };
-      (el as PlotlyGraphDiv).on('plotly_treemapclick', (event) => {
+      const plotlyEl = el as PlotlyGraphDiv;
+      const handleTreemapClick = (event: TreemapClickEvent) => {
         const point = event?.points?.[0];
         // Assumes a single treemap series -- if a future chart ever needs two treemap
         // traces at once, only the first one's onTileClick would fire on a tap.
@@ -872,7 +916,22 @@ export function SyChart({
           treemapSeries.onTileClick(point.pointNumber, point.label);
         }
         return false;
-      });
+      };
+      plotlyEl.on('plotly_treemapclick', handleTreemapClick);
+      detachTreemapClick = () => plotlyEl.removeListener?.('plotly_treemapclick', handleTreemapClick);
+    }
+    if (onPointClick && hasPointClickableSeries) {
+      type PlotlyClickDiv = HTMLDivElement & {
+        on: (event: 'plotly_click', handler: (e: PlotMouseEvent) => void) => void;
+        removeListener?: (event: 'plotly_click', handler: (e: PlotMouseEvent) => void) => void;
+      };
+      const plotlyEl = el as PlotlyClickDiv;
+      const handlePointClick = (event: PlotMouseEvent) => {
+        const x = event?.points?.[0]?.x;
+        if (x !== undefined) onPointClick(x as string | number);
+      };
+      plotlyEl.on('plotly_click', handlePointClick);
+      detachPointClick = () => plotlyEl.removeListener?.('plotly_click', handlePointClick);
     }
 
     // Custom fixed-position tooltip (see useFixedTooltip above). Plotly's own hover event
@@ -1029,9 +1088,11 @@ export function SyChart({
       plotDrawnRef.current = false;
       resizeObserver?.disconnect();
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
+      detachTreemapClick?.();
+      detachPointClick?.();
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip, worldAtlas]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, hasPointClickableSeries, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick]);
 
   // Deliberately separate from the main effect above -- animationFrame is meant to update at
   // high frequency (e.g. once per ~600ms animation tick) via a direct Plotly.restyle, which
