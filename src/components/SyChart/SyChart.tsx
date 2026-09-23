@@ -378,6 +378,7 @@ export function SyChart({
   });
   const hasChoropleth = series.some((s) => s.kind === 'choropleth');
   const hasTreemap = series.some((s) => s.kind === 'treemap');
+  const hasPointClickableSeries = series.some((s) => s.kind == null || (s.kind !== 'treemap' && s.kind !== 'choropleth'));
   // See getWorldAtlas's own comment above -- null until resolved, at which point the main
   // effect below (gated on this being non-null whenever hasChoropleth) draws the plot with it.
   const [worldAtlas, setWorldAtlas] = React.useState<FeatureCollection | null>(null);
@@ -919,7 +920,7 @@ export function SyChart({
       plotlyEl.on('plotly_treemapclick', handleTreemapClick);
       detachTreemapClick = () => plotlyEl.removeListener?.('plotly_treemapclick', handleTreemapClick);
     }
-    if (onPointClick) {
+    if (onPointClick && hasPointClickableSeries) {
       type PlotlyClickDiv = HTMLDivElement & {
         on: (event: 'plotly_click', handler: (e: PlotMouseEvent) => void) => void;
         removeListener?: (event: 'plotly_click', handler: (e: PlotMouseEvent) => void) => void;
@@ -1091,7 +1092,7 @@ export function SyChart({
       detachPointClick?.();
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, hasPointClickableSeries, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick]);
 
   // Deliberately separate from the main effect above -- animationFrame is meant to update at
   // high frequency (e.g. once per ~600ms animation tick) via a direct Plotly.restyle, which
