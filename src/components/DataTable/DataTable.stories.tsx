@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import type { GridReadyEvent } from 'ag-grid-community';
 import { DataTable } from './DataTable';
 import { Tag } from '../Tag/Tag';
 
@@ -47,6 +48,11 @@ const meta: Meta<typeof DataTable<EntityRow>> = {
 };
 export default meta;
 type Story = StoryObj<typeof DataTable<EntityRow>>;
+type CapturedCsvExportParams = {
+  fileName?: string;
+  processCellCallback?: (params: { value: unknown; formatValue: (value: unknown) => string }) => string;
+};
+let interceptedCsvExportParams: CapturedCsvExportParams | undefined;
 
 export const Playground: Story = {
   play: async ({ canvasElement }) => {
@@ -180,5 +186,36 @@ export const DynamicColumns: Story = {
 
     await userEvent.click(scrollButton);
     await waitFor(() => expect(scrollEl.scrollLeft).toBeGreaterThan(0));
+  },
+};
+
+export const CsvExport: Story = {
+  args: {
+    exportFileName: 'entities.csv',
+    gridOptions: {
+      onGridReady: (e: GridReadyEvent<EntityRow>) => {
+        e.api.exportDataAsCsv = ((params) => {
+          interceptedCsvExportParams = {
+            fileName: typeof params?.fileName === 'string' ? params.fileName : undefined,
+            processCellCallback: params?.processCellCallback
+              ? (cellParams) => params.processCellCallback!(cellParams as never)
+              : undefined,
+          };
+        }) as typeof e.api.exportDataAsCsv;
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await userEvent.click(await waitFor(() => canvas.getByRole('button', { name: /download this table as a csv file/i })));
+    await waitFor(() => expect(interceptedCsvExportParams?.fileName).toBe('entities.csv'));
+
+    const processCell = interceptedCsvExportParams?.processCellCallback;
+    expect(processCell).toBeDefined();
+    expect(processCell?.({ value: '=2+2', formatValue: (value: unknown) => String(value) } as never)).toBe("'=2+2");
+    expect(processCell?.({ value: '  +SUM(A1:A2)', formatValue: (value: unknown) => String(value) } as never)).toBe("'  +SUM(A1:A2)");
+    expect(processCell?.({ value: 'Stable', formatValue: (value: unknown) => String(value) } as never)).toBe('Stable');
+    expect(processCell?.({ value: 7.88, formatValue: () => '7.88%' } as never)).toBe('7.88%');
   },
 };

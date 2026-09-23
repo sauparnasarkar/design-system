@@ -8,6 +8,13 @@ import { Icon } from '../Icon/Icon';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+const UNSAFE_CSV_PREFIX = /^[\t\r ]*[=+\-@]/;
+
+function sanitizeCsvCellValue(value: unknown) {
+  const stringValue = value == null ? '' : String(value);
+  return UNSAFE_CSV_PREFIX.test(stringValue) ? `'${stringValue}` : stringValue;
+}
+
 export interface DataTableProps<Row> {
   columns: ColDef<Row>[];
   rows: Row[];
@@ -185,6 +192,13 @@ export function DataTable<Row>({
         },
       }
     : baseGridOptions;
+  const exportCsv = React.useCallback(() => {
+    if (!exportFileName) return;
+    gridApiRef.current?.exportDataAsCsv({
+      fileName: exportFileName,
+      processCellCallback: (params) => sanitizeCsvCellValue(params.formatValue(params.value) || params.value),
+    });
+  }, [exportFileName]);
 
   return (
     <div ref={wrapperRef} className={cx('__s9cmpx-table', 'ag-theme-s9cmpx', className)} style={{ position: 'relative', height, width: '100%' }}>
@@ -207,7 +221,7 @@ export function DataTable<Row>({
       {exportFileName && (
         <button
           type="button"
-          onClick={() => gridApiRef.current?.exportDataAsCsv({ fileName: exportFileName })}
+          onClick={exportCsv}
           aria-label="Download this table as a CSV file"
           className="__s9cmpx-table__scroll-hint"
           style={{
