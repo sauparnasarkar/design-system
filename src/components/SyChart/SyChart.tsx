@@ -897,6 +897,8 @@ export function SyChart({
     // click-to-zoom-in has nothing legitimate to drill into and no way back out on touch
     // (no pathbar, a second tap doesn't return to root). Cancel the zoom (return false) and
     // surface the tap via onTileClick instead, if the caller wants it.
+    let detachTreemapClick: (() => void) | undefined;
+    let detachPointClick: (() => void) | undefined;
     if (series.some((s) => s.kind === 'treemap')) {
       type TreemapClickEvent = { points?: Array<{ pointNumber: number; label: string }> };
       type PlotlyGraphDiv = HTMLDivElement & {
@@ -915,6 +917,7 @@ export function SyChart({
         return false;
       };
       plotlyEl.on('plotly_treemapclick', handleTreemapClick);
+      detachTreemapClick = () => plotlyEl.removeListener?.('plotly_treemapclick', handleTreemapClick);
     } else if (onPointClick) {
       type PlotlyClickDiv = HTMLDivElement & {
         on: (event: 'plotly_click', handler: (e: PlotMouseEvent) => void) => void;
@@ -926,6 +929,7 @@ export function SyChart({
         if (x !== undefined) onPointClick(x as string | number);
       };
       plotlyEl.on('plotly_click', handlePointClick);
+      detachPointClick = () => plotlyEl.removeListener?.('plotly_click', handlePointClick);
     }
 
     // Custom fixed-position tooltip (see useFixedTooltip above). Plotly's own hover event
@@ -1079,17 +1083,11 @@ export function SyChart({
     }
 
     return () => {
-      type PlotlyCleanupDiv = HTMLDivElement & {
-        removeAllListeners?: (event: 'plotly_click' | 'plotly_hover' | 'plotly_treemapclick' | 'plotly_unhover') => void;
-      };
-      const plotlyEl = el as PlotlyCleanupDiv;
       plotDrawnRef.current = false;
       resizeObserver?.disconnect();
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
-      plotlyEl.removeAllListeners?.('plotly_click');
-      plotlyEl.removeAllListeners?.('plotly_hover');
-      plotlyEl.removeAllListeners?.('plotly_treemapclick');
-      plotlyEl.removeAllListeners?.('plotly_unhover');
+      detachTreemapClick?.();
+      detachPointClick?.();
       Plotly.purge(el);
     };
   }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick]);
