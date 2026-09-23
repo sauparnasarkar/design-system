@@ -220,6 +220,16 @@ export interface SyChartSeries {
    * omitted, Plotly's own default per-tile contrast applies exactly as before.
    */
   tileLabelColors?: string[];
+  /**
+   * 'line' only: one pre-formatted string per point (parallel to `x`/`y`), shown in the fixed
+   * hover tooltip IN PLACE OF the plotted `y` value. For a series plotted on a scale that isn't
+   * the value a viewer actually wants to read on hover -- e.g. an indexed line (first period =
+   * 100) where the tooltip should still show the real absolute quantity/price, not the index
+   * number. Falls back to the existing `y`-plus-`yTickFormat` behavior for any point where this
+   * is omitted or `null`, so every existing caller is unaffected. Threaded through via Plotly's
+   * own `customdata`.
+   */
+  hoverValue?: Array<string | null>;
 }
 
 export interface SyChartAnnotation {
@@ -690,6 +700,7 @@ export function SyChart({
             y: s.y,
             line: { color, width: 2.75, dash },
             ...(showMarkers ? { marker: { color, size: 5, symbol: isWrapped ? 'diamond' : 'circle' } } : {}),
+            ...(s.hoverValue ? { customdata: s.hoverValue } : {}),
           },
         ];
       }
@@ -954,6 +965,7 @@ export function SyChart({
         y: number | string;
         data: { name: string };
         fullData?: { line?: { color?: string }; marker?: { color?: string } };
+        customdata?: string | null;
       };
       type HoverEvent = { points: HoverPoint[]; event: MouseEvent };
       type PlotlyHoverDiv = HTMLDivElement & {
@@ -987,10 +999,13 @@ export function SyChart({
         for (const p of event.points) {
           const color = p.fullData?.line?.color ?? p.fullData?.marker?.color ?? cssVar(el, '--__s9cmpx-static-text-weak', '#757575');
           const rawValue = orientation === 'h' ? p.x : p.y;
-          // formatChartValue applies the same d3-format spec as yTickFormat (the axis itself),
-          // so a bar's hover value reads in the same units as its axis instead of a raw,
-          // unformatted number.
-          const val = typeof rawValue === 'number' ? formatChartValue(rawValue, yTickFormat) : String(rawValue);
+          // `customdata` (SyChartSeries.hoverValue) overrides the plotted value for display --
+          // e.g. an indexed line whose real, absolute reading should show on hover instead of
+          // the index number. formatChartValue applies the same d3-format spec as yTickFormat
+          // (the axis itself), so a bar/line's hover value otherwise reads in the same units as
+          // its axis instead of a raw, unformatted number.
+          const val =
+            p.customdata != null ? p.customdata : typeof rawValue === 'number' ? formatChartValue(rawValue, yTickFormat) : String(rawValue);
           const row = document.createElement('div');
           row.style.cssText = 'display:flex;align-items:center;gap:6px;white-space:nowrap;';
           const swatch = document.createElement('span');

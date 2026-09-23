@@ -56,6 +56,28 @@ export const UpgradeDowngradeRatio: Story = {
   ),
 };
 
+/** A line plotted on an indexed scale (first period = 100) whose hover tooltip shows the real
+ * absolute value instead of the index number, via `hoverValue`. */
+export const IndexedLineWithAbsoluteHover: Story = {
+  render: () => (
+    <ChartCard title="Quantity (Indexed, first period = 100)" onDownload={() => {}} asOf="Sep 22, 2026">
+      <SyChart
+        height={280}
+        yTickFormat=".0f"
+        series={[
+          {
+            name: 'Reliance Industries',
+            x: YEARS,
+            y: [100, 112, 118, 130, 145],
+            kind: 'line',
+            hoverValue: ['1,200,000 shares', '1,344,000 shares', '1,416,000 shares', '1,560,000 shares', '1,740,000 shares'],
+          },
+        ]}
+      />
+    </ChartCard>
+  ),
+};
+
 /** Grouped column chart — "Documentation Score Distribution" shape. */
 export const GroupedColumns: Story = {
   render: () => (
