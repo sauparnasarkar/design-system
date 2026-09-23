@@ -309,6 +309,89 @@ function cssVar(el: Element, name: string, fallback: string): string {
   return v || fallback;
 }
 
+// A wrapped horizontal legend (see layout.legend below) needs real vertical space reserved
+// above the plot -- this got fixed twice, and only the SECOND fix is actually correct; both
+// attempts and the real mechanism they exposed are documented here since it's easy to
+// re-introduce either mistake.
+//
+// Attempt 1 (wrong): grow `height` and `margin.t` by the same estimated amount, leave
+// `legend.y` at its fixed 1.12. Confirmed live this does NOT create separation at all once the
+// legend needs more than roughly one row: measuring `legend.y`'s real effect directly
+// (`plotDiv._fullLayout`, `.legend`/svg `getBoundingClientRect()`) showed
+// `legendTopOffsetFromSvgTop = margin.t + (1 - y) * domainHeight`, where
+// `domainHeight = height - margin.t - margin.b` is the plot's own drawable area. Growing
+// `height` and `margin.t` by the SAME delta leaves `domainHeight` unchanged, so the legend's
+// offset moves in lockstep with `margin.t` (confirmed live: margin.t 50->328 moved the legend
+// from 8px below the SVG's top to 282px below it, a near-1:1 shift) -- both the legend AND the
+// plot's own top drift down together, dragging an ever-growing blank gap along above both of
+// them, with the legend still overlapping the plot exactly as before. A single quick isolated
+// test (2-row legend, one relayout call) had appeared to confirm this approach worked, but that
+// was a coincidence of the specific numbers tried, not a property of the mechanism -- it broke
+// down completely once tested against a real 8-row legend.
+//
+// Attempt 2 (correct): solve the same formula for `legend.y` instead of treating `margin.t`
+// alone as the fix. Holding `domainHeight` at the chart's own natural, unmodified plot-area
+// size (`baseHeight - BASE_MARGIN_T - BASE_MARGIN_B`) and growing `height`/`margin.t` by the
+// same delta as before, `legend.y = 1 + delta / domainHeight` exactly cancels that delta back
+// out of the offset formula -- the legend always renders flush at the same `BASE_MARGIN_T`
+// offset from the SVG's own top, REGARDLESS of delta, with `delta` itself free to be exactly
+// `realLegendHeight + LEGEND_BOTTOM_BUFFER`, guaranteeing the plot's own top (which starts at
+// the grown `margin.t`) sits `LEGEND_BOTTOM_BUFFER` px below the legend's real bottom edge.
+// Confirmed live at both a 2-row/86px legend and an 8-row/162px one: real measured clearance
+// (plot top minus legend bottom) positive in both cases, with the legend consistently pinned 8px
+// below the SVG's own top rather than drifting.
+//
+// This still needs a real row count purely to seed the very FIRST synchronous `Plotly.react`
+// call below (Plotly can't report a real rendered legend height before it has drawn once) --
+// `computeLegendReservedHeight` below is only ever used for that one seed value; the actual
+// margin/height/legend.y applied are always recomputed from a REAL measured legend height
+// immediately after each draw (see the `reconcileLegendReserve` calls after `Plotly.react` and
+// inside the ResizeObserver), never trusted as final on their own.
+const LEGEND_ITEM_WIDTH = 150; // swatch + gap + a country name as long as "United Kingdom"
+const LEGEND_ROW_HEIGHT = 40; // measured live: a full legend row (font + vertical padding) is
+// ~40-43px -- only used to seed the first draw; the real height is measured and corrected for
+// right after, so this constant being approximate doesn't leave any lasting inaccuracy.
+function computeLegendReservedHeight(containerWidth: number, seriesCount: number): number {
+  if (!containerWidth) return 0;
+  const itemsPerRow = Math.max(1, Math.floor(containerWidth / LEGEND_ITEM_WIDTH));
+  const rows = Math.ceil(seriesCount / itemsPerRow);
+  return rows * LEGEND_ROW_HEIGHT;
+}
+
+const BASE_MARGIN_T = 8; // matches the flat, non-choropleth base `margin.t` below
+const BASE_MARGIN_B = 32; // matches the flat, non-choropleth base `margin.b` below
+const LEGEND_BOTTOM_BUFFER = 16; // gap kept between the legend's own bottom edge and the plot's top
+
+// Derives the margin.t/height/legend.y triple that reserves exactly `reservedHeight` px above
+// the plot for the legend, pinning the legend flush at BASE_MARGIN_T from the SVG's own top
+// regardless of how tall it is (see the derivation above `computeLegendReservedHeight`).
+function computeLegendLayoutOverrides(baseHeight: number, reservedHeight: number) {
+  const domainHeight = baseHeight - BASE_MARGIN_T - BASE_MARGIN_B;
+  return {
+    height: baseHeight + reservedHeight,
+    marginT: BASE_MARGIN_T + reservedHeight,
+    legendY: 1 + reservedHeight / domainHeight,
+  };
+}
+
+// Re-measures the REAL rendered legend height right after a draw/relayout and, if it differs
+// from whatever reservation was last applied, corrects margin.t/height/legend.y to match --
+// closing the gap a row-count ESTIMATE alone can't (Plotly's real per-item wrapping depends on
+// each series' own label width, e.g. real fund names like "International Growth and Income
+// Fund" wrap far sooner than `LEGEND_ITEM_WIDTH`'s "United Kingdom"-length estimate assumes).
+// Idempotent: once applied, the legend's own real pixel height doesn't depend on margin/y (only
+// on container width, unchanged by this call), so a second call right after computes the same
+// result and skips re-applying.
+function reconcileLegendReserve(el: HTMLElement, plotly: typeof Plotly, baseHeight: number, lastAppliedReservedHeight: number): void {
+  const legendEl = el.querySelector<HTMLElement>('.legend');
+  const realHeight = legendEl?.getBoundingClientRect().height ?? 0;
+  const reservedHeight = realHeight + LEGEND_BOTTOM_BUFFER;
+  if (Math.abs(reservedHeight - lastAppliedReservedHeight) < 2) return; // already correct
+  const overrides = computeLegendLayoutOverrides(baseHeight, reservedHeight);
+  plotly.relayout(el, { height: overrides.height, 'margin.t': overrides.marginT, 'legend.y': overrides.legendY } as unknown as Partial<Layout>);
+  el.style.height = `${overrides.height}px`;
+}
+
 // -10 matches the vendor base theme's own default for that slot (#c42338) -- this array is
 // the JS-level fallback for when no [data-theme] CSS var resolves at all (e.g. SSR), so it
 // should track the vendor base theme, not the analytics themes' own red/green-avoiding
@@ -779,9 +862,17 @@ export function SyChart({
       font: { ...font, size: 11 },
     }));
     const allAnnotations = [...referenceAnnotation, ...customAnnotations];
+    // Seeds the very first draw with a row-count ESTIMATE (real container width, already laid
+    // out by the time this effect runs) -- `reconcileLegendReserve`, called right after
+    // `Plotly.react` below, immediately corrects this against the REAL rendered legend height,
+    // so this estimate only ever affects one frame, never the settled state. See
+    // `computeLegendReservedHeight`'s own comment above for the fuller history/derivation.
+    const needsLegendReserve = !hasChoropleth && showLegend && series.length > 3;
+    const legendReserveEstimate = needsLegendReserve ? computeLegendReservedHeight(el.getBoundingClientRect().width, series.length) : 0;
+    const legendOverrides = needsLegendReserve ? computeLegendLayoutOverrides(height, legendReserveEstimate) : null;
     const layout: SyChartLayout = {
       barmode,
-      height,
+      height: legendOverrides?.height ?? height,
       font,
       // Without this, Plotly free-shrinks a treemap's tile labels to whatever fits, which on a
       // narrow tile means illegibly small text (confirmed: "South Africa" on the Scenario
@@ -812,11 +903,11 @@ export function SyChart({
       // margin (sized for a y-axis title) would otherwise reduce usable map width and
       // shift it off-center. Bottom margin is sized for the horizontal colorbar (title +
       // scale + tick labels) that now sits below the map rather than beside it.
-      margin: hasChoropleth ? { l: 8, r: 8, t: 8, b: 64 } : { l: 48, r: 8, t: 8, b: 32 },
+      margin: hasChoropleth ? { l: 8, r: 8, t: 8, b: 64 } : { l: 48, r: 8, t: legendOverrides?.marginT ?? BASE_MARGIN_T, b: BASE_MARGIN_B },
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
       showlegend: showLegend,
-      legend: { orientation: 'h', y: 1.12, x: 0, font },
+      legend: { orientation: 'h', y: legendOverrides?.legendY ?? 1.12, x: 0, font },
       xaxis: {
         title: xTitle ? { text: xTitle, font } : undefined,
         fixedrange: true,
@@ -877,6 +968,20 @@ export function SyChart({
     };
     const config = { displayModeBar: false, responsive: true };
     Plotly.react(el, data as unknown as Data[], layout, config);
+    // Keeps the wrapper div's own CSS height in sync with `layout.height` from the very first
+    // draw -- the JSX below only ever sets this from the unmodified `height` prop (see its own
+    // comment), which React won't revisit on a later re-render unless that PROP value itself
+    // changes, so without this line a legend-driven height/margin.t increase computed above
+    // would only ever show up in Plotly's own internal SVG sizing, not in how tall the
+    // surrounding wrapper actually is.
+    el.style.height = `${layout.height}px`;
+    if (needsLegendReserve) {
+      // Corrects the estimate above against the REAL rendered legend height -- see
+      // `reconcileLegendReserve`'s own comment for why an estimate alone is never trusted as
+      // final. Runs synchronously right after `Plotly.react` has drawn, so the legend element
+      // already has its real, wrapped-per-current-width height to measure.
+      reconcileLegendReserve(el, Plotly, height, legendReserveEstimate);
+    }
     plotDrawnRef.current = true;
     const dataTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-data');
     const noDataTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-nodata');
@@ -1082,49 +1187,38 @@ export function SyChart({
       // visible legend container around it (confirmed via direct DOM inspection: with 10
       // countries at a ~290px mobile container width, wrapped rows overflowed the legend's
       // ~40%-of-height allocation, `rect.scrollbar` rendered with a non-zero height instead of
-      // the 0 it has when the content fits). Estimating rows from container width and growing
-      // `height` accordingly keeps every row visible without scrolling.
+      // the 0 it has when the content fits).
       //
-      // A second, real bug in this same mechanism, found live via a consuming app's multi-line
-      // chart (8 fund series): the ORIGINAL version below only ever grew `height`, never
-      // `layout.margin.t` (a flat 8px, set above regardless of whether a legend is shown at
-      // all) -- so the plot's own drawable area never actually moved down to make room.
-      // Confirmed via direct Plotly-internals inspection (`plotDiv._fullLayout.margin.t`,
-      // `.legend`/`.plot` `getBoundingClientRect()`): the legend (`y: 1.12`, positioned just
-      // above the plot's own domain) renders as its own SVG element whose real height
-      // (measured live: 86px at 2 wrapped rows/1200px container, 162px at 4 rows/390px
-      // container) was never reserved anywhere in the layout, so it visually overlapped the
-      // plot's own topmost data points the moment it needed more than the ~8px gap margin.t
-      // left. Reproduced at BOTH a narrow 390px container AND a wide 1200px one -- not a
-      // mobile-only bug, since margin.t never reserved space even for a single row. One cheaper
-      // fix was tried and ruled out empirically before this one: setting `legend.yanchor:
-      // 'bottom'` via `Plotly.relayout` alone (on the theory that an unanchored, out-of-domain
-      // `y: 1.12` might not trigger Plotly's automargin reservation) made no measurable
-      // difference live -- `yanchor: 'auto'` already resolves to `'bottom'` for a y this far
-      // above 1, so an explicit margin.t reservation is the real fix.
-      const LEGEND_ITEM_WIDTH = 150; // swatch + gap + a country name as long as "United Kingdom"
-      const LEGEND_ROW_HEIGHT = 40; // measured live: a full legend row (font + vertical
-      // padding) is ~40-43px -- the old 22px value here was only ever validated against the
-      // INCREMENTAL height added per wrapped row, never against a full row's real height,
-      // which this fix now also needs for the margin.t reservation below.
-      const BASE_MARGIN_T = 8; // matches the flat margin.t set above; kept as its own constant
-      // here so this branch's arithmetic stays self-explanatory without cross-referencing that line.
+      // The actual row-count/height/margin.t/legend.y math now lives in the shared
+      // `computeLegendLayoutOverrides`/`reconcileLegendReserve` above `layout`/`Plotly.react`
+      // (see their own comments for the real, live-caught mechanism -- growing margin.t alone
+      // does NOT create separation, `legend.y` itself has to move). This observer seeds a fresh
+      // row-count estimate from the new width, applies it, then immediately reconciles against
+      // the real rendered legend height at that width -- the same two-step the initial draw
+      // does, needed here too since a resize (e.g. orientation change) can change how many rows
+      // the SAME series wraps to.
+      let lastLegendResizeWidth: number | undefined;
       resizeObserver = new ResizeObserver((entries) => {
         const width = entries[0]?.contentRect.width;
         if (!width) return;
-        const itemsPerRow = Math.max(1, Math.floor(width / LEGEND_ITEM_WIDTH));
-        const rows = Math.ceil(series.length / itemsPerRow);
-        // Reserve real space for EVERY row, including the first -- the old `rows > 1 ? ... :
-        // height` ternary assumed a single row needed no extra room at all, which live
-        // inspection proved false (margin.t stayed at a flat 8px regardless of row count).
-        const legendReservedHeight = rows * LEGEND_ROW_HEIGHT;
-        const newHeight = height + legendReservedHeight;
-        const newMarginT = BASE_MARGIN_T + legendReservedHeight;
-        Plotly.relayout(el, { height: newHeight, 'margin.t': newMarginT } as unknown as Partial<Layout>);
+        // This observer watches the wrapper element itself, and both the estimate write below
+        // and the reconcileLegendReserve correction can change only its HEIGHT. Without caching
+        // the last processed width, those self-inflicted height writes retrigger the observer
+        // with the same width and bounce the chart between the estimate and the measured
+        // correction indefinitely. Width is the only input that can change legend wrapping, so
+        // ONLY exactly-same-width callbacks are pure feedback from our own height writes and
+        // should be ignored -- even a sub-pixel width change can cross
+        // computeLegendReservedHeight's items-per-row threshold.
+        if (lastLegendResizeWidth === width) return;
+        lastLegendResizeWidth = width;
+        const estimate = computeLegendReservedHeight(width, series.length);
+        const overrides = computeLegendLayoutOverrides(height, estimate);
+        Plotly.relayout(el, { height: overrides.height, 'margin.t': overrides.marginT, 'legend.y': overrides.legendY } as unknown as Partial<Layout>);
         // Same wrapper-height sync gap as the choropleth branch above -- growing Plotly's own
         // internal height for a wrapped legend without updating this div's own CSS height
         // lets the taller plot overflow the wrapper once it exceeds the fixed `height` prop.
-        el.style.height = `${newHeight}px`;
+        el.style.height = `${overrides.height}px`;
+        reconcileLegendReserve(el, Plotly, height, estimate);
       });
       resizeObserver.observe(el);
     }
