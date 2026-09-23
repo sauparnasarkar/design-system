@@ -1206,8 +1206,10 @@ export function SyChart({
         // the last processed width, those self-inflicted height writes retrigger the observer
         // with the same width and bounce the chart between the estimate and the measured
         // correction indefinitely. Width is the only input that can change legend wrapping, so
-        // same-width callbacks are pure feedback from our own writes and should be ignored.
-        if (lastLegendResizeWidth != null && Math.abs(width - lastLegendResizeWidth) < 1) return;
+        // ONLY exactly-same-width callbacks are pure feedback from our own height writes and
+        // should be ignored -- even a sub-pixel width change can cross
+        // computeLegendReservedHeight's items-per-row threshold.
+        if (lastLegendResizeWidth === width) return;
         lastLegendResizeWidth = width;
         const estimate = computeLegendReservedHeight(width, series.length);
         const overrides = computeLegendLayoutOverrides(height, estimate);
