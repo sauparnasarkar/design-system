@@ -5,7 +5,7 @@ import Plotly from 'plotly.js-dist-min';
 // (confirmed against climate-emissions-analysis-project's own build: dotted namespace-style type
 // access through `plotly.js-dist-min`'s `export =` re-export doesn't resolve reliably once this
 // file is type-checked from a consuming project via a path-mapped alias).
-import type { Color, Data, Layout, PlotData, PlotMarker } from 'plotly.js';
+import type { Color, Data, Layout, PlotData, PlotMarker, PlotMouseEvent } from 'plotly.js';
 import { feature } from 'topojson-client';
 import type { FeatureCollection } from 'geojson';
 import type { Topology } from 'topojson-specification';
@@ -259,6 +259,14 @@ export interface SyChartProps {
    */
   stackedAreaMode?: 'value' | 'percent';
   /**
+   * Fires with the x-value of the clicked point, for any non-treemap chart (bar/line/area/
+   * band) -- treemap tiles use their own `onTileClick` instead, since Plotly's click event
+   * shape and default zoom-cancel needs differ there (see that prop's own doc comment). Plain
+   * Plotly `plotly_click`, not a drill-down affordance of its own -- e.g. Q5's "select this
+   * period" interaction, where the caller owns what "selected" means and how it's shown.
+   */
+  onPointClick?: (x: string | number) => void;
+  /**
    * 'choropleth' only: new color-value data for the existing choropleth trace(s), applied via
    * a direct `Plotly.restyle` on every change rather than the full `Plotly.react` re-render
    * every other prop change triggers. Confirmed live: `Plotly.restyle` preserves a user's
@@ -347,6 +355,7 @@ export function SyChart({
   ariaLabel,
   className,
   stackedAreaMode = 'value',
+  onPointClick,
 }: SyChartProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
@@ -903,6 +912,14 @@ export function SyChart({
         }
         return false;
       });
+    } else if (onPointClick) {
+      (el as unknown as { on: (event: 'plotly_click', cb: (e: PlotMouseEvent) => void) => void }).on(
+        'plotly_click',
+        (event) => {
+          const x = event?.points?.[0]?.x;
+          if (x !== undefined) onPointClick(x as string | number);
+        },
+      );
     }
 
     // Custom fixed-position tooltip (see useFixedTooltip above). Plotly's own hover event
@@ -1061,7 +1078,7 @@ export function SyChart({
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip, worldAtlas, stackedAreaMode]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick]);
 
   // Deliberately separate from the main effect above -- animationFrame is meant to update at
   // high frequency (e.g. once per ~600ms animation tick) via a direct Plotly.restyle, which
