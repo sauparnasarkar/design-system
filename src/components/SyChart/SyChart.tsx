@@ -378,7 +378,7 @@ export function SyChart({
   });
   const hasChoropleth = series.some((s) => s.kind === 'choropleth');
   const hasTreemap = series.some((s) => s.kind === 'treemap');
-  const hasPointClickableSeries = series.some((s) => s.kind == null || (s.kind !== 'treemap' && s.kind !== 'choropleth'));
+  const hasPointClickableSeries = series.some((s) => s.kind === undefined || (s.kind !== 'treemap' && s.kind !== 'choropleth'));
   // See getWorldAtlas's own comment above -- null until resolved, at which point the main
   // effect below (gated on this being non-null whenever hasChoropleth) draws the plot with it.
   const [worldAtlas, setWorldAtlas] = React.useState<FeatureCollection | null>(null);
