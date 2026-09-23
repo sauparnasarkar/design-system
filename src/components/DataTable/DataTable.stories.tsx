@@ -216,6 +216,10 @@ export const CsvExport: Story = {
     expect(processCell).toBeDefined();
     expect(processCell!({ value: '=2+2', formatValue: (value: unknown) => String(value) } as never)).toBe("'=2+2");
     expect(processCell!({ value: '  +SUM(A1:A2)', formatValue: (value: unknown) => String(value) } as never)).toBe("'  +SUM(A1:A2)");
+    expect(processCell!({ value: '-1+2', formatValue: (value: unknown) => String(value) } as never)).toBe("'-1+2");
+    expect(processCell!({ value: -12.5, formatValue: () => '-12.5' } as never)).toBe('-12.5');
+    expect(processCell!({ value: -0.8, formatValue: () => ' -0.8%' } as never)).toBe(' -0.8%');
+    expect(processCell!({ value: -6_190_000_000, formatValue: () => '-$6.19B' } as never)).toBe('-$6.19B');
     expect(processCell!({ value: 'Stable', formatValue: (value: unknown) => String(value) } as never)).toBe('Stable');
     expect(processCell!({ value: 'hidden raw value', formatValue: () => '' } as never)).toBe('');
     expect(processCell!({ value: 7.88, formatValue: () => '7.88%' } as never)).toBe('7.88%');

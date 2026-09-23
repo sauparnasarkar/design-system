@@ -9,10 +9,12 @@ import { Icon } from '../Icon/Icon';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const UNSAFE_CSV_PREFIX = /^[\t\r ]*[=+\-@]/;
+const SAFE_NEGATIVE_LITERAL = /^[\t\r ]*-(?:\p{Sc})?(?:\d[\d,]*(?:\.\d+)?|\.\d+)(?:%|[a-zA-Z]{1,3})?$/u;
 
 function sanitizeCsvCellValue(value: unknown) {
   const stringValue = value == null ? '' : String(value);
-  return UNSAFE_CSV_PREFIX.test(stringValue) ? `'${stringValue}` : stringValue;
+  if (!UNSAFE_CSV_PREFIX.test(stringValue) || SAFE_NEGATIVE_LITERAL.test(stringValue)) return stringValue;
+  return `'${stringValue}`;
 }
 
 export interface DataTableProps<Row> {
