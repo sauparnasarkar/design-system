@@ -259,13 +259,16 @@ export interface SyChartProps {
    */
   stackedAreaMode?: 'value' | 'percent';
   /**
-   * Fires with the x-value of the clicked point, for any non-treemap chart (bar/line/area/
-   * band) -- treemap tiles use their own `onTileClick` instead, since Plotly's click event
+   * Fires with the x-value of the clicked point (and, when Plotly's event carries one, that
+   * point's own series `name` -- undefined for a single-series chart with no explicit `name`,
+   * or if a caller genuinely doesn't care which series), for any non-treemap chart (bar/line/
+   * area/band) -- treemap tiles use their own `onTileClick` instead, since Plotly's click event
    * shape and default zoom-cancel needs differ there (see that prop's own doc comment). Plain
    * Plotly `plotly_click`, not a drill-down affordance of its own -- e.g. Q5's "select this
-   * period" interaction, where the caller owns what "selected" means and how it's shown.
+   * period" interaction (x alone), or Q2's "click a fund's line to open its detail page"
+   * (x plus which series).
    */
-  onPointClick?: (x: string | number) => void;
+  onPointClick?: (x: string | number, seriesName?: string) => void;
   /**
    * 'choropleth' only: new color-value data for the existing choropleth trace(s), applied via
    * a direct `Plotly.restyle` on every change rather than the full `Plotly.react` re-render
@@ -927,8 +930,8 @@ export function SyChart({
       };
       const plotlyEl = el as PlotlyClickDiv;
       const handlePointClick = (event: PlotMouseEvent) => {
-        const x = event?.points?.[0]?.x;
-        if (x !== undefined) onPointClick(x as string | number);
+        const point = event?.points?.[0];
+        if (point?.x !== undefined) onPointClick(point.x as string | number, point.data?.name);
       };
       plotlyEl.on('plotly_click', handlePointClick);
       detachPointClick = () => plotlyEl.removeListener?.('plotly_click', handlePointClick);
