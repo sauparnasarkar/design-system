@@ -183,20 +183,18 @@ export function DataTable<Row>({
   // activationGridOptions's own onRowClicked/onCellKeyDown already established above.
   const gridApiRef = React.useRef<GridApi<Row> | null>(null);
   const baseGridOptions = activationGridOptions ?? gridOptions;
-  const mergedGridOptions: GridOptions<Row> | undefined = exportFileName
-    ? {
-        ...baseGridOptions,
-        onGridReady: (e: GridReadyEvent<Row>) => {
-          gridApiRef.current = e.api;
-          baseGridOptions?.onGridReady?.(e);
-        },
-      }
-    : baseGridOptions;
+  const mergedGridOptions: GridOptions<Row> = {
+    ...baseGridOptions,
+    onGridReady: (e: GridReadyEvent<Row>) => {
+      gridApiRef.current = e.api;
+      baseGridOptions?.onGridReady?.(e);
+    },
+  };
   const exportCsv = React.useCallback(() => {
     if (!exportFileName) return;
     gridApiRef.current?.exportDataAsCsv({
       fileName: exportFileName,
-      processCellCallback: (params) => sanitizeCsvCellValue(params.formatValue(params.value) || params.value),
+      processCellCallback: (params) => sanitizeCsvCellValue(params.formatValue(params.value) ?? params.value),
     });
   }, [exportFileName]);
 
