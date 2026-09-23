@@ -152,3 +152,29 @@
 .ag-body-vertical-scroll.ag-scrollbar-invisible.ag-apple-scrollbar {
   visibility: visible;
 }
+
+/* CardHeader's title + actions row overflows off a narrow viewport instead of wrapping
+   (confirmed live on a consuming app's mobile-width Top Portfolios card: two SegmentedControls
+   in the actions slot ran off the right edge of the screen). Root cause, confirmed by reading
+   both the component and the vendor CSS directly: Card.tsx's own CardHeader wrapper div sets
+   `display: flex; justify-content: space-between; width: 100%` via an inline style, with no
+   `flexWrap`, and the matching vendor rule --
+   `.__s9cmpx-card-header__wrapper { display:flex; justify-content:space-between; width:100% }`
+   -- carries no `flex-wrap` either. The ONLY vendor rule with `flex-wrap: wrap` at all is the
+   `--has-tabs` modifier (`.__s9cmpx-card-header--has-tabs { flex-wrap: wrap }`), which a plain
+   CardHeader with title + actions (no tabs) never opts into -- so this exact, common shape has
+   no wrapping behavior anywhere in the cascade. `__right-side` (the actions container itself,
+   holding one or more SegmentedControls with `display:flex; gap:8px`) also has no wrap, so even
+   if the outer wrapper wrapped, two side-by-side controls inside it would still overflow their
+   own row. Both fixed together: the outer wrapper drops to a second line under the title once
+   it can't fit, and the actions row itself wraps its own children once IT can't fit either.
+   `row-gap` (not `gap`, to avoid double-applying the vendor's own existing horizontal `gap`
+   between adjacent items) gives a wrapped second row breathing room from the first. */
+.__s9cmpx-card-header__wrapper {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+.__s9cmpx-card-header__right-side {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
