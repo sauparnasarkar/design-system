@@ -918,7 +918,8 @@ export function SyChart({
       };
       plotlyEl.on('plotly_treemapclick', handleTreemapClick);
       detachTreemapClick = () => plotlyEl.removeListener?.('plotly_treemapclick', handleTreemapClick);
-    } else if (onPointClick) {
+    }
+    if (onPointClick) {
       type PlotlyClickDiv = HTMLDivElement & {
         on: (event: 'plotly_click', handler: (e: PlotMouseEvent) => void) => void;
         removeListener?: (event: 'plotly_click', handler: (e: PlotMouseEvent) => void) => void;
