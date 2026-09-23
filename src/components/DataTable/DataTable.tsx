@@ -9,18 +9,23 @@ import { Icon } from '../Icon/Icon';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const UNSAFE_CSV_PREFIX = /^[\t\r ]*[=+\-@]/;
+// Matches a formatted string that IS, in its entirety, just a negative number (optionally with a
+// leading currency symbol, a trailing %/short unit suffix, or scientific notation) -- deliberately
+// end-anchored so a real CSV-injection payload that merely STARTS with a negative number (e.g.
+// "-1+cmd|'/C calc'!A1") still fails this check and gets sanitized below. A prior version of this
+// fix instead trusted the cell's RAW underlying value (skipping sanitization outright whenever
+// `rawValue` was a negative number/bigint, regardless of what the FORMATTED string actually
+// contained) -- removed: that's strictly broader than this regex needs to be for any case this
+// file's own tests exercise (confirmed -1e+21/-1e-7 both already match via the `e[+-]?\d+` group
+// alone), and it reopens exactly the injection risk this whole mechanism exists to close the
+// moment any column's own `valueFormatter` ever concatenates external/untrusted text around a
+// numeric value -- this is a shared component with consumers this file can't fully audit, so
+// trusting the raw type instead of the actual rendered string is the wrong tradeoff here.
 const SAFE_NEGATIVE_LITERAL = /^[\t\r ]*-(?:\p{Sc})?(?:\d[\d,]*(?:\.\d+)?|\.\d+)(?:e[+-]?\d+)?(?:%|[a-zA-Z]{1,3})?$/iu;
 
-function sanitizeCsvCellValue(value: unknown, rawValue?: unknown) {
+function sanitizeCsvCellValue(value: unknown) {
   const stringValue = value == null ? '' : String(value);
-  if (
-    !UNSAFE_CSV_PREFIX.test(stringValue) ||
-    SAFE_NEGATIVE_LITERAL.test(stringValue) ||
-    (typeof rawValue === 'number' && Number.isFinite(rawValue) && rawValue < 0) ||
-    (typeof rawValue === 'bigint' && rawValue < 0n)
-  ) {
-    return stringValue;
-  }
+  if (!UNSAFE_CSV_PREFIX.test(stringValue) || SAFE_NEGATIVE_LITERAL.test(stringValue)) return stringValue;
   return `'${stringValue}`;
 }
 
@@ -203,7 +208,7 @@ export function DataTable<Row>({
     if (!exportFileName) return;
     gridApiRef.current?.exportDataAsCsv({
       fileName: exportFileName,
-      processCellCallback: (params) => sanitizeCsvCellValue(params.formatValue(params.value) ?? params.value, params.value),
+      processCellCallback: (params) => sanitizeCsvCellValue(params.formatValue(params.value) ?? params.value),
     });
   }, [exportFileName]);
 
