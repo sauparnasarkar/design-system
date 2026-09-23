@@ -223,7 +223,6 @@ export const StackedArea: Story = {
           <SyChart
             height={280}
             stackedAreaMode="percent"
-            yTickFormat=".0%"
             series={[
               { name: 'Financials', x: years, y: financials, kind: 'area' },
               { name: 'Industrials', x: years, y: industrials, kind: 'area' },

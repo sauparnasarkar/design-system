@@ -369,8 +369,9 @@ Score (logic-tested), Progress (logic-tested), Gauge (logic-tested), KpiStat,
 Avatar, Icon
 
 **Charts** — ChartTooltip (logic-tested), SyChart (logic-tested — Plotly:
-column / stacked+line / grouped / multi-line, plus band/choropleth/treemap
-kinds; a colorValues-less treemap previously crashed Plotly's own
+column / stacked+line / grouped / multi-line / stacked-area, plus
+band/choropleth/treemap kinds; `stackedAreaMode="percent"` enables
+100%-normalized stacked area; a colorValues-less treemap previously crashed Plotly's own
 `cleanData` on first draw — a real bug, fixed 2026-09-02: the trace builder
 left a `marker: undefined` key present (vs. omitted) on the trace object,
 which Plotly's `cleanData` treats differently from a genuinely absent key;

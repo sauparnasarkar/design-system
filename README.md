@@ -110,8 +110,9 @@ Card(+Header), Tile, Accordion, Breadcrumb, Table, DataTable (AG Grid with
 the `ag-theme-s9cmpx` skin) + presets (HeatCell, TrendCell, TableToolbar),
 TableFilter, Pagination, Icon, Avatar, Logo (generic markSrc/wordmark lockup),
 Modal, Drawer, Toast, Tooltip,
-ChartTooltip, SyChart (Plotly: column / stacked+line / grouped / multi-line,
-plus band/choropleth/treemap — see DESIGN.md's Charts entry for a real,
+ChartTooltip, SyChart (Plotly: column / stacked+line / grouped / multi-line /
+stacked-area, plus band/choropleth/treemap; `stackedAreaMode="percent"` enables
+100%-normalized stacked area — see DESIGN.md's Charts entry for a real,
 fixed treemap crash root-caused to a `marker: undefined` key on
 colorValues-less treemap traces) + ChartCard, Slider, RangeSlider (dual-thumb, cross-clamped, APG multi-thumb
 slider pattern — for continuous ranges, e.g. a year filter), KrfSlider,
