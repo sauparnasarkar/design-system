@@ -1083,17 +1083,44 @@ export function SyChart({
       // countries at a ~290px mobile container width, wrapped rows overflowed the legend's
       // ~40%-of-height allocation, `rect.scrollbar` rendered with a non-zero height instead of
       // the 0 it has when the content fits). Estimating rows from container width and growing
-      // `height` accordingly keeps every row visible without scrolling; wide/desktop
-      // containers that already fit the legend in one row compute rows=1 and get no change.
+      // `height` accordingly keeps every row visible without scrolling.
+      //
+      // A second, real bug in this same mechanism, found live via a consuming app's multi-line
+      // chart (8 fund series): the ORIGINAL version below only ever grew `height`, never
+      // `layout.margin.t` (a flat 8px, set above regardless of whether a legend is shown at
+      // all) -- so the plot's own drawable area never actually moved down to make room.
+      // Confirmed via direct Plotly-internals inspection (`plotDiv._fullLayout.margin.t`,
+      // `.legend`/`.plot` `getBoundingClientRect()`): the legend (`y: 1.12`, positioned just
+      // above the plot's own domain) renders as its own SVG element whose real height
+      // (measured live: 86px at 2 wrapped rows/1200px container, 162px at 4 rows/390px
+      // container) was never reserved anywhere in the layout, so it visually overlapped the
+      // plot's own topmost data points the moment it needed more than the ~8px gap margin.t
+      // left. Reproduced at BOTH a narrow 390px container AND a wide 1200px one -- not a
+      // mobile-only bug, since margin.t never reserved space even for a single row. One cheaper
+      // fix was tried and ruled out empirically before this one: setting `legend.yanchor:
+      // 'bottom'` via `Plotly.relayout` alone (on the theory that an unanchored, out-of-domain
+      // `y: 1.12` might not trigger Plotly's automargin reservation) made no measurable
+      // difference live -- `yanchor: 'auto'` already resolves to `'bottom'` for a y this far
+      // above 1, so an explicit margin.t reservation is the real fix.
       const LEGEND_ITEM_WIDTH = 150; // swatch + gap + a country name as long as "United Kingdom"
-      const LEGEND_ROW_HEIGHT = 22; // measured: each wrapped row is ~19-20px tall, plus a small buffer
+      const LEGEND_ROW_HEIGHT = 40; // measured live: a full legend row (font + vertical
+      // padding) is ~40-43px -- the old 22px value here was only ever validated against the
+      // INCREMENTAL height added per wrapped row, never against a full row's real height,
+      // which this fix now also needs for the margin.t reservation below.
+      const BASE_MARGIN_T = 8; // matches the flat margin.t set above; kept as its own constant
+      // here so this branch's arithmetic stays self-explanatory without cross-referencing that line.
       resizeObserver = new ResizeObserver((entries) => {
         const width = entries[0]?.contentRect.width;
         if (!width) return;
         const itemsPerRow = Math.max(1, Math.floor(width / LEGEND_ITEM_WIDTH));
         const rows = Math.ceil(series.length / itemsPerRow);
-        const newHeight = rows > 1 ? height + (rows - 1) * LEGEND_ROW_HEIGHT : height;
-        Plotly.relayout(el, { height: newHeight });
+        // Reserve real space for EVERY row, including the first -- the old `rows > 1 ? ... :
+        // height` ternary assumed a single row needed no extra room at all, which live
+        // inspection proved false (margin.t stayed at a flat 8px regardless of row count).
+        const legendReservedHeight = rows * LEGEND_ROW_HEIGHT;
+        const newHeight = height + legendReservedHeight;
+        const newMarginT = BASE_MARGIN_T + legendReservedHeight;
+        Plotly.relayout(el, { height: newHeight, 'margin.t': newMarginT } as unknown as Partial<Layout>);
         // Same wrapper-height sync gap as the choropleth branch above -- growing Plotly's own
         // internal height for a wrapped legend without updating this div's own CSS height
         // lets the taller plot overflow the wrapper once it exceeds the fixed `height` prop.
