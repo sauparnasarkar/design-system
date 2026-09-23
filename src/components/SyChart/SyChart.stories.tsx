@@ -206,6 +206,49 @@ export const ConfidenceBand: Story = {
 };
 
 /**
+ * 'area' kind — every 'area' series in one chart shares a single Plotly stackgroup.
+ * `stackedAreaMode="percent"` normalizes each x position to 100% (a composition-over-time
+ * chart); the default 'value' mode stacks raw values instead.
+ */
+export const StackedArea: Story = {
+  render: () => {
+    const years = ['2019', '2020', '2021', '2022', '2023', '2024', '2025'];
+    const financials = [40, 42, 38, 35, 33, 30, 28];
+    const industrials = [25, 24, 26, 28, 27, 26, 24];
+    const healthcare = [15, 14, 16, 17, 18, 20, 22];
+    const other = [20, 20, 20, 20, 22, 24, 26];
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 16 }}>
+        <ChartCard title="100% stacked (stackedAreaMode='percent')" onDownload={() => {}}>
+          <SyChart
+            height={280}
+            stackedAreaMode="percent"
+            yTickFormat=".0%"
+            series={[
+              { name: 'Financials', x: years, y: financials, kind: 'area' },
+              { name: 'Industrials', x: years, y: industrials, kind: 'area' },
+              { name: 'Health Care', x: years, y: healthcare, kind: 'area' },
+              { name: 'Other', x: years, y: other, kind: 'area' },
+            ]}
+          />
+        </ChartCard>
+        <ChartCard title="Raw-value stacked (default)" onDownload={() => {}}>
+          <SyChart
+            height={280}
+            series={[
+              { name: 'Financials', x: years, y: financials, kind: 'area' },
+              { name: 'Industrials', x: years, y: industrials, kind: 'area' },
+              { name: 'Health Care', x: years, y: healthcare, kind: 'area' },
+              { name: 'Other', x: years, y: other, kind: 'area' },
+            ]}
+          />
+        </ChartCard>
+      </div>
+    );
+  },
+};
+
+/**
  * World map — 'choropleth' kind with a log-scaled colorbar (`zLog`) so mid-tier values remain
  * distinguishable. Hover a country: the tooltip shows the real MtCO₂ figure (via `hoverUnit` +
  * `customdata`), not the log10-transformed color value. The colorbar renders horizontally below

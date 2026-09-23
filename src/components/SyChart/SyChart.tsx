@@ -83,8 +83,10 @@ export interface SyChartSeries {
   x: Array<string | number>;
   /** Unused for 'choropleth'/'treemap' — pass `[]` for those kinds. */
   y: Array<number | null>;
-  /** 'bar' (default), 'line', 'band' (shaded range, e.g. a confidence interval), 'choropleth', or 'treemap' */
-  kind?: 'bar' | 'line' | 'band' | 'choropleth' | 'treemap';
+  /** 'bar' (default), 'line', 'band' (shaded range, e.g. a confidence interval), 'area'
+   * (stacked filled area -- every 'area' series in one chart shares a single stack, see
+   * `stackedAreaMode` on SyChartProps), 'choropleth', or 'treemap' */
+  kind?: 'bar' | 'line' | 'band' | 'area' | 'choropleth' | 'treemap';
   /** Lower bound for kind 'band'; `y` is the upper bound */
   yLower?: Array<number | null>;
   /** Fill opacity for kind 'band' (0–1). Defaults to 0.25. */
@@ -249,6 +251,14 @@ export interface SyChartProps {
   /** Extra annotations, merged with (not replacing) the one derived from `referenceY.label` */
   annotations?: SyChartAnnotation[];
   /**
+   * Applies to every 'area'-kind series in this chart, which all share one implicit Plotly
+   * stackgroup (there is no per-series grouping — a chart mixing two independent area stacks
+   * isn't a case this component supports; use two SyChart instances instead). 'value' (default)
+   * stacks raw y values; 'percent' normalizes each x position's stack to 100% (Plotly's
+   * `groupnorm: 'percent'`) -- e.g. a 100%-stacked composition-over-time chart.
+   */
+  stackedAreaMode?: 'value' | 'percent';
+  /**
    * 'choropleth' only: new color-value data for the existing choropleth trace(s), applied via
    * a direct `Plotly.restyle` on every change rather than the full `Plotly.react` re-render
    * every other prop change triggers. Confirmed live: `Plotly.restyle` preserves a user's
@@ -336,6 +346,7 @@ export function SyChart({
   animationFrame,
   ariaLabel,
   className,
+  stackedAreaMode = 'value',
 }: SyChartProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
@@ -666,6 +677,25 @@ export function SyChart({
             y: s.y,
             line: { color, width: 2.75, dash },
             ...(showMarkers ? { marker: { color, size: 5, symbol: isWrapped ? 'diamond' : 'circle' } } : {}),
+          },
+        ];
+      }
+      if (s.kind === 'area') {
+        // Every 'area' series in this chart shares one stackgroup name -- Plotly stacks (and,
+        // with groupnorm, normalizes) all traces in the same named group; a fixed literal
+        // here is deliberate, not a caller-configurable id, since SyChartProps.stackedAreaMode
+        // is chart-level, not per-series (see its own doc comment on SyChartProps).
+        return [
+          {
+            type: 'scatter',
+            mode: 'lines',
+            name: s.name,
+            x: s.x,
+            y: s.y,
+            stackgroup: 'area',
+            groupnorm: stackedAreaMode === 'percent' ? 'percent' : '',
+            line: { color, width: 0.5 },
+            fillcolor: withAlpha(color, 0.85),
           },
         ];
       }
@@ -1031,7 +1061,7 @@ export function SyChart({
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip, worldAtlas]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip, worldAtlas, stackedAreaMode]);
 
   // Deliberately separate from the main effect above -- animationFrame is meant to update at
   // high frequency (e.g. once per ~600ms animation tick) via a direct Plotly.restyle, which
