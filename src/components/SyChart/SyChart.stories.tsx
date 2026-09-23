@@ -476,10 +476,14 @@ export const ClickableSeries: Story = {
     const plot = await waitFor(() => {
       const root = canvasElement.querySelector('.js-plotly-plot');
       expect(root).not.toBeNull();
-      return root as HTMLDivElement & { emit?: (event: 'plotly_click', payload: { points: Array<{ x: string | number }> }) => void };
+      return root as HTMLDivElement & {
+        emit?: (event: 'plotly_click', payload: { points: Array<{ x: string | number; data?: { name?: string } }> }) => void;
+      };
     });
-    plot.emit?.('plotly_click', { points: [{ x: '2022' }] });
-    await waitFor(() => expect(args.onPointClick).toHaveBeenCalledWith('2022'));
+    // Real Plotly click events carry the clicked point's own trace as `data` (name included) --
+    // simulated here so onPointClick's second (seriesName) argument gets real coverage too.
+    plot.emit?.('plotly_click', { points: [{ x: '2022', data: { name: 'BAU' } }] });
+    await waitFor(() => expect(args.onPointClick).toHaveBeenCalledWith('2022', 'BAU'));
   },
 };
 
