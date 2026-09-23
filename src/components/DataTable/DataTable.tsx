@@ -9,11 +9,18 @@ import { Icon } from '../Icon/Icon';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const UNSAFE_CSV_PREFIX = /^[\t\r ]*[=+\-@]/;
-const SAFE_NEGATIVE_LITERAL = /^[\t\r ]*-(?:\p{Sc})?(?:\d[\d,]*(?:\.\d+)?|\.\d+)(?:%|[a-zA-Z]{1,3})?$/u;
+const SAFE_NEGATIVE_LITERAL = /^[\t\r ]*-(?:\p{Sc})?(?:\d[\d,]*(?:\.\d+)?|\.\d+)(?:e[+-]?\d+)?(?:%|[a-zA-Z]{1,3})?$/iu;
 
-function sanitizeCsvCellValue(value: unknown) {
+function sanitizeCsvCellValue(value: unknown, rawValue?: unknown) {
   const stringValue = value == null ? '' : String(value);
-  if (!UNSAFE_CSV_PREFIX.test(stringValue) || SAFE_NEGATIVE_LITERAL.test(stringValue)) return stringValue;
+  if (
+    !UNSAFE_CSV_PREFIX.test(stringValue) ||
+    SAFE_NEGATIVE_LITERAL.test(stringValue) ||
+    (typeof rawValue === 'number' && Number.isFinite(rawValue) && rawValue < 0) ||
+    (typeof rawValue === 'bigint' && rawValue < 0n)
+  ) {
+    return stringValue;
+  }
   return `'${stringValue}`;
 }
 
@@ -196,7 +203,7 @@ export function DataTable<Row>({
     if (!exportFileName) return;
     gridApiRef.current?.exportDataAsCsv({
       fileName: exportFileName,
-      processCellCallback: (params) => sanitizeCsvCellValue(params.formatValue(params.value) ?? params.value),
+      processCellCallback: (params) => sanitizeCsvCellValue(params.formatValue(params.value) ?? params.value, params.value),
     });
   }, [exportFileName]);
 
