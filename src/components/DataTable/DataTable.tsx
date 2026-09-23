@@ -1,9 +1,10 @@
 import React from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import type { ColDef, GridOptions } from 'ag-grid-community';
+import type { ColDef, GridApi, GridOptions, GridReadyEvent } from 'ag-grid-community';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import { cx } from '../../lib/cx';
+import { Icon } from '../Icon/Icon';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -32,6 +33,16 @@ export interface DataTableProps<Row> {
    * override.
    */
   onRowActivate?: (data: Row) => void;
+  /**
+   * Renders a small "Download CSV" button when set, exporting exactly the rows already loaded
+   * into the grid client-side (AG Grid Community's own `exportDataAsCsv`, no network request --
+   * whatever the caller passed as `rows`, filtered/sorted however the viewer currently has the
+   * grid arranged, since AG Grid's own export already respects the grid's live sort/filter
+   * state). The string is used as the downloaded file's own name (`.csv` appended automatically
+   * by AG Grid if not already present). Omit to render no button at all -- opt-in, matching this
+   * component's existing `onRowActivate` convention of doing nothing extra unless a caller asks.
+   */
+  exportFileName?: string;
 }
 
 /**
@@ -48,6 +59,7 @@ export function DataTable<Row>({
   gridOptions,
   className,
   onRowActivate,
+  exportFileName,
 }: DataTableProps<Row>) {
   const defaultColDef = React.useMemo<ColDef<Row>>(
     () => ({
@@ -159,6 +171,21 @@ export function DataTable<Row>({
     };
   }, [onRowActivate, gridOptions]);
 
+  // Captured for the export button below -- composes with any onGridReady the caller already
+  // passes via gridOptions (both fire), the same "compose, never silently swallow" convention
+  // activationGridOptions's own onRowClicked/onCellKeyDown already established above.
+  const gridApiRef = React.useRef<GridApi<Row> | null>(null);
+  const baseGridOptions = activationGridOptions ?? gridOptions;
+  const mergedGridOptions: GridOptions<Row> | undefined = exportFileName
+    ? {
+        ...baseGridOptions,
+        onGridReady: (e: GridReadyEvent<Row>) => {
+          gridApiRef.current = e.api;
+          baseGridOptions?.onGridReady?.(e);
+        },
+      }
+    : baseGridOptions;
+
   return (
     <div ref={wrapperRef} className={cx('__s9cmpx-table', 'ag-theme-s9cmpx', className)} style={{ position: 'relative', height, width: '100%' }}>
       <AgGridReact<Row>
@@ -175,8 +202,41 @@ export function DataTable<Row>({
         // calculations stuck at 0 even after the grid scrolls into view. This is AG
         // Grid's own documented escape hatch for that failure mode.
         suppressContentVisibilityAuto
-        {...(activationGridOptions ?? gridOptions)}
+        {...mergedGridOptions}
       />
+      {exportFileName && (
+        <button
+          type="button"
+          onClick={() => gridApiRef.current?.exportDataAsCsv({ fileName: exportFileName })}
+          aria-label="Download this table as a CSV file"
+          className="__s9cmpx-table__scroll-hint"
+          style={{
+            // Bottom-left, not top -- same reasoning as the scroll-hint badge's own comment
+            // below (a top badge reliably obscures real header text on a narrow/many-column
+            // table); bottom-right is already the scroll-hint's own spot, so this takes the
+            // opposite corner rather than stacking two floating controls on top of each other.
+            position: 'absolute',
+            bottom: 8,
+            left: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '3px 9px',
+            border: 'none',
+            borderRadius: 12,
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.01em',
+            color: '#fff',
+            background: 'rgba(0, 0, 0, 0.55)',
+            cursor: 'pointer',
+            zIndex: 5,
+          }}
+        >
+          <Icon name="download" size={12} />
+          CSV
+        </button>
+      )}
       {canScrollMore && (
         <button
           type="button"
