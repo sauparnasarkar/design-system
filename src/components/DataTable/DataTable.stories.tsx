@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import type { GridReadyEvent } from 'ag-grid-community';
 import { DataTable } from './DataTable';
 import { Tag } from '../Tag/Tag';
 
@@ -47,6 +48,22 @@ const meta: Meta<typeof DataTable<EntityRow>> = {
 };
 export default meta;
 type Story = StoryObj<typeof DataTable<EntityRow>>;
+type CapturedCsvExportParams = {
+  fileName?: string;
+  processCellCallback?: (params: { value: unknown; formatValue: (value: unknown) => string }) => string;
+};
+let interceptedCsvExportParams: CapturedCsvExportParams | undefined;
+
+function interceptCsvExport(e: GridReadyEvent<EntityRow>) {
+  e.api.exportDataAsCsv = ((params) => {
+    interceptedCsvExportParams = {
+      fileName: typeof params?.fileName === 'string' ? params.fileName : undefined,
+      processCellCallback: params?.processCellCallback
+        ? (cellParams) => params.processCellCallback!(cellParams as never)
+        : undefined,
+    };
+  }) as typeof e.api.exportDataAsCsv;
+}
 
 export const Playground: Story = {
   play: async ({ canvasElement }) => {
@@ -180,5 +197,67 @@ export const DynamicColumns: Story = {
 
     await userEvent.click(scrollButton);
     await waitFor(() => expect(scrollEl.scrollLeft).toBeGreaterThan(0));
+  },
+};
+
+export const CsvExport: Story = {
+  args: {
+    exportFileName: 'entities.csv',
+    gridOptions: { onGridReady: interceptCsvExport },
+  },
+  play: async ({ canvasElement }) => {
+    interceptedCsvExportParams = undefined;
+    const canvas = within(canvasElement);
+
+    await userEvent.click(await waitFor(() => canvas.getByRole('button', { name: /download this table as a csv file/i })));
+    await waitFor(() => expect(interceptedCsvExportParams?.fileName).toBe('entities.csv'));
+
+    const processCell = interceptedCsvExportParams!.processCellCallback;
+    expect(processCell).toBeDefined();
+    expect(processCell!({ value: '=2+2', formatValue: (value: unknown) => String(value) } as never)).toBe("'=2+2");
+    expect(processCell!({ value: '  +SUM(A1:A2)', formatValue: (value: unknown) => String(value) } as never)).toBe("'  +SUM(A1:A2)");
+    expect(processCell!({ value: '-1+2', formatValue: (value: unknown) => String(value) } as never)).toBe("'-1+2");
+    expect(processCell!({ value: -12.5, formatValue: () => '-12.5' } as never)).toBe('-12.5');
+    expect(processCell!({ value: -0.8, formatValue: () => ' -0.8%' } as never)).toBe(' -0.8%');
+    expect(processCell!({ value: -6_190_000_000, formatValue: () => '-$6.19B' } as never)).toBe('-$6.19B');
+    expect(processCell!({ value: -1e21, formatValue: () => '-1e+21' } as never)).toBe('-1e+21');
+    expect(processCell!({ value: -1e-7, formatValue: () => '-1e-7' } as never)).toBe('-1e-7');
+    expect(processCell!({ value: 'Stable', formatValue: (value: unknown) => String(value) } as never)).toBe('Stable');
+    expect(processCell!({ value: 'hidden raw value', formatValue: () => '' } as never)).toBe('');
+    expect(processCell!({ value: 7.88, formatValue: () => '7.88%' } as never)).toBe('7.88%');
+  },
+};
+
+function LateEnabledCsvExportHarness() {
+  const [exportEnabled, setExportEnabled] = useState(false);
+  return (
+    <div style={{ width: 500 }}>
+      <button type="button" onClick={() => setExportEnabled(true)} style={{ marginBottom: 8 }}>
+        Enable CSV export
+      </button>
+      <DataTable
+        columns={[
+          { field: 'entity', headerName: 'Entity', minWidth: 240 },
+          { field: 'country', headerName: 'Country' },
+        ]}
+        rows={ROWS}
+        height={300}
+        exportFileName={exportEnabled ? 'late-enable.csv' : undefined}
+        gridOptions={{ onGridReady: interceptCsvExport }}
+      />
+    </div>
+  );
+}
+
+export const LateEnabledCsvExport: Story = {
+  render: () => <LateEnabledCsvExportHarness />,
+  play: async ({ canvasElement }) => {
+    interceptedCsvExportParams = undefined;
+    const canvas = within(canvasElement);
+
+    await expect(canvas.queryByRole('button', { name: /download this table as a csv file/i })).not.toBeInTheDocument();
+    await userEvent.click(canvas.getByRole('button', { name: /enable csv export/i }));
+    await userEvent.click(await waitFor(() => canvas.getByRole('button', { name: /download this table as a csv file/i })));
+    await waitFor(() => expect(interceptedCsvExportParams?.fileName).toBe('late-enable.csv'));
   },
 };
