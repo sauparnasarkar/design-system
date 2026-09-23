@@ -16,6 +16,7 @@ import {
   formatChartValue,
   logColorbarTicks,
   noDataHovertemplate,
+  resolveTileColors,
   withAlpha,
 } from './chartMath';
 
@@ -197,6 +198,26 @@ export interface SyChartSeries {
    * `pathbar` isn't shown and a second tap doesn't return to root).
    */
   onTileClick?: (pointNumber: number, label: string) => void;
+  /**
+   * 'treemap' only, discrete (no `colorValues`) fill: one explicit fill color per tile,
+   * parallel to `labels`. Overrides this component's own default `palette[idx %
+   * palette.length]` cycling — the caller's own responsibility to keep a category's color
+   * stable/meaningful (e.g. capping a long tail at 8 real categories + a neutral "Other"/"Not
+   * classified" bucket rather than letting the palette wrap and silently reuse a color a
+   * viewer already read as a different real category). Ignored when `colorValues` is set
+   * (that branch already has its own continuous scale). Optional and purely additive — a
+   * caller that doesn't pass this keeps today's palette-cycling behavior unchanged.
+   */
+  tileColors?: string[];
+  /**
+   * 'treemap' only: one label-ink color per tile, parallel to `labels`. Without this, Plotly
+   * picks its own single black/white contrast choice per this component's default (see the
+   * `textfont` comment on the trace below) — reasonable against a narrow fill range, but a
+   * discrete categorical treemap can span pale (cream, pale yellow) through saturated fills in
+   * the same chart, where one fixed ink color is illegible against some tiles. Optional; when
+   * omitted, Plotly's own default per-tile contrast applies exactly as before.
+   */
+  tileLabelColors?: string[];
 }
 
 export interface SyChartAnnotation {
@@ -510,13 +531,14 @@ export function SyChart({
             values: s.values,
             customdata: formattedDeltas,
             hovertemplate,
-            // No explicit `color` here (unlike `font` used elsewhere against the fixed page
-            // background) -- tile fills vary across the full colorscale (brown through this
-            // theme's own chart-surface tone to teal, by default; a wider range still with a
-            // custom `colorScale`), and a single static text color is illegible against a
-            // chunk of that range. Omitting `color` lets Plotly fall back to its own per-tile
-            // black/white contrast choice.
-            textfont: { family: font.family, size: font.size },
+            // No explicit `color` here by default (unlike `font` used elsewhere against the
+            // fixed page background) -- tile fills vary across the full colorscale (brown
+            // through this theme's own chart-surface tone to teal, by default; a wider range
+            // still with a custom `colorScale`), and a single static text color is illegible
+            // against a chunk of that range. Omitting `color` lets Plotly fall back to its own
+            // per-tile black/white contrast choice; `tileLabelColors`, when the caller supplies
+            // it, overrides that per-tile instead (see its own doc comment above).
+            textfont: { family: font.family, size: font.size, ...(s.tileLabelColors ? { color: s.tileLabelColors as unknown as Color } : {}) },
             // Conditionally *spread* rather than `marker: s.colorValues ? {...} : undefined` --
             // the latter still leaves a `marker` key on the trace object with value `undefined`
             // (`'marker' in trace` is true either way), and Plotly's cleanData gates a treemap
@@ -578,13 +600,16 @@ export function SyChart({
                     line: { color: cssVar(el, '--__s9cmpx-chart-surface-text-weak', 'rgba(0,0,0,0.15)'), width: 1 },
                   } as SyChartMarker,
                 }
-              : // No continuous `colorValues` to scale a gradient from -- fall back to the same
-                // discrete categorical palette bar/line series use for their own per-series color,
-                // cycled one color per tile instead of Plotly's own built-in default palette
-                // (which otherwise silently applies here and ignores the theme entirely).
+              : // No continuous `colorValues` to scale a gradient from -- `tileColors`, when the
+                // caller supplies it, wins; otherwise fall back to the same discrete categorical
+                // palette bar/line series use for their own per-series color, cycled one color
+                // per tile instead of Plotly's own built-in default palette (which otherwise
+                // silently applies here and ignores the theme entirely). The cycling fallback
+                // has no cap -- a caller with more categories than the palette's length will see
+                // colors repeat; pass `tileColors` to control that explicitly instead.
                 {
                   marker: {
-                    colors: (s.labels ?? []).map((_, idx) => palette[idx % palette.length]) as unknown as Color[],
+                    colors: resolveTileColors(s.labels ?? [], s.tileColors, palette) as unknown as Color[],
                   } as SyChartMarker,
                 }),
           },

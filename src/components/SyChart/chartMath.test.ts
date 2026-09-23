@@ -5,8 +5,21 @@ import {
   formatChartValue,
   logColorbarTicks,
   noDataHovertemplate,
+  resolveTileColors,
   withAlpha,
 } from './chartMath';
+
+describe('resolveTileColors', () => {
+  const palette = ['red', 'green', 'blue'];
+
+  it('cycles the palette per label when no explicit tileColors is given', () => {
+    expect(resolveTileColors(['a', 'b', 'c', 'd'], undefined, palette)).toEqual(['red', 'green', 'blue', 'red']);
+  });
+
+  it('returns explicit tileColors unchanged when given, regardless of label count', () => {
+    expect(resolveTileColors(['a', 'b'], ['grey', 'yellow'], palette)).toEqual(['grey', 'yellow']);
+  });
+});
 
 describe('withAlpha', () => {
   it('converts a 6-digit hex color to rgba with the given alpha', () => {
