@@ -1197,9 +1197,18 @@ export function SyChart({
       // the real rendered legend height at that width -- the same two-step the initial draw
       // does, needed here too since a resize (e.g. orientation change) can change how many rows
       // the SAME series wraps to.
+      let lastLegendResizeWidth: number | undefined;
       resizeObserver = new ResizeObserver((entries) => {
         const width = entries[0]?.contentRect.width;
         if (!width) return;
+        // This observer watches the wrapper element itself, and both the estimate write below
+        // and the reconcileLegendReserve correction can change only its HEIGHT. Without caching
+        // the last processed width, those self-inflicted height writes retrigger the observer
+        // with the same width and bounce the chart between the estimate and the measured
+        // correction indefinitely. Width is the only input that can change legend wrapping, so
+        // same-width callbacks are pure feedback from our own writes and should be ignored.
+        if (lastLegendResizeWidth != null && Math.abs(width - lastLegendResizeWidth) < 1) return;
+        lastLegendResizeWidth = width;
         const estimate = computeLegendReservedHeight(width, series.length);
         const overrides = computeLegendLayoutOverrides(height, estimate);
         Plotly.relayout(el, { height: overrides.height, 'margin.t': overrides.marginT, 'legend.y': overrides.legendY } as unknown as Partial<Layout>);
