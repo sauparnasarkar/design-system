@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect, fn, waitFor, within } from 'storybook/test';
 import { SyChart } from './SyChart';
 import { ChartCard } from './ChartCard';
 import { Select } from '../Select/Select';
@@ -456,6 +456,30 @@ export const SharedYRange: Story = {
         </ChartCard>
       </div>
     );
+  },
+};
+
+/** Clicking a non-treemap point surfaces its x-value via `onPointClick`. */
+export const ClickableSeries: Story = {
+  args: { onPointClick: fn() },
+  render: (args) => (
+    <ChartCard title="Clickable series" onDownload={() => {}}>
+      <SyChart
+        {...args}
+        height={280}
+        showLegend={false}
+        series={[{ name: 'BAU', x: YEARS, y: [10200, 9800, 10500, 10800, 11200] }]}
+      />
+    </ChartCard>
+  ),
+  play: async ({ args, canvasElement }) => {
+    const plot = await waitFor(() => {
+      const root = canvasElement.querySelector('.js-plotly-plot');
+      expect(root).not.toBeNull();
+      return root as HTMLDivElement & { emit?: (event: 'plotly_click', payload: { points: Array<{ x: string | number }> }) => void };
+    });
+    plot.emit?.('plotly_click', { points: [{ x: '2022' }] });
+    await waitFor(() => expect(args.onPointClick).toHaveBeenCalledWith('2022'));
   },
 };
 

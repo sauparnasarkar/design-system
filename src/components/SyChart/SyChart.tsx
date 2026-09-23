@@ -901,8 +901,10 @@ export function SyChart({
       type TreemapClickEvent = { points?: Array<{ pointNumber: number; label: string }> };
       type PlotlyGraphDiv = HTMLDivElement & {
         on: (event: 'plotly_treemapclick', handler: (e: TreemapClickEvent) => boolean) => void;
+        removeListener?: (event: 'plotly_treemapclick', handler: (e: TreemapClickEvent) => boolean) => void;
       };
-      (el as PlotlyGraphDiv).on('plotly_treemapclick', (event) => {
+      const plotlyEl = el as PlotlyGraphDiv;
+      const handleTreemapClick = (event: TreemapClickEvent) => {
         const point = event?.points?.[0];
         // Assumes a single treemap series -- if a future chart ever needs two treemap
         // traces at once, only the first one's onTileClick would fire on a tap.
@@ -911,15 +913,19 @@ export function SyChart({
           treemapSeries.onTileClick(point.pointNumber, point.label);
         }
         return false;
-      });
+      };
+      plotlyEl.on('plotly_treemapclick', handleTreemapClick);
     } else if (onPointClick) {
-      (el as unknown as { on: (event: 'plotly_click', cb: (e: PlotMouseEvent) => void) => void }).on(
-        'plotly_click',
-        (event) => {
-          const x = event?.points?.[0]?.x;
-          if (x !== undefined) onPointClick(x as string | number);
-        },
-      );
+      type PlotlyClickDiv = HTMLDivElement & {
+        on: (event: 'plotly_click', handler: (e: PlotMouseEvent) => void) => void;
+        removeListener?: (event: 'plotly_click', handler: (e: PlotMouseEvent) => void) => void;
+      };
+      const plotlyEl = el as PlotlyClickDiv;
+      const handlePointClick = (event: PlotMouseEvent) => {
+        const x = event?.points?.[0]?.x;
+        if (x !== undefined) onPointClick(x as string | number);
+      };
+      plotlyEl.on('plotly_click', handlePointClick);
     }
 
     // Custom fixed-position tooltip (see useFixedTooltip above). Plotly's own hover event
@@ -1073,9 +1079,17 @@ export function SyChart({
     }
 
     return () => {
+      type PlotlyCleanupDiv = HTMLDivElement & {
+        removeAllListeners?: (event: 'plotly_click' | 'plotly_hover' | 'plotly_treemapclick' | 'plotly_unhover') => void;
+      };
+      const plotlyEl = el as PlotlyCleanupDiv;
       plotDrawnRef.current = false;
       resizeObserver?.disconnect();
       if (hideTooltipTimeoutRef.current) clearTimeout(hideTooltipTimeoutRef.current);
+      plotlyEl.removeAllListeners?.('plotly_click');
+      plotlyEl.removeAllListeners?.('plotly_hover');
+      plotlyEl.removeAllListeners?.('plotly_treemapclick');
+      plotlyEl.removeAllListeners?.('plotly_unhover');
       Plotly.purge(el);
     };
   }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick]);
