@@ -113,6 +113,24 @@
   color: var(--__s9cmpx-interactive-fill-inverse-oninverse);
 }
 
+/* Selected-pill visibility, weak or invisible on a light ("bright") theme -- a third bug in the
+   same family as the two just above. The sliding pill (`.__s9cmpx-segmented-control:before`,
+   vendor CSS) is painted with `--__s9cmpx-c-segmented-control-item-background-color-active`
+   (-> `--__s9cmpx-interactive-fill-inverse-default`, #ffffff on every theme in this family) atop
+   a track background of `--__s9cmpx-c-segmented-control-background-color-default`
+   (-> `--__s9cmpx-static-background-weak`, e.g. #F4F2ED on Broadsheet) -- white on near-white,
+   distinguished only by the vendor's own `filter: var(--...-item-shadow-color-active)` soft
+   shadow, which reads as barely-there on a light background (a dark theme's own colored/darker
+   track separates from a white pill far more readily, so this was never as visible there).
+   Every theme already defines `--__s9cmpx-interactive-outline-primary-selected-default`
+   specifically for this ("selected segmented-control border", see analytics.css's own comment
+   on it) but the vendor `:before` pill rule never actually applies a border from it -- same
+   disconnected-token shape as Bug 2 above, fixed the same way: reasserting the correct value
+   directly rather than patching the token indirection. */
+.__s9cmpx-segmented-control:before {
+  border: 1.5px solid var(--__s9cmpx-interactive-outline-primary-selected-default);
+}
+
 /* AG Grid reuses the class name `ag-body-horizontal-scroll` for two different things: the
    dedicated scrollbar-track element, and a *state* class it also stamps onto `.ag-root` itself
    whenever the grid's content actually needs horizontal scrolling (confirmed live via the DOM --
