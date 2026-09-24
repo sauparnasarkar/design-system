@@ -630,3 +630,58 @@ export const MarkerOverlayHover: Story = {
     await waitFor(() => expect(tooltip?.textContent).toContain('Net Δ value'));
   },
 };
+
+/** `hovermode` must be orientation-aware, not a flat `'x unified'` -- a horizontal chart puts
+ * categories on Y and values on X, so with `barmode="relative"` a holding whose two components
+ * land on opposite sides of zero (e.g. a real gain from quantity offset by a real loss from
+ * price) sits at very different X positions despite sharing one category. `'x unified'` groups
+ * by X proximity, not shared category, so it silently substituted a DIFFERENT row's value in the
+ * tooltip (confirmed live: Laurus Labs Ltd, India Allocation Monitor, Top Position Changes,
+ * 3Y horizon -- see this fix's own inline comment for the full real-data repro). No prior story
+ * exercised `orientation="h"` combined with `barmode="relative"` and opposite-signed components,
+ * so this regression -- or a future revert of the orientation-aware fix -- would have gone
+ * uncaught (Copilot review, PR #90). */
+export const MixedSignRelativeBarsHoverMode: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 16 }}>
+      <ChartCard title="Horizontal, mixed-sign components (y unified)" onDownload={() => {}}>
+        <SyChart
+          height={220}
+          orientation="h"
+          barmode="relative"
+          showLegend={false}
+          series={[
+            { name: 'Δ from quantity', x: ['Laurus Labs Ltd'], y: [-119], color: '#2677f1' },
+            { name: 'Δ from price', x: ['Laurus Labs Ltd'], y: [456], color: '#c42338' },
+          ]}
+        />
+      </ChartCard>
+      <ChartCard title="Vertical, mixed-sign components (x unified)" onDownload={() => {}}>
+        <SyChart
+          height={220}
+          barmode="relative"
+          showLegend={false}
+          series={[
+            { name: 'Δ from quantity', x: ['Laurus Labs Ltd'], y: [-119], color: '#2677f1' },
+            { name: 'Δ from price', x: ['Laurus Labs Ltd'], y: [456], color: '#c42338' },
+          ]}
+        />
+      </ChartCard>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    type PlotlyGraphDiv = HTMLDivElement & { layout?: { hovermode?: string } };
+    const plots = await waitFor(() => {
+      const roots = canvasElement.querySelectorAll('.js-plotly-plot');
+      expect(roots.length).toBe(2);
+      return Array.from(roots) as PlotlyGraphDiv[];
+    });
+    const [horizontal, vertical] = plots;
+    // The real regression this guards: an orientation="h" chart must unify hover by the shared
+    // CATEGORY axis (y), not by X proximity, once barmode="relative" can put two components of
+    // one category on opposite sides of zero. Asserted directly against Plotly's own resolved
+    // layout, not a simulated hover -- this is exactly the line PR #90 made orientation-aware.
+    await expect(horizontal.layout?.hovermode).toBe('y unified');
+    await expect(vertical.layout?.hovermode).toBe('x unified');
+  },
+};

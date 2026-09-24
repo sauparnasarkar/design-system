@@ -1045,7 +1045,21 @@ export function SyChart({
             lataxis: { range: [-60, 85] },
           }
         : undefined,
-      hovermode: 'x unified',
+      // 'x unified' groups hover points by shared X proximity -- correct for orientation='v'
+      // (categories on X, values on Y) but wrong for orientation='h' (categories on Y, values on
+      // X): with barmode="relative", two components of the SAME category that land on opposite
+      // sides of zero sit at very different X positions, so 'x unified' picks whichever OTHER
+      // trace's point happens to be nearest that X, not the same category's own point --
+      // confirmed live (India Allocation Monitor's Top Position Changes, By-holding, 3Y horizon):
+      // Laurus Labs Ltd's real Δ from quantity (-119M) and Δ from price (+456M) sit on opposite
+      // sides of zero, and 'x unified' silently substituted a DIFFERENT holding's price value
+      // for one of the two rows shown; Kotak Mahindra Bank Ltd (INE237A01028), a full exit with
+      // a real Δ from price of exactly 0, showed an unrelated nonzero value instead of 0 for the
+      // same reason (a zero-value segment offers no real hit-area at its own true X position, so
+      // 'x unified' snapped to the nearest OTHER trace's point instead). 'y unified' groups by
+      // the category axis directly regardless of how far apart the value-axis segments land --
+      // verified live via Plotly.relayout against both real cases above, correct in both.
+      hovermode: orientation === 'h' ? 'y unified' : 'x unified',
       shapes: referenceY
         ? [
             {
