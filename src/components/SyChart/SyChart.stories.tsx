@@ -572,3 +572,61 @@ export const WithAnchorId: Story = {
     await expect(card).not.toBeNull();
   },
 };
+
+/** A 'marker' overlay (e.g. a net-value tick drawn over stacked bar components) is silent on
+ * hover by default (`hoverinfo: 'skip'`) -- a marker is sometimes a pure visual annotation with
+ * nothing to add to a tooltip that already lists the series it overlays. `includeInHover` opts
+ * a specific marker series into the fixed tooltip instead. No prior story exercised `kind:
+ * 'marker'` at all, so neither this flag being ignored nor the default `hoverinfo: 'skip'`
+ * silently regressing back onto an opted-in series would have been caught (Copilot review, PR
+ * #89). */
+export const MarkerOverlayHover: Story = {
+  render: () => (
+    <ChartCard title="Net value tick, opted into hover" onDownload={() => {}}>
+      <SyChart
+        height={280}
+        barmode="relative"
+        showLegend={false}
+        series={[
+          { name: 'Δ from quantity', x: YEARS, y: [40, -20, 15, -10, 25], color: '#2677f1' },
+          { name: 'Δ from price', x: YEARS, y: [5, 10, -8, 12, -5], color: '#c42338' },
+          { name: 'Net Δ value', x: YEARS, y: [45, -10, 7, 2, 20], kind: 'marker', includeInHover: true, color: '#1f1f1f' },
+          { name: 'Silent marker', x: YEARS, y: [0, 0, 0, 0, 0], kind: 'marker', color: '#9e9e9e' },
+        ]}
+      />
+    </ChartCard>
+  ),
+  play: async ({ canvasElement }) => {
+    type PlotlyGraphDiv = HTMLDivElement & {
+      data?: Array<{ name?: string; hoverinfo?: string }>;
+      emit?: (event: 'plotly_hover', payload: { points: Array<{ x: string; data: { name: string } }>; event: MouseEvent }) => void;
+    };
+    const plot = await waitFor(() => {
+      const root = canvasElement.querySelector('.js-plotly-plot');
+      expect(root).not.toBeNull();
+      return root as PlotlyGraphDiv;
+    });
+
+    // The real regression this guards against: `includeInHover` must flip the opted-in marker's
+    // `hoverinfo` off `'skip'`, while an unopted marker (the default) stays silent. Asserted
+    // directly against Plotly's own trace config, not a simulated hover -- this is exactly the
+    // `hoverinfo: s.includeInHover ? undefined : 'skip'` line PR #89 added, and is Plotly's own
+    // hit-testing input, not something a synthetic hover event could exercise honestly (a
+    // synthetic event's `points` array is caller-constructed either way).
+    const netValueTrace = plot.data?.find((t) => t.name === 'Net Δ value');
+    const silentMarkerTrace = plot.data?.find((t) => t.name === 'Silent marker');
+    await expect(netValueTrace?.hoverinfo).not.toBe('skip');
+    await expect(silentMarkerTrace?.hoverinfo).toBe('skip');
+
+    // And the fixed tooltip itself renders a row for an included marker point once Plotly hands
+    // it one -- simulated the way ClickableSeries above simulates plotly_click, since real
+    // pixel-level Plotly hover hit-testing is exactly what the hoverinfo assertion above already
+    // covers, not the tooltip renderer's own job.
+    plot.emit?.('plotly_hover', {
+      points: [{ x: '2022', data: { name: 'Net Δ value' } }],
+      event: new MouseEvent('mousemove', { clientX: 50, clientY: 50 }),
+    });
+    const tooltip = plot.parentElement?.children[1] as HTMLElement | undefined;
+    await waitFor(() => expect(tooltip?.textContent).toContain('Net Δ value'));
+  },
+};
