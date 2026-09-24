@@ -387,11 +387,26 @@ const BASE_MARGIN_T = 8; // matches the flat, non-choropleth base `margin.t` bel
 const BASE_MARGIN_B = 32; // matches the flat, non-choropleth base `margin.b` below
 const LEGEND_BOTTOM_BUFFER = 16; // gap kept between the legend's own bottom edge and the plot's top
 
+// The actual bottom margin applied below (see `layout.margin.b`) -- BASE_MARGIN_B alone is sized
+// for one line of tick labels, not an axis title drawn below them (see that assignment's own
+// comment for the live-caught bug this fixes). Shared with the legend-layout math below so a
+// title-driven margin change can't silently desync from what the legend thinks the plot's own
+// bottom margin is -- see `computeLegendLayoutOverrides`'s own comment for that regression.
+function effectiveBottomMargin(xTitle: string | undefined): number {
+  return xTitle ? BASE_MARGIN_B + 22 : BASE_MARGIN_B;
+}
+
 // Derives the margin.t/height/legend.y triple that reserves exactly `reservedHeight` px above
 // the plot for the legend, pinning the legend flush at BASE_MARGIN_T from the SVG's own top
 // regardless of how tall it is (see the derivation above `computeLegendReservedHeight`).
-function computeLegendLayoutOverrides(baseHeight: number, reservedHeight: number) {
-  const domainHeight = baseHeight - BASE_MARGIN_T - BASE_MARGIN_B;
+// `marginB` must be the SAME bottom margin actually applied to the chart's own `layout.margin.b`
+// (see `effectiveBottomMargin`) -- this function derives `domainHeight`, the plot's own vertical
+// span, and a stale/default margin there silently mis-sizes `legendY` whenever the real bottom
+// margin differs (confirmed live: an xTitle-bearing chart with a wrapped, many-series legend
+// let the legend overlap the plot, because this used to hardcode BASE_MARGIN_B regardless of the
+// real, title-grown margin actually applied).
+function computeLegendLayoutOverrides(baseHeight: number, reservedHeight: number, marginB: number = BASE_MARGIN_B) {
+  const domainHeight = baseHeight - BASE_MARGIN_T - marginB;
   return {
     height: baseHeight + reservedHeight,
     marginT: BASE_MARGIN_T + reservedHeight,
@@ -407,12 +422,12 @@ function computeLegendLayoutOverrides(baseHeight: number, reservedHeight: number
 // Idempotent: once applied, the legend's own real pixel height doesn't depend on margin/y (only
 // on container width, unchanged by this call), so a second call right after computes the same
 // result and skips re-applying.
-function reconcileLegendReserve(el: HTMLElement, plotly: typeof Plotly, baseHeight: number, lastAppliedReservedHeight: number): void {
+function reconcileLegendReserve(el: HTMLElement, plotly: typeof Plotly, baseHeight: number, lastAppliedReservedHeight: number, marginB: number = BASE_MARGIN_B): void {
   const legendEl = el.querySelector<HTMLElement>('.legend');
   const realHeight = legendEl?.getBoundingClientRect().height ?? 0;
   const reservedHeight = realHeight + LEGEND_BOTTOM_BUFFER;
   if (Math.abs(reservedHeight - lastAppliedReservedHeight) < 2) return; // already correct
-  const overrides = computeLegendLayoutOverrides(baseHeight, reservedHeight);
+  const overrides = computeLegendLayoutOverrides(baseHeight, reservedHeight, marginB);
   plotly.relayout(el, { height: overrides.height, 'margin.t': overrides.marginT, 'legend.y': overrides.legendY } as unknown as Partial<Layout>);
   el.style.height = `${overrides.height}px`;
 }
@@ -937,17 +952,19 @@ export function SyChart({
     // `Plotly.react` below, immediately corrects this against the REAL rendered legend height,
     // so this estimate only ever affects one frame, never the settled state. See
     // `computeLegendReservedHeight`'s own comment above for the fuller history/derivation.
-    const needsLegendReserve = !hasChoropleth && showLegend && series.length > 3;
-    const legendReserveEstimate = needsLegendReserve ? computeLegendReservedHeight(el.getBoundingClientRect().width, series.length) : 0;
-    const legendOverrides = needsLegendReserve ? computeLegendLayoutOverrides(height, legendReserveEstimate) : null;
     // BASE_MARGIN_B alone is sized for one line of tick labels, not an axis title drawn below
     // them -- confirmed live (Top Position Changes, India Allocation Monitor): with an xTitle
     // set, `xaxis.automargin` did not grow the requested bottom margin to include the title's
     // own row, so the title rendered past the SVG's own bottom edge, onto whatever sits behind
     // the chart panel's painted background (illegible there, since the title's ink color is
     // resolved for the dark panel, not a light card). Only added when a title is actually
-    // present -- every other chart's margin is unaffected.
-    const marginB = xTitle ? BASE_MARGIN_B + 22 : BASE_MARGIN_B;
+    // present -- every other chart's margin is unaffected. Computed before the legend reserve
+    // below, since `computeLegendLayoutOverrides` needs the REAL bottom margin, not the base
+    // constant, to size the legend correctly (see that function's own comment).
+    const marginB = effectiveBottomMargin(xTitle);
+    const needsLegendReserve = !hasChoropleth && showLegend && series.length > 3;
+    const legendReserveEstimate = needsLegendReserve ? computeLegendReservedHeight(el.getBoundingClientRect().width, series.length) : 0;
+    const legendOverrides = needsLegendReserve ? computeLegendLayoutOverrides(height, legendReserveEstimate, marginB) : null;
     const layout: SyChartLayout = {
       barmode,
       height: legendOverrides?.height ?? height,
@@ -1058,7 +1075,7 @@ export function SyChart({
       // `reconcileLegendReserve`'s own comment for why an estimate alone is never trusted as
       // final. Runs synchronously right after `Plotly.react` has drawn, so the legend element
       // already has its real, wrapped-per-current-width height to measure.
-      reconcileLegendReserve(el, Plotly, height, legendReserveEstimate);
+      reconcileLegendReserve(el, Plotly, height, legendReserveEstimate, marginB);
     }
     plotDrawnRef.current = true;
     const dataTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-data');
@@ -1289,14 +1306,18 @@ export function SyChart({
         // computeLegendReservedHeight's items-per-row threshold.
         if (lastLegendResizeWidth === width) return;
         lastLegendResizeWidth = width;
+        // Same real-applied-margin requirement as the initial draw above (see
+        // `computeLegendLayoutOverrides`'s own comment) -- this is a separate effect closure, so
+        // it needs its own `effectiveBottomMargin` call rather than reusing the initial draw's.
+        const marginB = effectiveBottomMargin(xTitle);
         const estimate = computeLegendReservedHeight(width, series.length);
-        const overrides = computeLegendLayoutOverrides(height, estimate);
+        const overrides = computeLegendLayoutOverrides(height, estimate, marginB);
         Plotly.relayout(el, { height: overrides.height, 'margin.t': overrides.marginT, 'legend.y': overrides.legendY } as unknown as Partial<Layout>);
         // Same wrapper-height sync gap as the choropleth branch above -- growing Plotly's own
         // internal height for a wrapped legend without updating this div's own CSS height
         // lets the taller plot overflow the wrapper once it exceeds the fixed `height` prop.
         el.style.height = `${overrides.height}px`;
-        reconcileLegendReserve(el, Plotly, height, estimate);
+        reconcileLegendReserve(el, Plotly, height, estimate, marginB);
       });
       resizeObserver.observe(el);
     }
