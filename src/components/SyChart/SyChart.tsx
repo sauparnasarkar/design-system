@@ -85,8 +85,10 @@ export interface SyChartSeries {
   y: Array<number | null>;
   /** 'bar' (default), 'line', 'band' (shaded range, e.g. a confidence interval), 'area'
    * (stacked filled area -- every 'area' series in one chart shares a single stack, see
-   * `stackedAreaMode` on SyChartProps), 'choropleth', or 'treemap' */
-  kind?: 'bar' | 'line' | 'band' | 'area' | 'choropleth' | 'treemap';
+   * `stackedAreaMode` on SyChartProps), 'marker' (discrete tick marks, no connecting line --
+   * e.g. a net-value tick per bar; unlike 'line', points are never joined), 'choropleth', or
+   * 'treemap' */
+  kind?: 'bar' | 'line' | 'band' | 'area' | 'marker' | 'choropleth' | 'treemap';
   /** Lower bound for kind 'band'; `y` is the upper bound */
   yLower?: Array<number | null>;
   /** Fill opacity for kind 'band' (0–1). Defaults to 0.25. */
@@ -108,6 +110,13 @@ export interface SyChartSeries {
    * `pointColors` is also set (both take precedence).
    */
   colorByPoint?: boolean;
+  /**
+   * 'bar' only: a diagonal/cross hatch fill over this series' bar color, as a distinguishability
+   * fallback when two same-hued bar components (e.g. a lightened tint of the same base color)
+   * don't clear a 3:1 non-text contrast against each other on the chart panel. Plotly native
+   * `marker.pattern.shape`; omit for a flat fill (the existing default, unaffected).
+   */
+  pattern?: 'x' | '/' | '\\' | '|' | '-' | '+' | '.';
   /**
    * Continuous color scale for 'bar'/'choropleth'/'treemap' series (e.g. a magnitude- or
    * % change-driven gradient). Numeric values mapped through Plotly's native colorscale,
@@ -242,8 +251,15 @@ export interface SyChartAnnotation {
 
 export interface SyChartProps {
   series: SyChartSeries[];
-  /** How bar series combine */
-  barmode?: 'group' | 'stack';
+  /**
+   * How bar series combine. 'relative' (Plotly native) stacks each bar's components but keeps
+   * positive components above zero and negative components below it independently -- unlike
+   * 'stack', which places components end-to-end regardless of sign, so a mixed-sign stack (e.g.
+   * a positive price component and a negative quantity component on the same bar) doesn't read
+   * as a single additive total. Use 'relative' whenever a stacked series can carry components of
+   * either sign; 'stack' remains correct for same-sign-only stacks.
+   */
+  barmode?: 'group' | 'stack' | 'relative';
   /** Bar orientation — 'v' (default, categories on x) or 'h' (categories on y, values on x) */
   orientation?: 'v' | 'h';
   height?: number;
@@ -517,7 +533,17 @@ export function SyChart({
     const font = {
       family: cssVar(el, '--__s9cmpx-font-families-primary', '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'),
       size: 12,
-      color: cssVar(el, '--__s9cmpx-static-text-weak', '#757575'),
+      // Resolved against the chart PANEL's own text token, not the page's -- every consumer of
+      // this component paints the panel itself from `--__s9cmpx-chart-surface` (see the
+      // paper_bgcolor/plot_bgcolor comment below), so text drawn on it needs the token tuned for
+      // that background, not `--__s9cmpx-static-text-weak` (a page-relative grey that under-
+      // contrasts on a dark panel). `--__s9cmpx-chart-surface-text-weak` is defined by every
+      // theme in this family; a theme that doesn't define it falls back to the previous value via
+      // `cssVar`'s own fallback param, so this is additive, not a behavior change for any theme
+      // without the token. (Some "bright" themes additionally re-point Plotly's inline SVG fill
+      // via a `!important` CSS rule on `.xtick text`/`.xtitle`/etc. -- that rule stays as
+      // defense-in-depth and is now redundant with this fix, not superseded by it.)
+      color: cssVar(el, '--__s9cmpx-chart-surface-text-weak', cssVar(el, '--__s9cmpx-static-text-weak', '#757575')),
     };
     const data = series.flatMap((s, i): SyChartTrace[] => {
       const color = s.color ?? palette[i % palette.length];
@@ -806,6 +832,30 @@ export function SyChart({
           },
         ];
       }
+      if (s.kind === 'marker') {
+        // Discrete tick marks, deliberately never joined by a line (unlike 'line' kind) -- e.g.
+        // a net-value tick drawn per bar. `symbol` is fixed to a tick-shaped glyph rather than a
+        // caller option: this kind exists specifically for that one visual, not as a general
+        // markers-only scatter. Always an explicit, fully-populated `marker` object (never a key
+        // present with an undefined value) -- see the bar branch's identical note on why.
+        return [
+          {
+            type: 'scatter',
+            mode: 'markers',
+            name: s.name,
+            x: orientation === 'h' ? s.y : s.x,
+            y: orientation === 'h' ? s.x : s.y,
+            marker: {
+              color,
+              size: 11,
+              symbol: orientation === 'h' ? 'line-ns-open' : 'line-ew-open',
+              line: { color, width: 2 },
+            },
+            showlegend: false,
+            hoverinfo: 'skip',
+          },
+        ];
+      }
       const marker = s.colorValues
         ? {
             color: s.colorValues,
@@ -828,6 +878,11 @@ export function SyChart({
               : s.colorByPoint
                 ? s.x.map((_, idx) => palette[idx % palette.length])
                 : color,
+            // Spread only when set -- a `pattern` key present with an undefined shape still
+            // reaches Plotly's own pattern-handling branch and is safer left entirely absent,
+            // matching every other optional marker field's own conditional-spread convention
+            // in this file (see `colorRange` above).
+            ...(s.pattern ? { pattern: { shape: s.pattern } } : {}),
           };
       return [
         {

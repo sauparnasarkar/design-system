@@ -17,6 +17,15 @@ export interface SegmentedControlItem {
   /** Accessible name for icon-only segments (no `label`) — required in that
    * case, since the icon alone gives screen readers nothing to announce. */
   ariaLabel?: string;
+  /**
+   * Explanatory text for a `disabled` item (e.g. why this option isn't available right now).
+   * Rendered as the native `title` attribute, not this design system's own `Tooltip` component --
+   * `Tooltip`'s wrapper `span` sets `position: relative`, which would become this item's own
+   * `<label>`'s new `offsetParent` and silently break `measureHighlight`'s `offsetLeft`-based
+   * sliding-pill positioning below for any wrapped item. A native title has no layout footprint,
+   * side-stepping that entirely, at the cost of the richer `Tooltip` styling.
+   */
+  tooltip?: string;
 }
 
 export interface SegmentedControlProps {
@@ -110,6 +119,7 @@ export function SegmentedControl({
             // rule targets this exact compound shape; see that file for why the vendor CSS's
             // own descendant-combinator version of the same rule can never match it.
             className={cx('__s9cmpx-segmented-control__item', isActive && '__s9cmpx-segmented-control--active')}
+            title={item.tooltip}
           >
             <input
               type="radio"
