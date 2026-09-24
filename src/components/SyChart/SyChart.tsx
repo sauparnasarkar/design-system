@@ -239,6 +239,15 @@ export interface SyChartSeries {
    * own `customdata`.
    */
   hoverValue?: Array<string | null>;
+  /**
+   * 'marker' only: include this series in the fixed hover tooltip instead of the default
+   * silent hover (see the 'marker' kind's own doc comment on why it's silent by default).
+   * Opt-in, not automatic, since a 'marker' series is sometimes a pure visual annotation with
+   * nothing meaningful to add to a tooltip that already lists the bar/line series it overlays.
+   * Set this when the marker itself carries a real value the tooltip should surface (e.g. a net
+   * total tick over stacked bar components that individually cancel).
+   */
+  includeInHover?: boolean;
 }
 
 export interface SyChartAnnotation {
@@ -838,6 +847,12 @@ export function SyChart({
         // caller option: this kind exists specifically for that one visual, not as a general
         // markers-only scatter. Always an explicit, fully-populated `marker` object (never a key
         // present with an undefined value) -- see the bar branch's identical note on why.
+        // `size`/`line.width` kept deliberately small -- a real, live-confirmed case (a bar
+        // whose smaller stacked component is a thin sliver of the bar's total width) showed the
+        // marker's own footprint visually swallowing that thin segment's color/pattern
+        // entirely, making a correctly-positioned segment unreadable. Still visible against
+        // either chart-panel background at this size; just narrow enough to sit alongside a
+        // several-pixel-wide segment instead of covering it.
         return [
           {
             type: 'scatter',
@@ -847,12 +862,12 @@ export function SyChart({
             y: orientation === 'h' ? s.x : s.y,
             marker: {
               color,
-              size: 11,
+              size: 9,
               symbol: orientation === 'h' ? 'line-ns-open' : 'line-ew-open',
-              line: { color, width: 2 },
+              line: { color, width: 1.25 },
             },
             showlegend: false,
-            hoverinfo: 'skip',
+            hoverinfo: s.includeInHover ? undefined : 'skip',
           },
         ];
       }
@@ -925,6 +940,14 @@ export function SyChart({
     const needsLegendReserve = !hasChoropleth && showLegend && series.length > 3;
     const legendReserveEstimate = needsLegendReserve ? computeLegendReservedHeight(el.getBoundingClientRect().width, series.length) : 0;
     const legendOverrides = needsLegendReserve ? computeLegendLayoutOverrides(height, legendReserveEstimate) : null;
+    // BASE_MARGIN_B alone is sized for one line of tick labels, not an axis title drawn below
+    // them -- confirmed live (Top Position Changes, India Allocation Monitor): with an xTitle
+    // set, `xaxis.automargin` did not grow the requested bottom margin to include the title's
+    // own row, so the title rendered past the SVG's own bottom edge, onto whatever sits behind
+    // the chart panel's painted background (illegible there, since the title's ink color is
+    // resolved for the dark panel, not a light card). Only added when a title is actually
+    // present -- every other chart's margin is unaffected.
+    const marginB = xTitle ? BASE_MARGIN_B + 22 : BASE_MARGIN_B;
     const layout: SyChartLayout = {
       barmode,
       height: legendOverrides?.height ?? height,
@@ -958,7 +981,7 @@ export function SyChart({
       // margin (sized for a y-axis title) would otherwise reduce usable map width and
       // shift it off-center. Bottom margin is sized for the horizontal colorbar (title +
       // scale + tick labels) that now sits below the map rather than beside it.
-      margin: hasChoropleth ? { l: 8, r: 8, t: 8, b: 64 } : { l: 48, r: 8, t: legendOverrides?.marginT ?? BASE_MARGIN_T, b: BASE_MARGIN_B },
+      margin: hasChoropleth ? { l: 8, r: 8, t: 8, b: 64 } : { l: 48, r: 8, t: legendOverrides?.marginT ?? BASE_MARGIN_T, b: marginB },
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
       showlegend: showLegend,
