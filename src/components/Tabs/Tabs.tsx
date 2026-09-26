@@ -38,9 +38,9 @@ export function Tabs({
   className,
 }: TabsProps) {
   const [internal, setInternal] = React.useState(items[0]?.id);
-  const [focusIndex, setFocusIndex] = React.useState(() => {
-    const activeIndex = items.findIndex((i) => i.id === activeId);
-    return activeIndex !== -1 ? activeIndex : Math.max(items.findIndex((i) => !i.disabled), 0);
+  const [focusId, setFocusId] = React.useState(() => {
+    const activeItem = items.find((i) => i.id === activeId);
+    return activeItem?.id ?? items.find((i) => !i.disabled)?.id ?? items[0]?.id;
   });
   const active = activeId ?? internal;
   const tabRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
@@ -59,6 +59,7 @@ export function Tabs({
   // explanatory tooltip/title.
   const activeIndex = items.findIndex((i) => i.id === active);
   const firstEnabledIndex = items.findIndex((i) => !i.disabled);
+  const focusIndex = focusId ? items.findIndex((i) => i.id === focusId) : -1;
   const tabStopIndex =
     focusIndex >= 0 && focusIndex < items.length
       ? focusIndex
@@ -67,17 +68,18 @@ export function Tabs({
         : Math.max(firstEnabledIndex, 0);
 
   React.useEffect(() => {
-    setFocusIndex((current) => {
-      if (current >= 0 && current < items.length) return current;
-      if (activeIndex !== -1) return activeIndex;
-      return Math.max(firstEnabledIndex, 0);
+    setFocusId((current) => {
+      if (activeId !== undefined && activeIndex !== -1 && current !== activeId) return activeId;
+      if (current && items.some((item) => item.id === current)) return current;
+      if (activeIndex !== -1) return items[activeIndex].id;
+      return items[Math.max(firstEnabledIndex, 0)]?.id;
     });
-  }, [activeIndex, firstEnabledIndex, items.length]);
+  }, [activeId, activeIndex, firstEnabledIndex, items]);
 
   const focusAndSelect = (index: number) => {
     const item = items[index];
     if (!item) return;
-    setFocusIndex(index);
+    setFocusId(item.id);
     if (!item.disabled) select(item.id);
     tabRefs.current[index]?.focus();
   };
@@ -116,9 +118,9 @@ export function Tabs({
             item.disabled && '__s9cmpx-tab--disabled',
             lastItemRightAligned && i === items.length - 1 && '__s9cmpx-tab--last',
           )}
-          onFocus={() => setFocusIndex(i)}
+          onFocus={() => setFocusId(item.id)}
           onClick={() => {
-            setFocusIndex(i);
+            setFocusId(item.id);
             if (!item.disabled) select(item.id);
           }}
           onKeyDown={(e) => {
