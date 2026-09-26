@@ -8,6 +8,12 @@ export interface TabItem {
   id: string;
   label: React.ReactNode;
   disabled?: boolean;
+  /** Native `title` attribute shown on hover -- same convention as SegmentedControlItem's own
+   * `tooltip`, deliberately a plain title rather than the richer Tooltip component (no layout
+   * measurement to break here, but kept consistent so a caller can move between the two
+   * components without re-deriving how to explain a disabled item). Most useful paired with
+   * `disabled: true`, to say why. */
+  tooltip?: string;
 }
 
 export interface TabsProps {
@@ -88,6 +94,7 @@ export function Tabs({
           tabIndex={i === tabStopIndex ? 0 : -1}
           aria-selected={active === item.id}
           disabled={item.disabled}
+          title={item.tooltip}
           className={cx(
             '__s9cmpx-tab',
             `__s9cmpx-tab--${size}`,

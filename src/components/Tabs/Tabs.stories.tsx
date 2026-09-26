@@ -53,6 +53,21 @@ export const Playground: Story = {
   },
 };
 
+export const DisabledWithTooltip: Story = {
+  args: {
+    items: [
+      ...SECTOR_TABS.slice(0, 2),
+      { id: 'sparse', label: 'Sparse', disabled: true, tooltip: 'Only 4% of value is mapped for this bucket yet.' },
+    ],
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const sparse = canvas.getByRole('tab', { name: 'Sparse' });
+    await expect(sparse).toBeDisabled();
+    await expect(sparse).toHaveAttribute('title', 'Only 4% of value is mapped for this bucket yet.');
+  },
+};
+
 export const AllVariants: Story = {
   render: () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
