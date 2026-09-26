@@ -8,6 +8,12 @@ export interface TabItem {
   id: string;
   label: React.ReactNode;
   disabled?: boolean;
+  /** Native `title` attribute shown on hover -- same convention as SegmentedControlItem's own
+   * `tooltip`, deliberately a plain title rather than the richer Tooltip component (no layout
+   * measurement to break here, but kept consistent so a caller can move between the two
+   * components without re-deriving how to explain a disabled item). Most useful paired with
+   * `disabled: true`, to say why. */
+  tooltip?: string;
 }
 
 export interface TabsProps {
@@ -32,6 +38,10 @@ export function Tabs({
   className,
 }: TabsProps) {
   const [internal, setInternal] = React.useState(items[0]?.id);
+  const [focusId, setFocusId] = React.useState(() => {
+    const activeItem = items.find((i) => i.id === activeId);
+    return activeItem?.id ?? items.find((i) => !i.disabled)?.id ?? items[0]?.id;
+  });
   const active = activeId ?? internal;
   const tabRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
   // Callback refs only fire for indices React still renders, so a shrinking `items`
@@ -43,28 +53,40 @@ export function Tabs({
     onChange?.(id);
   };
 
-  // Roving tabindex (APG tabs pattern): only the active tab (or, if none is active, the
-  // first enabled one) sits in the Tab order; Arrow/Home/End move focus + selection
-  // together between the remaining enabled tabs.
+  // Roving tabindex (APG tabs pattern): only one tab sits in the Tab order at a time.
+  // Arrow/Home/End move focus across every rendered tab, but only enabled tabs change
+  // selection -- disabled tabs stay non-activatable while remaining reachable for their
+  // explanatory tooltip/title.
   const activeIndex = items.findIndex((i) => i.id === active);
   const firstEnabledIndex = items.findIndex((i) => !i.disabled);
-  const tabStopIndex = activeIndex !== -1 && !items[activeIndex].disabled ? activeIndex : firstEnabledIndex;
+  const focusIndex = focusId ? items.findIndex((i) => i.id === focusId) : -1;
+  const tabStopIndex =
+    focusIndex >= 0 && focusIndex < items.length
+      ? focusIndex
+      : activeIndex !== -1
+        ? activeIndex
+        : Math.max(firstEnabledIndex, 0);
+
+  React.useEffect(() => {
+    setFocusId((current) => {
+      if (activeId !== undefined && activeIndex !== -1 && current !== activeId) return activeId;
+      if (current && items.some((item) => item.id === current)) return current;
+      if (activeIndex !== -1) return items[activeIndex].id;
+      return items[Math.max(firstEnabledIndex, 0)]?.id;
+    });
+  }, [activeId, activeIndex, firstEnabledIndex, items]);
 
   const focusAndSelect = (index: number) => {
     const item = items[index];
-    if (!item || item.disabled) return;
-    select(item.id);
+    if (!item) return;
+    setFocusId(item.id);
+    if (!item.disabled) select(item.id);
     tabRefs.current[index]?.focus();
   };
 
   const moveFocus = (from: number, delta: number) => {
     if (items.length === 0) return;
-    let next = from;
-    for (let i = 0; i < items.length; i++) {
-      next = (next + delta + items.length) % items.length;
-      if (!items[next].disabled) break;
-    }
-    focusAndSelect(next);
+    focusAndSelect((from + delta + items.length) % items.length);
   };
 
   return (
@@ -87,7 +109,8 @@ export function Tabs({
           type="button"
           tabIndex={i === tabStopIndex ? 0 : -1}
           aria-selected={active === item.id}
-          disabled={item.disabled}
+          aria-disabled={item.disabled || undefined}
+          title={item.tooltip}
           className={cx(
             '__s9cmpx-tab',
             `__s9cmpx-tab--${size}`,
@@ -95,7 +118,11 @@ export function Tabs({
             item.disabled && '__s9cmpx-tab--disabled',
             lastItemRightAligned && i === items.length - 1 && '__s9cmpx-tab--last',
           )}
-          onClick={() => select(item.id)}
+          onFocus={() => setFocusId(item.id)}
+          onClick={() => {
+            setFocusId(item.id);
+            if (!item.disabled) select(item.id);
+          }}
           onKeyDown={(e) => {
             if (e.key === 'ArrowRight') {
               e.preventDefault();
@@ -109,6 +136,8 @@ export function Tabs({
             } else if (e.key === 'End') {
               e.preventDefault();
               moveFocus(0, -1);
+            } else if (item.disabled && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
             }
           }}
         >

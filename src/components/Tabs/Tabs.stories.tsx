@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
 import { Tabs } from './Tabs';
@@ -9,6 +10,19 @@ const SECTOR_TABS = [
   { id: 'ratings', label: 'Ratings Research' },
   { id: 'insights', label: 'Insights' },
 ];
+
+function ControlledTabsStory() {
+  const [activeId, setActiveId] = React.useState('overview');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <button type="button" onClick={() => setActiveId('research')}>
+        Activate Research
+      </button>
+      <Tabs items={SECTOR_TABS} activeId={activeId} onChange={setActiveId} />
+    </div>
+  );
+}
 
 const meta: Meta<typeof Tabs> = {
   title: 'Components/Tabs',
@@ -50,6 +64,46 @@ export const Playground: Story = {
     await userEvent.keyboard('{Home}');
     await expect(overview).toHaveFocus();
     await expect(overview).toHaveAttribute('aria-selected', 'true');
+  },
+};
+
+export const DisabledWithTooltip: Story = {
+  args: {
+    items: [
+      ...SECTOR_TABS.slice(0, 2),
+      { id: 'sparse', label: 'Sparse', disabled: true, tooltip: 'Only 4% of value is mapped for this bucket yet.' },
+    ],
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const overview = canvas.getByRole('tab', { name: 'Overview' });
+    const issuers = canvas.getByRole('tab', { name: 'Issuers' });
+    const sparse = canvas.getByRole('tab', { name: 'Sparse' });
+    overview.focus();
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}');
+    await expect(sparse).toHaveFocus();
+    await expect(issuers).toHaveAttribute('aria-selected', 'true');
+    await expect(sparse).toHaveAttribute('aria-selected', 'false');
+    await userEvent.click(sparse);
+    await expect(issuers).toHaveAttribute('aria-selected', 'true');
+    await expect(sparse).toHaveAttribute('aria-disabled', 'true');
+    await expect(sparse).toHaveAttribute('title', 'Only 4% of value is mapped for this bucket yet.');
+  },
+};
+
+export const ControlledActiveIdSync: Story = {
+  render: () => <ControlledTabsStory />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const activateResearch = canvas.getByRole('button', { name: 'Activate Research' });
+    const overview = canvas.getByRole('tab', { name: 'Overview' });
+    const research = canvas.getByRole('tab', { name: 'Research' });
+
+    await expect(overview).toHaveAttribute('tabindex', '0');
+    await userEvent.click(activateResearch);
+    await expect(research).toHaveAttribute('aria-selected', 'true');
+    await expect(research).toHaveAttribute('tabindex', '0');
+    await expect(overview).toHaveAttribute('tabindex', '-1');
   },
 };
 
