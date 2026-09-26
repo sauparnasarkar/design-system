@@ -62,8 +62,17 @@ export const DisabledWithTooltip: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    const overview = canvas.getByRole('tab', { name: 'Overview' });
+    const issuers = canvas.getByRole('tab', { name: 'Issuers' });
     const sparse = canvas.getByRole('tab', { name: 'Sparse' });
-    await expect(sparse).toBeDisabled();
+    overview.focus();
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}');
+    await expect(sparse).toHaveFocus();
+    await expect(issuers).toHaveAttribute('aria-selected', 'true');
+    await expect(sparse).toHaveAttribute('aria-selected', 'false');
+    await userEvent.click(sparse);
+    await expect(issuers).toHaveAttribute('aria-selected', 'true');
+    await expect(sparse).toHaveAttribute('aria-disabled', 'true');
     await expect(sparse).toHaveAttribute('title', 'Only 4% of value is mapped for this bucket yet.');
   },
 };

@@ -38,6 +38,10 @@ export function Tabs({
   className,
 }: TabsProps) {
   const [internal, setInternal] = React.useState(items[0]?.id);
+  const [focusIndex, setFocusIndex] = React.useState(() => {
+    const activeIndex = items.findIndex((i) => i.id === activeId);
+    return activeIndex !== -1 ? activeIndex : Math.max(items.findIndex((i) => !i.disabled), 0);
+  });
   const active = activeId ?? internal;
   const tabRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
   // Callback refs only fire for indices React still renders, so a shrinking `items`
@@ -49,28 +53,38 @@ export function Tabs({
     onChange?.(id);
   };
 
-  // Roving tabindex (APG tabs pattern): only the active tab (or, if none is active, the
-  // first enabled one) sits in the Tab order; Arrow/Home/End move focus + selection
-  // together between the remaining enabled tabs.
+  // Roving tabindex (APG tabs pattern): only one tab sits in the Tab order at a time.
+  // Arrow/Home/End move focus across every rendered tab, but only enabled tabs change
+  // selection -- disabled tabs stay non-activatable while remaining reachable for their
+  // explanatory tooltip/title.
   const activeIndex = items.findIndex((i) => i.id === active);
   const firstEnabledIndex = items.findIndex((i) => !i.disabled);
-  const tabStopIndex = activeIndex !== -1 && !items[activeIndex].disabled ? activeIndex : firstEnabledIndex;
+  const tabStopIndex =
+    focusIndex >= 0 && focusIndex < items.length
+      ? focusIndex
+      : activeIndex !== -1
+        ? activeIndex
+        : Math.max(firstEnabledIndex, 0);
+
+  React.useEffect(() => {
+    setFocusIndex((current) => {
+      if (current >= 0 && current < items.length) return current;
+      if (activeIndex !== -1) return activeIndex;
+      return Math.max(firstEnabledIndex, 0);
+    });
+  }, [activeIndex, firstEnabledIndex, items.length]);
 
   const focusAndSelect = (index: number) => {
     const item = items[index];
-    if (!item || item.disabled) return;
-    select(item.id);
+    if (!item) return;
+    setFocusIndex(index);
+    if (!item.disabled) select(item.id);
     tabRefs.current[index]?.focus();
   };
 
   const moveFocus = (from: number, delta: number) => {
     if (items.length === 0) return;
-    let next = from;
-    for (let i = 0; i < items.length; i++) {
-      next = (next + delta + items.length) % items.length;
-      if (!items[next].disabled) break;
-    }
-    focusAndSelect(next);
+    focusAndSelect((from + delta + items.length) % items.length);
   };
 
   return (
@@ -93,7 +107,7 @@ export function Tabs({
           type="button"
           tabIndex={i === tabStopIndex ? 0 : -1}
           aria-selected={active === item.id}
-          disabled={item.disabled}
+          aria-disabled={item.disabled || undefined}
           title={item.tooltip}
           className={cx(
             '__s9cmpx-tab',
@@ -102,7 +116,11 @@ export function Tabs({
             item.disabled && '__s9cmpx-tab--disabled',
             lastItemRightAligned && i === items.length - 1 && '__s9cmpx-tab--last',
           )}
-          onClick={() => select(item.id)}
+          onFocus={() => setFocusIndex(i)}
+          onClick={() => {
+            setFocusIndex(i);
+            if (!item.disabled) select(item.id);
+          }}
           onKeyDown={(e) => {
             if (e.key === 'ArrowRight') {
               e.preventDefault();
@@ -116,6 +134,8 @@ export function Tabs({
             } else if (e.key === 'End') {
               e.preventDefault();
               moveFocus(0, -1);
+            } else if (item.disabled && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
             }
           }}
         >
