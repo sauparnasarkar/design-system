@@ -64,6 +64,16 @@ export interface DataTableProps<Row> {
    * component's existing `onRowActivate` convention of doing nothing extra unless a caller asks.
    */
   exportFileName?: string;
+  /**
+   * Shows AG Grid's own loading overlay (a spinner) instead of the "No Rows" overlay while a
+   * caller's data fetch is still in flight. Pass `true` for as long as `rows` reflects "nothing
+   * fetched yet" rather than "fetched and genuinely empty" -- AG Grid's default behavior treats
+   * an empty `rows` array as already-loaded-and-empty (correctly showing "No Rows"), so a caller
+   * whose fetch hasn't resolved yet must say so explicitly or every table looks like a confirmed
+   * empty result for the entire duration of its first load. Omit or pass `false` once the fetch
+   * settles, even if it resolved to zero rows -- that's when "No Rows" is the accurate message.
+   */
+  loading?: boolean;
 }
 
 /**
@@ -81,6 +91,7 @@ export function DataTable<Row>({
   className,
   onRowActivate,
   exportFileName,
+  loading,
 }: DataTableProps<Row>) {
   const defaultColDef = React.useMemo<ColDef<Row>>(
     () => ({
@@ -218,6 +229,7 @@ export function DataTable<Row>({
         theme="legacy"
         columnDefs={columns}
         rowData={rows}
+        loading={loading}
         defaultColDef={defaultColDef}
         rowClass={striped ? '__s9cmpx-table__row--default-appearance' : undefined}
         suppressCellFocus
