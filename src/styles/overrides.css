@@ -131,6 +131,23 @@
   border: 1.5px solid var(--__s9cmpx-interactive-outline-primary-selected-default);
 }
 
+/* size="small" has no min-height at all in the vendor CSS -- its item-content is `padding:2px
+   6px` around an 11px label with no explicit height, landing around 20px tall in practice
+   (confirmed live, e.g. India Allocation Monitor's own horizon toggles). That's below the ~24px
+   floor most touch/click-target guidance treats as a comfortable minimum for a real interactive
+   control (not just informational text at that size), so every non-square `size="small"`
+   consumer gets it raised here, once, rather than each one padding its own usage locally (Claude
+   Design review, this app's own Position Changes cohorts widget). 28px matches this control's
+   own `medium` size step, so `small` differs from `medium` in padding/font only, never in
+   minimum hit-target height. `:not(--square)` excludes the icon-only square variant, whose
+   vendor rule deliberately fixes BOTH height and width to a matched 20px square (`height:20px;
+   width:20px`) for a compact icon button -- forcing min-height there would grow the box without
+   growing its own icon or width to match, distorting it into a non-square rectangle instead of
+   the deliberately compact icon button the vendor CSS specifies. */
+.__s9cmpx-segmented-control--small:not(.__s9cmpx-segmented-control--square) .__s9cmpx-segmented-control__item-content {
+  min-height: 28px;
+}
+
 /* AG Grid reuses the class name `ag-body-horizontal-scroll` for two different things: the
    dedicated scrollbar-track element, and a *state* class it also stamps onto `.ag-root` itself
    whenever the grid's content actually needs horizontal scrolling (confirmed live via the DOM --
