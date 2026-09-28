@@ -19,6 +19,7 @@ import {
   logColorbarTicks,
   noDataHovertemplate,
   resolveTileColors,
+  shouldCancelTreemapClick,
   syPalette,
   withAlpha,
 } from './chartMath';
@@ -222,10 +223,9 @@ export interface SyChartSeries {
   percentOfLabel?: string;
   /**
    * 'treemap' only: called with (pointNumber, label) when a tile is tapped/clicked, in place
-   * of Plotly's default click-to-zoom-in behavior (which this component always cancels for
-   * treemaps — see SPEC.md §5.10: with `parents` always flat/empty there's nothing to
-   * legitimately drill into, and the drilled state has no way back out on touch, since
-   * `pathbar` isn't shown and a second tap doesn't return to root).
+   * of Plotly's default click-to-zoom-in behavior. When omitted, a flat treemap still cancels
+   * Plotly's native drill behavior (there is nowhere legitimate to drill into), but a
+   * hierarchical treemap keeps Plotly's default drilldown path.
    */
   onTileClick?: (pointNumber: number, label: string) => void;
   /**
@@ -1185,10 +1185,9 @@ function SyChartPlotly({
         () => Plotly.relayout(el, { 'geo.projection.scale': 1, 'geo.center': null } as unknown as Partial<Layout>)
       : null;
 
-    // Treemap tiles are flat (parents always '' -- see SPEC.md §5.10), so Plotly's default
-    // click-to-zoom-in has nothing legitimate to drill into and no way back out on touch
-    // (no pathbar, a second tap doesn't return to root). Cancel the zoom (return false) and
-    // surface the tap via onTileClick instead, if the caller wants it.
+    // Cancel Plotly's default treemap drill only for flat treemaps (nothing legitimate to drill
+    // into) or when the caller explicitly overrides the click via onTileClick. Hierarchical
+    // treemaps without an override should keep Plotly's native drilldown path.
     let detachTreemapClick: (() => void) | undefined;
     let detachPointClick: (() => void) | undefined;
     if (series.some((s) => s.kind === 'treemap')) {
@@ -1206,7 +1205,7 @@ function SyChartPlotly({
         if (point && treemapSeries?.onTileClick) {
           treemapSeries.onTileClick(point.pointNumber, point.label);
         }
-        return false;
+        return shouldCancelTreemapClick(treemapSeries?.parents, treemapSeries?.onTileClick) ? false : true;
       };
       plotlyEl.on('plotly_treemapclick', handleTreemapClick);
       detachTreemapClick = () => plotlyEl.removeListener?.('plotly_treemapclick', handleTreemapClick);

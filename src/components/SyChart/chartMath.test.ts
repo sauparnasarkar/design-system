@@ -8,6 +8,7 @@ import {
   noDataHovertemplate,
   pickTileInk,
   resolveTileColors,
+  shouldCancelTreemapClick,
   squarify,
   withAlpha,
 } from './chartMath';
@@ -182,6 +183,20 @@ describe('hasOnlyFlatTreemapParents', () => {
 
   it('rejects any non-empty parent label as hierarchical', () => {
     expect(hasOnlyFlatTreemapParents(['', 'Root', ''])).toBe(false);
+  });
+});
+
+describe('shouldCancelTreemapClick', () => {
+  it('cancels flat treemap clicks so Plotly does not drill into nowhere', () => {
+    expect(shouldCancelTreemapClick(['', ''])).toBe(true);
+  });
+
+  it('cancels when a caller provides onTileClick, even for hierarchical data', () => {
+    expect(shouldCancelTreemapClick(['', 'Root'], () => undefined)).toBe(true);
+  });
+
+  it('allows Plotly native drilldown for hierarchical treemaps without onTileClick', () => {
+    expect(shouldCancelTreemapClick(['', 'Root'])).toBe(false);
   });
 });
 

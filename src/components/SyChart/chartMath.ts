@@ -141,6 +141,12 @@ export function hasOnlyFlatTreemapParents(parents?: string[]): boolean {
   return !parents?.some((parent) => parent.trim() !== '');
 }
 
+/** Plotly treemap clicks should only be cancelled when a flat treemap would otherwise try to
+ * drill into nowhere, or when the caller is deliberately overriding the click with onTileClick. */
+export function shouldCancelTreemapClick(parents?: string[], onTileClick?: unknown): boolean {
+  return !!onTileClick || hasOnlyFlatTreemapParents(parents);
+}
+
 /** One squarified-treemap tile input: `idx` is the caller's own original array position (so a
  * caller can map a returned rect back to its own parallel `labels`/`tileColors`/etc. arrays
  * regardless of the sort/filter this function's caller applies before calling), `value` its
