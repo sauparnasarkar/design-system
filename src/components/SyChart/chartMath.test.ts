@@ -9,6 +9,7 @@ import {
   pickTileInk,
   resolveTileColors,
   shouldCancelTreemapClick,
+  shouldUseSquarifiedTreemap,
   squarify,
   withAlpha,
 } from './chartMath';
@@ -197,6 +198,24 @@ describe('shouldCancelTreemapClick', () => {
 
   it('allows Plotly native drilldown for hierarchical treemaps without onTileClick', () => {
     expect(shouldCancelTreemapClick(['', 'Root'])).toBe(false);
+  });
+});
+
+describe('shouldUseSquarifiedTreemap', () => {
+  it('allows the custom renderer for a single flat treemap with discrete colors', () => {
+    expect(shouldUseSquarifiedTreemap(1, ['', ''])).toBe(true);
+  });
+
+  it('rejects hierarchical treemaps so they stay on Plotly', () => {
+    expect(shouldUseSquarifiedTreemap(1, ['', 'Root'])).toBe(false);
+  });
+
+  it('rejects treemaps with continuous colorValues so Plotly keeps the color axis', () => {
+    expect(shouldUseSquarifiedTreemap(1, ['', ''], [1, 2])).toBe(false);
+  });
+
+  it('rejects multi-series charts so other traces are not dropped', () => {
+    expect(shouldUseSquarifiedTreemap(2, ['', ''])).toBe(false);
   });
 });
 

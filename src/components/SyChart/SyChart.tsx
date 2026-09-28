@@ -20,6 +20,7 @@ import {
   noDataHovertemplate,
   resolveTileColors,
   shouldCancelTreemapClick,
+  shouldUseSquarifiedTreemap,
   syPalette,
   withAlpha,
 } from './chartMath';
@@ -256,12 +257,13 @@ export interface SyChartSeries {
    * custom squarified layout (Bruls/Huizing/van Wijk, see `chartMath.ts::squarify`) with a
    * dark-frame/bordered-tile visual (from a Claude Design review of the Taxonomy Drill-Down
    * page) and a secondary `tileMeta` line per tile -- discrete `tileColors` fills only, no
-   * continuous scale/colorbar support. Flat treemaps only: if `parents` contains any non-empty
-   * hierarchy, `SyChart` falls back to Plotly's native treemap trace even when this is set to
-   * 'squarified', so hierarchical data never renders incorrectly as a flattened tile list.
-   * Opt-in, not the default, so neither existing consumer (this app's own Storybook usage, or
-   * climate-emissions-analysis-project's ScenarioComparisonPage, which relies on the
-   * continuous-scale path) changes appearance without asking for it.
+   * continuous scale/colorbar support. `SyChart` only uses this custom path for a chart made of
+   * exactly one flat treemap series with no `colorValues`; hierarchical data, continuous-color
+   * treemaps, or multi-series charts automatically fall back to Plotly's native treemap path so
+   * they keep their supported behavior. Opt-in, not the default, so neither existing consumer
+   * (this app's own Storybook usage, or climate-emissions-analysis-project's
+   * ScenarioComparisonPage, which relies on the continuous-scale path) changes appearance
+   * without asking for it.
    */
   treemapLayout?: 'plotly' | 'squarified';
   /**
@@ -502,8 +504,10 @@ function syDivergingScale(el: Element): Array<[number, string]> {
  * component call the same hooks in the same order on every render.
  */
 export function SyChart(props: SyChartProps) {
-  const squarifiedTreemapSeries = props.series.find(
-    (s) => s.kind === 'treemap' && s.treemapLayout === 'squarified' && hasOnlyFlatTreemapParents(s.parents),
+  const squarifiedTreemapSeries = props.series.find((s) =>
+    s.kind === 'treemap' &&
+    s.treemapLayout === 'squarified' &&
+    shouldUseSquarifiedTreemap(props.series.length, s.parents, s.colorValues),
   );
   if (squarifiedTreemapSeries) {
     return (

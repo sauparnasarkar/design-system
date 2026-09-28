@@ -147,6 +147,12 @@ export function shouldCancelTreemapClick(parents?: string[], onTileClick?: unkno
   return !!onTileClick || hasOnlyFlatTreemapParents(parents);
 }
 
+/** The custom squarified treemap renderer is only valid for a chart that consists of exactly one
+ * flat treemap series and uses discrete tile colors rather than Plotly's continuous color axis. */
+export function shouldUseSquarifiedTreemap(seriesCount: number, parents?: string[], colorValues?: Array<number | null>): boolean {
+  return seriesCount === 1 && hasOnlyFlatTreemapParents(parents) && colorValues == null;
+}
+
 /** One squarified-treemap tile input: `idx` is the caller's own original array position (so a
  * caller can map a returned rect back to its own parallel `labels`/`tileColors`/etc. arrays
  * regardless of the sort/filter this function's caller applies before calling), `value` its
