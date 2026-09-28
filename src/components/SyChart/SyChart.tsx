@@ -202,6 +202,21 @@ export interface SyChartSeries {
    */
   valueLabel?: string;
   /**
+   * 'treemap' only: appended, in parentheses, after a tile's own percent-of-shown-total in its
+   * hover text (e.g. "of classified value", producing "34.2% of classified value"). Plotly's
+   * own default treemap hover shows a bare, unlabeled percent-of-root figure -- for a flat
+   * treemap whose `values` don't cover every real category (e.g. a caller that excludes an
+   * "unclassified"/"not applicable" bucket from the tiles entirely rather than letting one
+   * oversized tile dominate the chart), that bare percent is silently a DIFFERENT denominator
+   * than "percent of the true grand total" a reader would assume, or than another view's own
+   * "Share of Total" column computes against the real total -- the same bucket can legitimately
+   * show two different percentages in two places with no way to tell why. Required to opt into
+   * treemap's own percent showing in hover at all (omitted: no percent shown, matching this
+   * component's original behavior before this prop existed) -- a caller must state which base
+   * its own `values` represent, not just get one for free.
+   */
+  percentOfLabel?: string;
+  /**
    * 'treemap' only: called with (pointNumber, label) when a tile is tapped/clicked, in place
    * of Plotly's default click-to-zoom-in behavior (which this component always cancels for
    * treemaps — see SPEC.md §5.10: with `parents` always flat/empty there's nothing to
@@ -686,9 +701,16 @@ export function SyChart({
         const formattedDeltas = s.colorValues?.map((v) =>
           v == null ? null : `${v >= 0 ? '+' : ''}${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
         );
+        // Plotly's own %{percentRoot} is always available on any treemap trace regardless of
+        // colorValues -- it's just never shown unless a caller opts in via percentOfLabel (see
+        // that prop's own doc comment for why this must be an explicit, labeled opt-in rather
+        // than a bare percentage shown by default).
+        const percentClause = s.percentOfLabel ? ` (%{percentRoot:.1%} ${s.percentOfLabel})` : '';
         const hovertemplate = s.colorValues
-          ? `%{label}<br>${s.valueLabel ?? 'Value'}: %{value:,.0f}${unit}<br>${s.colorbarTitle ?? 'Color'}: %{customdata}${unit}<extra></extra>`
-          : undefined;
+          ? `%{label}<br>${s.valueLabel ?? 'Value'}: %{value:,.0f}${unit}${percentClause}<br>${s.colorbarTitle ?? 'Color'}: %{customdata}${unit}<extra></extra>`
+          : s.percentOfLabel
+            ? `%{label}<br>${s.valueLabel ?? 'Value'}: %{value:,.0f}${unit}${percentClause}<extra></extra>`
+            : undefined;
         return [
           {
             type: 'treemap',
