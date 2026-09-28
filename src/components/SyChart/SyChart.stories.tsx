@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, fn, waitFor, within } from 'storybook/test';
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
 import { SyChart } from './SyChart';
 import { ChartCard } from './ChartCard';
 import { Select } from '../Select/Select';
@@ -458,6 +458,56 @@ export const TreemapWithoutColorValues: Story = {
     const canvas = within(canvasElement);
     const card = canvas.getByText('Cumulative BAU Emissions, Sized by Total');
     await expect(card).not.toBeNull();
+  },
+};
+
+/**
+ * The custom squarified-layout treemap renderer (`treemapLayout: 'squarified'`) -- a separate
+ * component from Plotly's native treemap trace above, with no shared render path, so it needs
+ * its own mount/interaction coverage rather than relying on the Plotly treemap stories to stand
+ * in for it (Copilot review: previously nothing exercised the dispatcher, ResizeObserver sizing,
+ * theme fallback, or tile click behavior for this renderer at all). Real discrete `tileColors`
+ * (not Plotly's continuous scale, which this layout doesn't support) and an `onTileClick`
+ * handler exercised by the play function below.
+ */
+export const SquarifiedTreemap: Story = {
+  args: { onTileClick: fn() },
+  render: (args) => {
+    const sectors = ['Financials', 'Communication Services', 'Industrials', 'Health Care'];
+    const values = [5250, 2430, 2010, 1180];
+    return (
+      <ChartCard title="Sector Breakdown (Squarified)" onDownload={() => {}}>
+        <SyChart
+          height={360}
+          showLegend={false}
+          series={[{
+            name: 'sector',
+            x: [],
+            y: [],
+            kind: 'treemap',
+            treemapLayout: 'squarified',
+            labels: sectors,
+            parents: sectors.map(() => ''),
+            values,
+            // Deliberately dark, low-luminance fills (not the mid-tone hues a real taxonomy
+            // treemap might use) -- picked so the auto-contrast ink `SquarifiedTreemap` falls
+            // back to when no `tileLabelColors` is given (see `chartMath.ts::pickTileInk`)
+            // reliably clears the repo's own 4.5:1 axe color-contrast gate, rather than landing
+            // in the mid-luminance range where its 0.3-threshold dark/light choice can pick an
+            // ink that clears the threshold but not the real WCAG ratio.
+            tileColors: ['#7C2D12', '#1E3A8A', '#134E4A', '#7F1D1D'],
+            tileMeta: values.map((v) => `$${(v / 1000).toFixed(2)}B`),
+            onTileClick: args.onTileClick,
+          }]}
+        />
+      </ChartCard>
+    );
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    const tile = await waitFor(() => canvas.getByText('Financials'));
+    await userEvent.click(tile);
+    await waitFor(() => expect(args.onTileClick).toHaveBeenCalledWith(0, 'Financials'));
   },
 };
 

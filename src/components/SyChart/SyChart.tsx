@@ -12,13 +12,18 @@ import type { Topology } from 'topojson-specification';
 import { cx } from '../../lib/cx';
 import {
   choroplethHovertemplate,
+  cssVar,
   filterNoData,
   formatChartValue,
   logColorbarTicks,
   noDataHovertemplate,
   resolveTileColors,
+  shouldCancelTreemapClick,
+  shouldUseSquarifiedTreemap,
+  syPalette,
   withAlpha,
 } from './chartMath';
+import { SquarifiedTreemap } from './SquarifiedTreemap';
 
 // `PlotData.type: PlotType` already covers every trace kind this component emits (bar/scatter/
 // choropleth/treemap), so a single `Partial<PlotData>` element type is enough -- no need for a
@@ -218,10 +223,9 @@ export interface SyChartSeries {
   percentOfLabel?: string;
   /**
    * 'treemap' only: called with (pointNumber, label) when a tile is tapped/clicked, in place
-   * of Plotly's default click-to-zoom-in behavior (which this component always cancels for
-   * treemaps — see SPEC.md §5.10: with `parents` always flat/empty there's nothing to
-   * legitimately drill into, and the drilled state has no way back out on touch, since
-   * `pathbar` isn't shown and a second tap doesn't return to root).
+   * of Plotly's default click-to-zoom-in behavior. When omitted, a flat treemap still cancels
+   * Plotly's native drill behavior (there is nowhere legitimate to drill into), but a
+   * hierarchical treemap keeps Plotly's default drilldown path.
    */
   onTileClick?: (pointNumber: number, label: string) => void;
   /**
@@ -244,6 +248,30 @@ export interface SyChartSeries {
    * omitted, Plotly's own default per-tile contrast applies exactly as before.
    */
   tileLabelColors?: string[];
+  /**
+   * 'treemap' only: which renderer draws the tiles. 'plotly' (default) is Plotly's own native
+   * treemap trace -- required for `colorValues`/`colorScale`/`colorRange`/`colorbarTitle`'s
+   * continuous-gradient-plus-colorbar-legend rendering, which this component has no
+   * squarified-layout equivalent for yet. 'squarified' renders `SquarifiedTreemap` instead: a
+   * custom squarified layout (Bruls/Huizing/van Wijk, see `chartMath.ts::squarify`) with a
+   * dark-frame/bordered-tile visual (from a Claude Design review of the Taxonomy Drill-Down
+   * page) and a secondary `tileMeta` line per tile -- discrete `tileColors` fills only, no
+   * continuous scale/colorbar support. `SyChart` only uses this custom path for a chart made of
+   * exactly one flat treemap series with no `colorValues`; hierarchical data, continuous-color
+   * treemaps, or multi-series charts automatically fall back to Plotly's native treemap path so
+   * they keep their supported behavior. Opt-in, not the default, so neither existing consumer
+   * (this app's own Storybook usage, or climate-emissions-analysis-project's
+   * ScenarioComparisonPage, which relies on the continuous-scale path) changes appearance
+   * without asking for it.
+   */
+  treemapLayout?: 'plotly' | 'squarified';
+  /**
+   * 'treemap' with `treemapLayout: 'squarified'` only: a secondary line of text per tile,
+   * parallel to `labels` (e.g. "$5.25B · 14.8%") shown below the tile's name once the tile is
+   * large enough to fit it. No equivalent in the 'plotly' renderer, which only ever shows a
+   * label plus its own hover tooltip.
+   */
+  tileMeta?: string[];
   /**
    * 'line' only: one pre-formatted string per point (parallel to `x`/`y`), shown in the fixed
    * hover tooltip IN PLACE OF the plotted `y` value. For a series plotted on a scale that isn't
@@ -340,13 +368,6 @@ export interface SyChartProps {
    */
   ariaLabel?: string;
   className?: string;
-}
-
-function cssVar(el: Element, name: string, fallback: string): string {
-  if (typeof window === 'undefined') return fallback;
-  // resolve against the component's own element so [data-theme] wrappers apply
-  const v = getComputedStyle(el).getPropertyValue(name).trim();
-  return v || fallback;
 }
 
 // A wrapped horizontal legend (see layout.legend below) needs real vertical space reserved
@@ -447,13 +468,6 @@ function reconcileLegendReserve(el: HTMLElement, plotly: typeof Plotly, baseHeig
   el.style.height = `${overrides.height}px`;
 }
 
-// -10 matches the vendor base theme's own default for that slot (#c42338) -- this array is
-// the JS-level fallback for when no [data-theme] CSS var resolves at all (e.g. SSR), so it
-// should track the vendor base theme, not the analytics themes' own red/green-avoiding
-// constraint (that constraint lives in each analytics theme's own [data-theme] CSS, added
-// alongside their -01..-09 tokens -- see analytics.css and siblings for their -10 entries).
-const FALLBACK_PALETTE = ['#7accf5', '#e66066', '#d19e27', '#87ca65', '#fed26a', '#be8cd7', '#3950c4', '#a333a1', '#46b7b7', '#c42338'];
-
 // Brown/teal ColorBrewer "BrBG" endpoints (independently verified colorblind-safe for a
 // diverging encoding, unlike red/green) with a neutral midpoint -- syDivergingScale below
 // re-points that midpoint at the theme's own dark chart panel instead of this literal grey,
@@ -463,10 +477,6 @@ const DEFAULT_CONTINUOUS_SCALE: Array<[number, string]> = [
   [0.5, '#E5E5E5'],
   [1, '#5AB4AC'],
 ];
-
-function syPalette(el: Element): string[] {
-  return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--__s9cmpx-chart-categorical-default-${String(i + 1).padStart(2, '0')}`, fb));
-}
 
 /**
  * Theme-aware diverging scale for `colorValues` series with no explicit `colorScale` --
@@ -484,12 +494,46 @@ function syDivergingScale(el: Element): Array<[number, string]> {
 }
 
 /**
+ * Chart entry point. Dispatches a `treemapLayout: 'squarified'` treemap series to
+ * `SquarifiedTreemap` (see that prop's own doc comment for why this is opt-in rather than a
+ * full replacement of the Plotly treemap path); every other chart, including a 'plotly'
+ * (default) treemap, renders via `SyChartPlotly` below, completely unchanged. A dedicated
+ * top-level dispatcher rather than a branch inside `SyChartPlotly`'s own body -- the two
+ * renderers share no hooks, and branching internally would violate React's rule that a
+ * component call the same hooks in the same order on every render.
+ */
+export function SyChart(props: SyChartProps) {
+  const squarifiedTreemapSeries = props.series.find((s) =>
+    s.kind === 'treemap' &&
+    s.treemapLayout === 'squarified' &&
+    shouldUseSquarifiedTreemap(props.series.length, s.parents, s.colorValues),
+  );
+  if (squarifiedTreemapSeries) {
+    return (
+      <SquarifiedTreemap
+        labels={squarifiedTreemapSeries.labels ?? []}
+        values={squarifiedTreemapSeries.values ?? []}
+        tileColors={squarifiedTreemapSeries.tileColors}
+        tileLabelColors={squarifiedTreemapSeries.tileLabelColors}
+        tileMeta={squarifiedTreemapSeries.tileMeta}
+        hoverUnit={squarifiedTreemapSeries.hoverUnit}
+        onTileClick={squarifiedTreemapSeries.onTileClick}
+        height={props.height}
+        className={props.className}
+        ariaLabel={props.ariaLabel}
+      />
+    );
+  }
+  return <SyChartPlotly {...props} />;
+}
+
+/**
  * Plotly chart in the `__s9cmpx-chart` / `__s9cmpx-chart-plotly` wrapper — the charting
  * stack used across data products. Shapes: single-series column,
  * stacked column (+ line overlay), grouped column, multi-series line, and
  * shaded bands (forecast confidence intervals) with optional reference line.
  */
-export function SyChart({
+function SyChartPlotly({
   series,
   barmode = 'group',
   orientation = 'v',
@@ -1144,10 +1188,9 @@ export function SyChart({
         () => Plotly.relayout(el, { 'geo.projection.scale': 1, 'geo.center': null } as unknown as Partial<Layout>)
       : null;
 
-    // Treemap tiles are flat (parents always '' -- see SPEC.md §5.10), so Plotly's default
-    // click-to-zoom-in has nothing legitimate to drill into and no way back out on touch
-    // (no pathbar, a second tap doesn't return to root). Cancel the zoom (return false) and
-    // surface the tap via onTileClick instead, if the caller wants it.
+    // Cancel Plotly's default treemap drill only for flat treemaps (nothing legitimate to drill
+    // into) or when the caller explicitly overrides the click via onTileClick. Hierarchical
+    // treemaps without an override should keep Plotly's native drilldown path.
     let detachTreemapClick: (() => void) | undefined;
     let detachPointClick: (() => void) | undefined;
     if (series.some((s) => s.kind === 'treemap')) {
@@ -1165,7 +1208,7 @@ export function SyChart({
         if (point && treemapSeries?.onTileClick) {
           treemapSeries.onTileClick(point.pointNumber, point.label);
         }
-        return false;
+        return shouldCancelTreemapClick(treemapSeries?.parents, treemapSeries?.onTileClick) ? false : true;
       };
       plotlyEl.on('plotly_treemapclick', handleTreemapClick);
       detachTreemapClick = () => plotlyEl.removeListener?.('plotly_treemapclick', handleTreemapClick);

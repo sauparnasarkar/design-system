@@ -3,9 +3,14 @@ import {
   choroplethHovertemplate,
   filterNoData,
   formatChartValue,
+  hasOnlyFlatTreemapParents,
   logColorbarTicks,
   noDataHovertemplate,
+  pickTileInk,
   resolveTileColors,
+  shouldCancelTreemapClick,
+  shouldUseSquarifiedTreemap,
+  squarify,
   withAlpha,
 } from './chartMath';
 
@@ -145,5 +150,125 @@ describe('filterNoData', () => {
     const locations = ['CHN', 'USA', 'IND'];
     expect(filterNoData(locations, [100, null, 50])).toEqual(['USA']);
     expect(filterNoData(locations, [100, 200, null])).toEqual(['IND']);
+  });
+});
+
+describe('pickTileInk', () => {
+  it('picks dark ink for a light fill', () => {
+    expect(pickTileInk('#F5F2EA')).toBe('#16150F');
+  });
+
+  it('picks light ink for a dark fill', () => {
+    expect(pickTileInk('#16150F')).toBe('#FFFFFF');
+  });
+
+  it('honors custom dark/light ink overrides', () => {
+    expect(pickTileInk('#FFFFFF', '#000000', '#EEEEEE')).toBe('#000000');
+    expect(pickTileInk('#000000', '#000000', '#EEEEEE')).toBe('#EEEEEE');
+  });
+
+  it('falls back to darkInk for an unparseable color', () => {
+    expect(pickTileInk('rgb(10, 10, 10)')).toBe('#16150F');
+  });
+});
+
+describe('hasOnlyFlatTreemapParents', () => {
+  it('treats omitted parents as flat', () => {
+    expect(hasOnlyFlatTreemapParents()).toBe(true);
+  });
+
+  it('accepts a flat treemap with only empty parent labels', () => {
+    expect(hasOnlyFlatTreemapParents(['', ''])).toBe(true);
+  });
+
+  it('rejects any non-empty parent label as hierarchical, including whitespace-only ones', () => {
+    expect(hasOnlyFlatTreemapParents(['', 'Root', ''])).toBe(false);
+    expect(hasOnlyFlatTreemapParents(['', '   ', ''])).toBe(false);
+  });
+});
+
+describe('shouldCancelTreemapClick', () => {
+  it('cancels flat treemap clicks so Plotly does not drill into nowhere', () => {
+    expect(shouldCancelTreemapClick(['', ''])).toBe(true);
+  });
+
+  it('cancels when a caller provides onTileClick, even for hierarchical data', () => {
+    expect(shouldCancelTreemapClick(['', 'Root'], () => undefined)).toBe(true);
+  });
+
+  it('allows Plotly native drilldown for hierarchical treemaps without onTileClick', () => {
+    expect(shouldCancelTreemapClick(['', 'Root'])).toBe(false);
+  });
+});
+
+describe('shouldUseSquarifiedTreemap', () => {
+  it('allows the custom renderer for a single flat treemap with discrete colors', () => {
+    expect(shouldUseSquarifiedTreemap(1, ['', ''])).toBe(true);
+  });
+
+  it('rejects hierarchical treemaps so they stay on Plotly', () => {
+    expect(shouldUseSquarifiedTreemap(1, ['', 'Root'])).toBe(false);
+  });
+
+  it('rejects treemaps with continuous colorValues so Plotly keeps the color axis', () => {
+    expect(shouldUseSquarifiedTreemap(1, ['', ''], [1, 2])).toBe(false);
+  });
+
+  it('rejects multi-series charts so other traces are not dropped', () => {
+    expect(shouldUseSquarifiedTreemap(2, ['', ''])).toBe(false);
+  });
+});
+
+describe('squarify', () => {
+  it('returns nothing for an empty item list or a zero-area box', () => {
+    expect(squarify([], 100, 100)).toEqual([]);
+    expect(squarify([{ idx: 0, value: 10 }], 0, 100)).toEqual([]);
+    expect(squarify([{ idx: 0, value: 10 }], 100, 0)).toEqual([]);
+  });
+
+  it('lays out a single item to fill the whole box', () => {
+    const rects = squarify([{ idx: 0, value: 10 }], 200, 100);
+    expect(rects).toEqual([{ idx: 0, value: 10, x: 0, y: 0, w: 200, h: 100 }]);
+  });
+
+  it('splits total area proportionally to each item\'s value', () => {
+    const rects = squarify(
+      [
+        { idx: 0, value: 30 },
+        { idx: 1, value: 10 },
+      ],
+      200,
+      100,
+    );
+    const totalArea = 200 * 100;
+    const areaByIdx = new Map(rects.map((r) => [r.idx, r.w * r.h]));
+    expect(areaByIdx.get(0)).toBeCloseTo((30 / 40) * totalArea, 5);
+    expect(areaByIdx.get(1)).toBeCloseTo((10 / 40) * totalArea, 5);
+  });
+
+  it('preserves the caller-supplied idx so results can be mapped back to parallel arrays', () => {
+    const rects = squarify(
+      [
+        { idx: 7, value: 5 },
+        { idx: 2, value: 5 },
+        { idx: 9, value: 5 },
+      ],
+      300,
+      100,
+    );
+    expect(new Set(rects.map((r) => r.idx))).toEqual(new Set([7, 2, 9]));
+  });
+
+  it('produces non-overlapping rects that fully tile the box (areas sum to the total)', () => {
+    const items = [
+      { idx: 0, value: 40 },
+      { idx: 1, value: 25 },
+      { idx: 2, value: 15 },
+      { idx: 3, value: 10 },
+      { idx: 4, value: 10 },
+    ];
+    const rects = squarify(items, 400, 250);
+    const totalArea = rects.reduce((t, r) => t + r.w * r.h, 0);
+    expect(totalArea).toBeCloseTo(400 * 250, 3);
   });
 });

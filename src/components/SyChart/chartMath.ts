@@ -96,3 +96,149 @@ export function choroplethHovertemplate(hoverUnit?: string, useText?: boolean): 
 export function filterNoData<T>(items: T[] | undefined, colorValues: Array<number | null>): T[] | undefined {
   return items?.filter((_, idx) => colorValues[idx] == null);
 }
+
+/** Reads a CSS custom property off `el` (so `[data-theme]` ancestor overrides apply), falling
+ * back to `fallback` under SSR (`window` undefined) or when the property resolves empty. Moved
+ * here (not left as a SyChart.tsx-local helper) so `SquarifiedTreemap.tsx` can resolve the same
+ * theme tokens without importing SyChart.tsx itself, which would drag in `plotly.js-dist-min` --
+ * a module with a module-scope `self` reference that crashes this file's own plain-Node vitest
+ * environment (see this file's top-of-file comment). */
+export function cssVar(el: Element, name: string, fallback: string): string {
+  if (typeof window === 'undefined') return fallback;
+  const v = getComputedStyle(el).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
+// JS-level fallback for the theme's 10-slot categorical palette when no [data-theme] CSS var
+// resolves at all (e.g. SSR) -- tracks the vendor base theme's own default (-01..-10), not any
+// one analytics theme's red/green-avoiding constraint (that lives in each theme's own CSS).
+export const FALLBACK_PALETTE = ['#7accf5', '#e66066', '#d19e27', '#87ca65', '#fed26a', '#be8cd7', '#3950c4', '#a333a1', '#46b7b7', '#c42338'];
+
+/** Resolves the theme's 10-slot categorical palette against `el`'s own computed style. */
+export function syPalette(el: Element): string[] {
+  return FALLBACK_PALETTE.map((fb, i) => cssVar(el, `--__s9cmpx-chart-categorical-default-${String(i + 1).padStart(2, '0')}`, fb));
+}
+
+/** WCAG relative-luminance-based ink choice for a tile's own fill: `darkInk` when the fill is
+ * light enough to read clearly against it, `lightInk` otherwise (sRGB -> linear -> relative
+ * luminance, 0.3 threshold -- same formula the reference squarified-treemap design's own `ink()`
+ * helper uses). Falls back to `darkInk` for a fill this can't parse as a 6-digit hex color. */
+export function pickTileInk(hex: string, darkInk = '#16150F', lightInk = '#FFFFFF'): string {
+  const m = hex.match(/^#([0-9a-f]{6})/i);
+  if (!m) return darkInk;
+  const n = parseInt(m[1], 16);
+  const channels = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  const luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  return luminance > 0.3 ? darkInk : lightInk;
+}
+
+/** The custom squarified renderer only supports flat treemaps (`parents` omitted or all-empty).
+ * Any non-empty parent path needs Plotly's native hierarchical treemap trace instead -- checked
+ * against the exact empty string, not a trimmed one: a parent value of e.g. '   ' is a real,
+ * if unusual, non-empty parent identifier under Plotly's own hierarchy semantics, not this
+ * series contract's flat-root marker, so trimming it away would silently misroute genuinely
+ * hierarchical data to the flat squarified path (Copilot review). */
+export function hasOnlyFlatTreemapParents(parents?: string[]): boolean {
+  return !parents?.some((parent) => parent !== '');
+}
+
+/** Plotly treemap clicks should only be cancelled when a flat treemap would otherwise try to
+ * drill into nowhere, or when the caller is deliberately overriding the click with onTileClick. */
+export function shouldCancelTreemapClick(parents?: string[], onTileClick?: unknown): boolean {
+  return !!onTileClick || hasOnlyFlatTreemapParents(parents);
+}
+
+/** The custom squarified treemap renderer is only valid for a chart that consists of exactly one
+ * flat treemap series and uses discrete tile colors rather than Plotly's continuous color axis. */
+export function shouldUseSquarifiedTreemap(seriesCount: number, parents?: string[], colorValues?: Array<number | null>): boolean {
+  return seriesCount === 1 && hasOnlyFlatTreemapParents(parents) && colorValues == null;
+}
+
+/** One squarified-treemap tile input: `idx` is the caller's own original array position (so a
+ * caller can map a returned rect back to its own parallel `labels`/`tileColors`/etc. arrays
+ * regardless of the sort/filter this function's caller applies before calling), `value` its
+ * tile-size weight. */
+export interface SquarifyItem {
+  idx: number;
+  value: number;
+}
+
+/** A `SquarifyItem` laid out into a concrete pixel rect. */
+export interface SquarifyRect extends SquarifyItem {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * Squarified treemap layout (Bruls/Huizing/van Wijk): lays `items` out into a `W`x`H` pixel
+ * area, greedily building each row/column to keep tile aspect ratios as close to square as the
+ * remaining space allows, rather than a single strip that produces increasingly sliver-thin
+ * tiles for small values. `items` should already be sorted descending by `value` (this function
+ * does not sort) -- squarify's own quality depends on processing the largest remaining item
+ * first at each step, exactly as the classic algorithm and the reference mock's own
+ * implementation do. Ported verbatim from that mock (same recurrence, same worst-ratio row-break
+ * heuristic), typed and made index-aware for reuse as a general-purpose layout, not tied to any
+ * one caller's row shape.
+ */
+export function squarify(items: SquarifyItem[], W: number, H: number): SquarifyRect[] {
+  const sum = (arr: { a: number }[]) => arr.reduce((t, x) => t + x.a, 0);
+  const total = items.reduce((t, i) => t + i.value, 0);
+  if (!total || !W || !H) return [];
+  const nodes = items.map((i) => ({ ...i, a: (i.value * W * H) / total }));
+  type Node = (typeof nodes)[number];
+  const out: SquarifyRect[] = [];
+  let row: Node[] = [];
+  let rx = 0;
+  let ry = 0;
+  let rw = W;
+  let rh = H;
+  let i = 0;
+  const worst = (rowNodes: Node[], side: number): number => {
+    const s = sum(rowNodes);
+    const mx = Math.max(...rowNodes.map((n) => n.a));
+    const mn = Math.min(...rowNodes.map((n) => n.a));
+    return Math.max((side * side * mx) / (s * s), (s * s) / (side * side * mn));
+  };
+  const place = () => {
+    const s = sum(row);
+    if (rw >= rh) {
+      const cw = s / rh;
+      let cy = ry;
+      row.forEach((n) => {
+        const ch = n.a / cw;
+        out.push({ idx: n.idx, value: n.value, x: rx, y: cy, w: cw, h: ch });
+        cy += ch;
+      });
+      rx += cw;
+      rw -= cw;
+    } else {
+      const ch = s / rw;
+      let cx = rx;
+      row.forEach((n) => {
+        const cw = n.a / ch;
+        out.push({ idx: n.idx, value: n.value, x: cx, y: ry, w: cw, h: ch });
+        cx += cw;
+      });
+      ry += ch;
+      rh -= ch;
+    }
+    row = [];
+  };
+  while (i < nodes.length) {
+    const side = Math.min(rw, rh);
+    const n = nodes[i];
+    if (!row.length || worst([...row, n], side) <= worst(row, side)) {
+      row.push(n);
+      i++;
+    } else {
+      place();
+    }
+  }
+  if (row.length) place();
+  return out;
+}
