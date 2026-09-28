@@ -5,7 +5,9 @@ import {
   formatChartValue,
   logColorbarTicks,
   noDataHovertemplate,
+  pickTileInk,
   resolveTileColors,
+  squarify,
   withAlpha,
 } from './chartMath';
 
@@ -145,5 +147,78 @@ describe('filterNoData', () => {
     const locations = ['CHN', 'USA', 'IND'];
     expect(filterNoData(locations, [100, null, 50])).toEqual(['USA']);
     expect(filterNoData(locations, [100, 200, null])).toEqual(['IND']);
+  });
+});
+
+describe('pickTileInk', () => {
+  it('picks dark ink for a light fill', () => {
+    expect(pickTileInk('#F5F2EA')).toBe('#16150F');
+  });
+
+  it('picks light ink for a dark fill', () => {
+    expect(pickTileInk('#16150F')).toBe('#FFFFFF');
+  });
+
+  it('honors custom dark/light ink overrides', () => {
+    expect(pickTileInk('#FFFFFF', '#000000', '#EEEEEE')).toBe('#000000');
+    expect(pickTileInk('#000000', '#000000', '#EEEEEE')).toBe('#EEEEEE');
+  });
+
+  it('falls back to darkInk for an unparseable color', () => {
+    expect(pickTileInk('rgb(10, 10, 10)')).toBe('#16150F');
+  });
+});
+
+describe('squarify', () => {
+  it('returns nothing for an empty item list or a zero-area box', () => {
+    expect(squarify([], 100, 100)).toEqual([]);
+    expect(squarify([{ idx: 0, value: 10 }], 0, 100)).toEqual([]);
+    expect(squarify([{ idx: 0, value: 10 }], 100, 0)).toEqual([]);
+  });
+
+  it('lays out a single item to fill the whole box', () => {
+    const rects = squarify([{ idx: 0, value: 10 }], 200, 100);
+    expect(rects).toEqual([{ idx: 0, value: 10, x: 0, y: 0, w: 200, h: 100 }]);
+  });
+
+  it('splits total area proportionally to each item\'s value', () => {
+    const rects = squarify(
+      [
+        { idx: 0, value: 30 },
+        { idx: 1, value: 10 },
+      ],
+      200,
+      100,
+    );
+    const totalArea = 200 * 100;
+    const areaByIdx = new Map(rects.map((r) => [r.idx, r.w * r.h]));
+    expect(areaByIdx.get(0)).toBeCloseTo((30 / 40) * totalArea, 5);
+    expect(areaByIdx.get(1)).toBeCloseTo((10 / 40) * totalArea, 5);
+  });
+
+  it('preserves the caller-supplied idx so results can be mapped back to parallel arrays', () => {
+    const rects = squarify(
+      [
+        { idx: 7, value: 5 },
+        { idx: 2, value: 5 },
+        { idx: 9, value: 5 },
+      ],
+      300,
+      100,
+    );
+    expect(new Set(rects.map((r) => r.idx))).toEqual(new Set([7, 2, 9]));
+  });
+
+  it('produces non-overlapping rects that fully tile the box (areas sum to the total)', () => {
+    const items = [
+      { idx: 0, value: 40 },
+      { idx: 1, value: 25 },
+      { idx: 2, value: 15 },
+      { idx: 3, value: 10 },
+      { idx: 4, value: 10 },
+    ];
+    const rects = squarify(items, 400, 250);
+    const totalArea = rects.reduce((t, r) => t + r.w * r.h, 0);
+    expect(totalArea).toBeCloseTo(400 * 250, 3);
   });
 });
