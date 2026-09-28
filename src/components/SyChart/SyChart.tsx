@@ -15,7 +15,6 @@ import {
   cssVar,
   filterNoData,
   formatChartValue,
-  hasOnlyFlatTreemapParents,
   logColorbarTicks,
   noDataHovertemplate,
   resolveTileColors,

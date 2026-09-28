@@ -136,9 +136,13 @@ export function pickTileInk(hex: string, darkInk = '#16150F', lightInk = '#FFFFF
 }
 
 /** The custom squarified renderer only supports flat treemaps (`parents` omitted or all-empty).
- * Any non-empty parent path needs Plotly's native hierarchical treemap trace instead. */
+ * Any non-empty parent path needs Plotly's native hierarchical treemap trace instead -- checked
+ * against the exact empty string, not a trimmed one: a parent value of e.g. '   ' is a real,
+ * if unusual, non-empty parent identifier under Plotly's own hierarchy semantics, not this
+ * series contract's flat-root marker, so trimming it away would silently misroute genuinely
+ * hierarchical data to the flat squarified path (Copilot review). */
 export function hasOnlyFlatTreemapParents(parents?: string[]): boolean {
-  return !parents?.some((parent) => parent.trim() !== '');
+  return !parents?.some((parent) => parent !== '');
 }
 
 /** Plotly treemap clicks should only be cancelled when a flat treemap would otherwise try to

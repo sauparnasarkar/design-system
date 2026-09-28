@@ -179,11 +179,11 @@ describe('hasOnlyFlatTreemapParents', () => {
 
   it('accepts a flat treemap with only empty parent labels', () => {
     expect(hasOnlyFlatTreemapParents(['', ''])).toBe(true);
-    expect(hasOnlyFlatTreemapParents(['', '   ', ''])).toBe(true);
   });
 
-  it('rejects any non-empty parent label as hierarchical', () => {
+  it('rejects any non-empty parent label as hierarchical, including whitespace-only ones', () => {
     expect(hasOnlyFlatTreemapParents(['', 'Root', ''])).toBe(false);
+    expect(hasOnlyFlatTreemapParents(['', '   ', ''])).toBe(false);
   });
 });
 
