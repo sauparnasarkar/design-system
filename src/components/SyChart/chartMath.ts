@@ -135,6 +135,12 @@ export function pickTileInk(hex: string, darkInk = '#16150F', lightInk = '#FFFFF
   return luminance > 0.3 ? darkInk : lightInk;
 }
 
+/** The custom squarified renderer only supports flat treemaps (`parents` omitted or all-empty).
+ * Any non-empty parent path needs Plotly's native hierarchical treemap trace instead. */
+export function hasOnlyFlatTreemapParents(parents?: string[]): boolean {
+  return !parents?.some((parent) => parent.trim() !== '');
+}
+
 /** One squarified-treemap tile input: `idx` is the caller's own original array position (so a
  * caller can map a returned rect back to its own parallel `labels`/`tileColors`/etc. arrays
  * regardless of the sort/filter this function's caller applies before calling), `value` its

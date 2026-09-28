@@ -29,8 +29,8 @@ export interface SquarifiedTreemapProps {
  * positioned `div` tiles inside a dark-framed panel rather than Plotly's native treemap trace --
  * opt into this via `SyChartSeries.treemapLayout: 'squarified'` (see that prop's own doc comment
  * for why it's a separate renderer, not a replacement). No continuous `colorValues`/colorbar
- * support -- discrete per-tile fills only; a caller needing a continuous scale should stay on
- * the default 'plotly' treemap layout.
+ * support -- discrete per-tile fills only; a caller needing a continuous scale or hierarchical
+ * `parents` should stay on the default 'plotly' treemap layout.
  */
 export function SquarifiedTreemap({
   labels,

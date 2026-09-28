@@ -3,6 +3,7 @@ import {
   choroplethHovertemplate,
   filterNoData,
   formatChartValue,
+  hasOnlyFlatTreemapParents,
   logColorbarTicks,
   noDataHovertemplate,
   pickTileInk,
@@ -166,6 +167,21 @@ describe('pickTileInk', () => {
 
   it('falls back to darkInk for an unparseable color', () => {
     expect(pickTileInk('rgb(10, 10, 10)')).toBe('#16150F');
+  });
+});
+
+describe('hasOnlyFlatTreemapParents', () => {
+  it('treats omitted parents as flat', () => {
+    expect(hasOnlyFlatTreemapParents()).toBe(true);
+  });
+
+  it('accepts a flat treemap with only empty parent labels', () => {
+    expect(hasOnlyFlatTreemapParents(['', ''])).toBe(true);
+    expect(hasOnlyFlatTreemapParents(['', '   ', ''])).toBe(true);
+  });
+
+  it('rejects any non-empty parent label as hierarchical', () => {
+    expect(hasOnlyFlatTreemapParents(['', 'Root', ''])).toBe(false);
   });
 });
 
