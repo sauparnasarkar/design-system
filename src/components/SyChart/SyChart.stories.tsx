@@ -22,6 +22,7 @@ export const RatingsDistribution: Story = {
   render: () => (
     <ChartCard
       title="Ratings Distribution"
+      supportText="Click a bar to filter the table below."
       actions={<Select size="small" ariaLabel="Rating type" options={[{ value: 'lt', label: 'LT IDR' }, { value: 'st', label: 'ST IDR' }]} value="lt" />}
       onDownload={() => {}}
       asOf="Jul 9, 2026, 10:04 AM EST"
