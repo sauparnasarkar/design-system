@@ -212,4 +212,12 @@
 .__s9cmpx-card-header__right-side {
   flex-wrap: wrap;
   row-gap: 8px;
+  /* When the wrapper above wraps the actions onto their own second line, that line's single
+     flex item collapses to flex-start under `justify-content: space-between` (confirmed live on
+     ChartCard's expand/maximize button -- a long title + supportText pushed the actions row,
+     expand icon included, onto a second line flush with the LEFT edge instead of staying under
+     the title's own right-aligned actions position). `margin-left: auto` pins this row to the
+     wrapper's right edge on its own line without affecting the single-line case, where the
+     wrapper's own space-between already does the job. */
+  margin-left: auto;
 }

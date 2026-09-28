@@ -6,6 +6,8 @@ import { cx } from '../../lib/cx';
 
 export interface ChartCardProps {
   title: React.ReactNode;
+  /** Muted text under the title, e.g. "Click a period to select it in the table below." */
+  supportText?: React.ReactNode;
   /** Header controls (Selects, SegmentedControl, …); a download button is added automatically */
   actions?: React.ReactNode;
   onDownload?: () => void;
@@ -26,7 +28,7 @@ export interface ChartCardProps {
 }
 
 /** Chart panel chrome as used on the sector pages: Card header with controls + download, chart body, "Data as of" caption. */
-export function ChartCard({ title, actions, onDownload, asOf, children, className, headingLevel, expandable = false, id }: ChartCardProps) {
+export function ChartCard({ title, supportText, actions, onDownload, asOf, children, className, headingLevel, expandable = false, id }: ChartCardProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const content = typeof children === 'function' ? children(isExpanded) : children;
   const overlayRef = useFocusTrap<HTMLDivElement>(expandable && isExpanded);
@@ -91,6 +93,7 @@ export function ChartCard({ title, actions, onDownload, asOf, children, classNam
       header={
         <CardHeader
           title={<span id={titleId}>{title}</span>}
+          supportText={supportText}
           headingLevel={headingLevel}
           actions={
             <>
