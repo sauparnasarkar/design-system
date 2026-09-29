@@ -63,6 +63,8 @@ export { TrendCell, HeatCell, trendColumn, heatColumn, TableToolbar } from './co
 export { CardCarousel } from './components/CardCarousel/CardCarousel';
 export { KpiStat } from './components/KpiStat/KpiStat';
 export { Gauge } from './components/Gauge/Gauge';
+export { Globe } from './components/Globe/Globe';
+export type { GlobeProps } from './components/Globe/Globe';
 export { Header } from './components/Header/Header';
 export { SidebarNav } from './components/SidebarNav/SidebarNav';
 export { Footer } from './components/Footer/Footer';

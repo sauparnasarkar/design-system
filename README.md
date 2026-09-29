@@ -118,7 +118,7 @@ colorValues-less treemap traces) + ChartCard, Slider, RangeSlider (dual-thumb, c
 slider pattern — for continuous ranges, e.g. a year filter), KrfSlider,
 Score, Progress, Spinner, DotTyping, Divider,
 Section, Textarea, PromptBar (controlled prompt/chat input bar, landing/docked
-variants, composes Textarea + Button + Spinner), Counter, EmptyState, JumpLinks, BackToTop, FileUpload, KpiStat, Gauge, News,
+variants, composes Textarea + Button + Spinner), Counter, EmptyState, JumpLinks, BackToTop, FileUpload, KpiStat, Gauge, Globe (canvas orthographic globe for a per-country value over time; ISO-3 keyed, `SyChart`-style `colorScale`/`colorRange`/`zLog`, controlled `yearIndex`, keyboard + table view), News,
 MediaObject, CardCarousel, ContactItem, ContactModule, Chatbot (generic
 title/messages, no hardcoded assistant name),
 and the app shell (Header, SidebarNav, SidebarNavFlyout, AppSwitcher, Footer)
