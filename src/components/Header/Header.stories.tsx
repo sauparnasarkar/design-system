@@ -72,3 +72,31 @@ export const CenterActionsContrastDoesNotClobberSearchClear: Story = {
     await expect(getComputedStyle(centerActionButton).color).toBe('rgb(207, 202, 190)');
   },
 };
+
+// rightActions sit flush right of the header, in the right-hand column -- not in the centre column
+// centerActions uses -- and stay there when the standard icons are hidden.
+export const RightActions: Story = {
+  args: {
+    searchPlaceholder: undefined,
+    showNotifications: false,
+    showAppSwitcher: false,
+    showUserMenu: false,
+    rightActions: (
+      <>
+        <button type="button" style={{ background: 'transparent', border: 0 }}>Toggle</button>
+        <a href="#ask" style={{ color: 'inherit' }}>Ask the Agent</a>
+      </>
+    ),
+  },
+  play: async ({ canvasElement }) => {
+    const right = canvasElement.querySelector('.__s9cmpx-header__right') as HTMLElement;
+    await expect(within(right).getByRole('button', { name: 'Toggle' })).toBeInTheDocument();
+    await expect(within(right).getByRole('link', { name: 'Ask the Agent' })).toBeInTheDocument();
+    await expect(canvasElement.querySelector('.__s9cmpx-header__center button')).toBeNull();
+    // Flush with the header's right padding edge.
+    const header = canvasElement.querySelector('header') as HTMLElement;
+    const link = within(right).getByRole('link', { name: 'Ask the Agent' });
+    const padRight = parseFloat(getComputedStyle(header).paddingRight);
+    await expect(Math.abs(header.getBoundingClientRect().right - padRight - link.getBoundingClientRect().right)).toBeLessThan(2);
+  },
+};

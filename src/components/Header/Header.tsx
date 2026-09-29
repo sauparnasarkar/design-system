@@ -14,6 +14,11 @@ export interface HeaderProps extends React.HTMLAttributes<HTMLElement> {
   onSearch?: (query: string) => void;
   /** Extra actions before the standard icons (e.g. an AI assistant button) */
   centerActions?: React.ReactNode;
+  /** Actions pinned to the right edge, before the standard icons (e.g. a theme switch and an AI
+   *  assistant button). Unlike `centerActions`, which lives in the (max 600px) centre column, these
+   *  stay flush right whatever the centre holds -- and keep working when every standard icon is
+   *  hidden, which is how apps that own their own account/notification UI use this header. */
+  rightActions?: React.ReactNode;
   showNotifications?: boolean;
   showAppSwitcher?: boolean;
   showUserMenu?: boolean;
@@ -33,6 +38,7 @@ export function Header({
   searchPlaceholder,
   onSearch,
   centerActions,
+  rightActions,
   showNotifications = true,
   showAppSwitcher = true,
   showUserMenu = true,
@@ -101,6 +107,7 @@ export function Header({
         {centerActions}
       </div>
       <div className="__s9cmpx-header__right" style={{ gridArea: 'right', display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
+        {rightActions && <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginRight: showNotifications || showAppSwitcher || showUserMenu ? 8 : 0 }}>{rightActions}</div>}
         {showNotifications && (
           <button type="button" style={iconButtonStyle} aria-label="Notifications">
             <Icon name="bell" size={20} />
