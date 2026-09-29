@@ -57,6 +57,14 @@ const PATHS: Record<string, React.ReactNode> = {
     <path d="M6 2h9l5 5v15H6V2zm2 2v16h10V8h-4V4H8zm8 .414V6h1.586L16 4.414zM9 11h8v2H9v-2zm0 4h8v2H9v-2z" />
   ),
   home: <path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8zm0 2.694L7.6 9.6V18H8v-6h8v6h.4V9.6L12 5.694z" />,
+  // Circle outline + meridian ellipse outline + equator, one even-odd path (see the fillRule in
+  // Icon()). The app's Home entry: a landing page reads as "the world", and it frees `home` for Overview.
+  globe: (
+    <path
+      fillRule="evenodd"
+      d="M12 2a10 10 0 110 20 10 10 0 010-20zm0 2a8 8 0 100 16 8 8 0 000-16zM12 2.2c2.9 2.6 4.4 6.2 4.4 9.8s-1.5 7.2-4.4 9.8c-2.9-2.6-4.4-6.2-4.4-9.8S9.1 4.8 12 2.2zm0 3.1c-1.5 1.9-2.4 4.2-2.4 6.7s.9 4.8 2.4 6.7c1.5-1.9 2.4-4.2 2.4-6.7S13.5 7.2 12 5.3zM3 11h18v2H3v-2z"
+    />
+  ),
   mail: (
     <path d="M3 5h18v14H3V5zm2 2v.511l7 4.376 7-4.376V7H5zm14 2.868l-7 4.375-7-4.375V17h14V9.868z" />
   ),

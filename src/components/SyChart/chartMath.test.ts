@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  nextZoomScale,
   choroplethHovertemplate,
   filterNoData,
   formatChartValue,
@@ -270,5 +271,18 @@ describe('squarify', () => {
     const rects = squarify(items, 400, 250);
     const totalArea = rects.reduce((t, r) => t + r.w * r.h, 0);
     expect(totalArea).toBeCloseTo(400 * 250, 3);
+  });
+});
+
+describe('nextZoomScale', () => {
+  it('multiplies by the factor and clamps to [1, 8]', () => {
+    expect(nextZoomScale(1, 1.5)).toBe(1.5);
+    expect(nextZoomScale(2, 1 / 1.5)).toBeCloseTo(1.3333, 4);
+    expect(nextZoomScale(1, 1 / 1.5)).toBe(1); // can't zoom out past the fitted view
+    expect(nextZoomScale(7, 1.5)).toBe(8);
+  });
+  it('treats a missing/invalid current scale as 1', () => {
+    expect(nextZoomScale(Number.NaN, 1.5)).toBe(1.5);
+    expect(nextZoomScale(0, 2)).toBe(2);
   });
 });

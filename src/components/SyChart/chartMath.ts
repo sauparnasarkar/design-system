@@ -242,3 +242,10 @@ export function squarify(items: SquarifyItem[], W: number, H: number): SquarifyR
   if (row.length) place();
   return out;
 }
+
+/** Next choropleth projection scale after zooming by `factor` (>1 in, <1 out), clamped to
+ * [min, max] so "Zoom out" can't shrink the map below its fitted size and "Zoom in" can't run away. */
+export function nextZoomScale(current: number, factor: number, min = 1, max = 8): number {
+  const c = Number.isFinite(current) && current > 0 ? current : 1;
+  return Math.min(max, Math.max(min, c * factor));
+}

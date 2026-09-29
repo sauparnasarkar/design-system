@@ -736,3 +736,62 @@ export const MixedSignRelativeBarsHoverMode: Story = {
     await expect(vertical.layout?.hovermode).toBe('x unified');
   },
 };
+
+function OutlineAndZoomDemo() {
+    const countries = ['CHN', 'USA', 'IND', 'RUS', 'JPN', 'DEU', 'BRA', 'GBR', 'ZAF', 'AUS'];
+    const co2 = [11900, 5000, 2900, 1700, 1050, 640, 470, 340, 440, 390];
+    const [selected, setSelected] = React.useState<string[]>(['CHN', 'IND']);
+    // Stable across selection changes, as animationFrame's doc comment requires of `series`.
+    const series = React.useMemo(
+      () => [{
+        name: 'CO₂ (Mt)', x: [], y: [], kind: 'choropleth' as const, locations: countries, zLog: true, colorValues: co2,
+        colorScale: [[0, '#fff2cc'], [0.5, '#f0a24a'], [1, '#7a1f1f']] as Array<[number, string]>, hoverUnit: 'MtCO₂',
+      }],
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [],
+    );
+    return (
+      <ChartCard title="CO₂ Emissions by Country" onDownload={() => {}}>
+        <button type="button" onClick={() => setSelected((s) => (s.includes('USA') ? s.filter((c) => c !== 'USA') : [...s, 'USA']))}>
+          Toggle United States
+        </button>
+        <SyChart height={420} showLegend={false} series={series} outlineLocations={selected} />
+      </ChartCard>
+    );
+}
+
+/**
+ * Selection outline + zoom buttons. `outlineLocations` is its own prop (not part of `series`), applied
+ * with a direct restyle: zoom in with "+", then toggle the selection -- the outline changes and the
+ * zoom holds. The outline is non-interactive (hover still reaches the country beneath).
+ */
+export const ChoroplethOutlineAndZoom: Story = {
+  render: () => <OutlineAndZoomDemo />,
+  play: async ({ canvasElement }) => {
+    type Gd = HTMLElement & { data?: Array<{ meta?: string; locations?: string[] }>; layout?: { geo?: { projection?: { scale?: number } } } };
+    const c = within(canvasElement);
+    const gd = await waitFor(() => {
+      const el = canvasElement.querySelector('.js-plotly-plot') as Gd | null;
+      expect(el?.data?.some((d) => d.meta === 'sychart-choropleth-outline')).toBe(true);
+      return el!;
+    }, { timeout: 8000 });
+    const outline = () => gd.data!.find((d) => d.meta === 'sychart-choropleth-outline')!.locations;
+    expect(outline()).toEqual(['CHN', 'IND']);
+
+    await userEvent.click(c.getByRole('button', { name: 'Zoom in' }));
+    await waitFor(() => expect(gd.layout?.geo?.projection?.scale ?? 1).toBeGreaterThan(1));
+    const zoomed = gd.layout!.geo!.projection!.scale!;
+    await userEvent.click(c.getByRole('button', { name: 'Zoom out' }));
+    await waitFor(() => expect(gd.layout?.geo?.projection?.scale ?? 1).toBeLessThan(zoomed));
+    await userEvent.click(c.getByRole('button', { name: 'Zoom in' }));
+    await waitFor(() => expect(gd.layout!.geo!.projection!.scale!).toBeGreaterThan(1));
+    const before = gd.layout!.geo!.projection!.scale!;
+
+    // Changing the selection restyles the outline only -- the zoom must survive.
+    await userEvent.click(c.getByRole('button', { name: 'Toggle United States' }));
+    await waitFor(() => expect(outline()).toEqual(['CHN', 'IND', 'USA']));
+    expect(gd.layout!.geo!.projection!.scale).toBe(before);
+    await userEvent.click(c.getByRole('button', { name: 'Toggle United States' }));
+    await waitFor(() => expect(outline()).toEqual(['CHN', 'IND']));
+  },
+};

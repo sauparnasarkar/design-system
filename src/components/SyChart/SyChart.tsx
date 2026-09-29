@@ -12,6 +12,7 @@ import type { Topology } from 'topojson-specification';
 import { cx } from '../../lib/cx';
 import {
   choroplethHovertemplate,
+  nextZoomScale,
   cssVar,
   filterNoData,
   formatChartValue,
@@ -359,6 +360,18 @@ export interface SyChartProps {
    */
   animationFrame?: { colorValues: Array<number | null> };
   /**
+   * 'choropleth' only: locations (same codes/`locationmode` as the choropleth series' `locations`)
+   * to draw an accent outline around -- e.g. the countries a page's picker currently has selected.
+   * A separate prop, not part of `series`, for the same reason `animationFrame` is: `series` must
+   * stay referentially stable (a change re-runs the main effect via `Plotly.react`, which resets
+   * the user's zoom), while a selection changes on every click. Applied via a direct
+   * `Plotly.restyle` on the outline trace only, so the user's current zoom/pan is preserved.
+   * The outline is non-interactive (hover/click pass through to the data trace beneath).
+   */
+  outlineLocations?: string[];
+  /** Outline color for `outlineLocations`. Defaults to the theme's brand color. */
+  outlineColor?: string;
+  /**
    * Accessible text alternative — Plotly's chart is otherwise entirely
    * invisible to screen readers (canvas/SVG with no semantic content). A
    * concise, specific description (e.g. "Line chart of CO2 emissions for
@@ -551,11 +564,14 @@ function SyChartPlotly({
   className,
   stackedAreaMode = 'value',
   onPointClick,
+  outlineLocations,
+  outlineColor,
 }: SyChartProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   const tooltipRef = React.useRef<HTMLDivElement>(null);
   const hideTooltipTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetViewRef = React.useRef<(() => void) | null>(null);
+  const zoomRef = React.useRef<((factor: number) => void) | null>(null);
   // Set once the main effect below has drawn a plot; gates the animationFrame effect so it
   // never fires against a not-yet-drawn (or already-purged) Plotly div.
   const plotDrawnRef = React.useRef(false);
@@ -563,7 +579,10 @@ function SyChartPlotly({
   // animationFrame effect's Plotly.restyle calls target the right traces without re-deriving
   // the whole array. Undefined when the corresponding trace doesn't exist this render (e.g. no
   // no-data trace when nothing is null).
-  const traceIndexRef = React.useRef<{ data?: number; noData?: number }>({});
+  const traceIndexRef = React.useRef<{ data?: number; noData?: number; outline?: number }>({});
+  // Latest outlineLocations, read (not depended on) by the main effect when it builds the outline
+  // trace, so a selection change never re-runs that effect -- see outlineLocations' doc comment.
+  const outlineLocationsRef = React.useRef<string[]>(outlineLocations ?? []);
   // The choropleth series' own locations/locationNames/zLog, captured so the animationFrame
   // effect can recompute the no-data trace's membership (locations) and hover labels
   // (locationNames) and apply the same log transform without needing the full `series` prop
@@ -729,6 +748,28 @@ function SyChartPlotly({
             tickfont: font,
             ...(logTicks ? { tickvals: logTicks.tickvals, ticktext: logTicks.ticktext } : {}),
           },
+        });
+        // Drawn last so it sits above both fill traces. Fully transparent fill, so only the
+        // marker.line shows; hoverinfo 'skip' so it never steals hover from the data trace.
+        // Always constructed (even empty) for the same reason as the no-data trace above: its
+        // index is captured once, and the outlineLocations restyle effect targets it later.
+        traces.push({
+          type: 'choropleth',
+          meta: 'sychart-choropleth-outline',
+          name: `${s.name} (outlined)`,
+          locations: outlineLocationsRef.current,
+          locationmode: s.locationmode ?? 'ISO-3',
+          geojson: worldAtlas ?? undefined,
+          z: outlineLocationsRef.current.map(() => 0),
+          zmin: 0,
+          zmax: 1,
+          colorscale: [
+            [0, 'rgba(0,0,0,0)'],
+            [1, 'rgba(0,0,0,0)'],
+          ],
+          showscale: false,
+          hoverinfo: 'skip',
+          marker: { line: { color: outlineColor ?? cssVar(el, '--__s9cmpx-color-brand-500', '#2d9cbd'), width: 2 } },
         });
         return traces;
       }
@@ -1160,9 +1201,11 @@ function SyChartPlotly({
     plotDrawnRef.current = true;
     const dataTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-data');
     const noDataTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-nodata');
+    const outlineTraceIndex = data.findIndex((d) => (d as { meta?: string }).meta === 'sychart-choropleth-outline');
     traceIndexRef.current = {
       data: dataTraceIndex >= 0 ? dataTraceIndex : undefined,
       noData: noDataTraceIndex >= 0 ? noDataTraceIndex : undefined,
+      outline: outlineTraceIndex >= 0 ? outlineTraceIndex : undefined,
     };
     // Assumes a single choropleth series -- same precedent as the treemap onTileClick handler
     // below. animationFrame is a single (not per-series) prop for exactly this reason.
@@ -1186,6 +1229,15 @@ function SyChartPlotly({
         // nested updates at runtime; `@types/plotly.js`'s `Layout` only models the nested shape, not
         // this flattened convention, so there's no type this object literal can structurally satisfy.
         () => Plotly.relayout(el, { 'geo.projection.scale': 1, 'geo.center': null } as unknown as Partial<Layout>)
+      : null;
+    // Zoom +/-: scale the projection about its current center. `layout.geo.projection.scale` is kept
+    // current by Plotly itself after a wheel/pinch zoom (it fires the same relayout), so reading it
+    // here composes with interactive zoom rather than fighting it. Clamped by nextZoomScale.
+    zoomRef.current = hasChoropleth
+      ? (factor: number) => {
+          const current = (el as unknown as { layout?: { geo?: { projection?: { scale?: number } } } }).layout?.geo?.projection?.scale ?? 1;
+          Plotly.relayout(el, { 'geo.projection.scale': nextZoomScale(current, factor) } as unknown as Partial<Layout>);
+        }
       : null;
 
     // Cancel Plotly's default treemap drill only for flat treemaps (nothing legitimate to drill
@@ -1409,7 +1461,7 @@ function SyChartPlotly({
       detachPointClick?.();
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, hasPointClickableSeries, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, hasPointClickableSeries, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick, outlineColor]);
 
   // Deliberately separate from the main effect above -- animationFrame is meant to update at
   // high frequency (e.g. once per ~600ms animation tick) via a direct Plotly.restyle, which
@@ -1417,6 +1469,19 @@ function SyChartPlotly({
   // effect's dependency array would instead trigger a full Plotly.react on every tick, which
   // resets the zoom and pays for rebinding hover handlers / tearing down and recreating the
   // choropleth's own resize ResizeObserver -- for no benefit, since only the color data changed.
+  // Selection outline: a direct restyle of just the outline trace, never a full Plotly.react, so
+  // changing `outlineLocations` (every picker click) keeps the user's zoom/pan -- see the prop's doc
+  // comment. The ref is refreshed first so a later main-effect rebuild (theme change, resize) draws
+  // the current selection, not the one from mount.
+  React.useEffect(() => {
+    const locations = outlineLocations ?? [];
+    outlineLocationsRef.current = locations;
+    const el = ref.current;
+    const idx = traceIndexRef.current.outline;
+    if (!el || !plotDrawnRef.current || idx == null) return;
+    Plotly.restyle(el, { locations: [locations], z: [locations.map(() => 0)] } as unknown as Partial<PlotData>, [idx]);
+  }, [outlineLocations]);
+
   React.useEffect(() => {
     const el = ref.current;
     if (!animationFrame || !el || !plotDrawnRef.current) return;
@@ -1515,27 +1580,34 @@ function SyChartPlotly({
         />
       )}
       {hasChoropleth && (
-        <button
-          type="button"
-          onClick={() => resetViewRef.current?.()}
-          className="__s9cmpx-sychart-reset-view"
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            zIndex: 1,
-            padding: '4px 10px',
-            fontSize: 12,
-            fontFamily: 'var(--__s9cmpx-font-families-primary)',
-            color: 'var(--__s9cmpx-static-text-weak)',
-            background: 'var(--__s9cmpx-static-layer-standard)',
-            border: '1px solid var(--__s9cmpx-static-divider-weak)',
-            borderRadius: 4,
-            cursor: 'pointer',
-          }}
-        >
-          Reset view
-        </button>
+        <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 1, display: 'flex', gap: 4 }}>
+          {([
+            ['Zoom in', '+', () => zoomRef.current?.(1.5), false],
+            ['Zoom out', '\u2212', () => zoomRef.current?.(1 / 1.5), false],
+            [undefined, 'Reset view', () => resetViewRef.current?.(), true],
+          ] as const).map(([label, text, onClick, wide]) => (
+            <button
+              key={text}
+              type="button"
+              aria-label={label}
+              onClick={onClick}
+              className={wide ? '__s9cmpx-sychart-reset-view' : '__s9cmpx-sychart-zoom'}
+              style={{
+                minWidth: wide ? undefined : 28,
+                padding: '4px 10px',
+                fontSize: 12,
+                fontFamily: 'var(--__s9cmpx-font-families-primary)',
+                color: 'var(--__s9cmpx-static-text-weak)',
+                background: 'var(--__s9cmpx-static-layer-standard)',
+                border: '1px solid var(--__s9cmpx-static-divider-weak)',
+                borderRadius: 4,
+                cursor: 'pointer',
+              }}
+            >
+              {text}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );
