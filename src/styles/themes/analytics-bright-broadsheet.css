@@ -263,7 +263,8 @@
    today, but a real latent conflict this exclusion closes before it's needed. */
 [data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__left button,
 [data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__center button:not(.__s9cmpx-search-input__clear-indicator),
-[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__right button {
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__right button,
+[data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__right a {
   color: #CFCABE !important;
 }
 [data-theme="analytics-bright-broadsheet"] .__s9cmpx-header__left .__s9cmpx-logo__asset,
