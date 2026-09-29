@@ -133,3 +133,18 @@ export const ReducedMotion: Story = {
 export const BareLinear: Story = {
   args: { zLog: false, colorRange: [0, 6000], showLegend: false, showControls: false },
 };
+
+/** A 320px-wide parent (a small phone): the padded panel and canvas must fit inside it -- no horizontal overflow. */
+export const NarrowContainer: Story = {
+  decorators: [(Story) => <div data-testid="narrow" style={{ width: 320 }}><Story /></div>],
+  play: async ({ canvasElement }) => {
+    const box = within(canvasElement).getByTestId('narrow');
+    const canvas = within(canvasElement).getByRole('img') as HTMLCanvasElement;
+    await waitFor(() => expect(canvas.getBoundingClientRect().width).toBeGreaterThan(0));
+    const outer = box.getBoundingClientRect();
+    const c = canvas.getBoundingClientRect();
+    await expect(c.right).toBeLessThanOrEqual(outer.right + 0.5);
+    await expect(c.left).toBeGreaterThanOrEqual(outer.left - 0.5);
+    await expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth);
+  },
+};

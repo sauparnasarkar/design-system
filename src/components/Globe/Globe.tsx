@@ -69,6 +69,10 @@ export interface GlobeProps {
   className?: string;
 }
 
+// Inner padding of the panel; the canvas is sized from the *content* box (width minus this on both
+// sides) so the padded panel never exceeds its parent.
+const PANEL_PAD = 12;
+
 const geometryCache = new Map<string, Promise<FeatureCollection>>();
 
 function loadGeometry(url: string): Promise<FeatureCollection> {
@@ -218,7 +222,7 @@ export function Globe({
   React.useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const measure = () => setSize(Math.max(0, Math.min(maxSize, Math.round(el.clientWidth))));
+    const measure = () => setSize(Math.max(0, Math.min(maxSize, Math.round(el.clientWidth - 2 * PANEL_PAD))));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -245,11 +249,14 @@ export function Globe({
       if (visible.current) schedule();
       else if (raf.current) { cancelAnimationFrame(raf.current); raf.current = 0; lastT.current = 0; }
     };
-    const io = new IntersectionObserver((entries) => set(entries[entries.length - 1].isIntersecting), { threshold: 0 });
-    io.observe(el);
+    // No IntersectionObserver (old browsers, jsdom): treat as always visible; the hidden-tab pause below still applies.
+    const io = typeof IntersectionObserver === 'undefined'
+      ? null
+      : new IntersectionObserver((entries) => set(entries[entries.length - 1].isIntersecting), { threshold: 0 });
+    io?.observe(el);
     const onVis = () => set(document.visibilityState !== 'hidden');
     document.addEventListener('visibilitychange', onVis);
-    return () => { io.disconnect(); document.removeEventListener('visibilitychange', onVis); if (raf.current) cancelAnimationFrame(raf.current); raf.current = 0; };
+    return () => { io?.disconnect(); document.removeEventListener('visibilitychange', onVis); if (raf.current) cancelAnimationFrame(raf.current); raf.current = 0; };
   }, [schedule]);
 
   // --- frame changes: start a blend (or snap) ---
@@ -482,7 +489,7 @@ export function Globe({
     <div
       ref={wrapRef}
       className={cx(className)}
-      style={{ position: 'relative', width: '100%', maxWidth: maxSize, background: 'var(--__s9cmpx-chart-surface)', color: 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: 12, boxSizing: 'content-box' }}
+      style={{ position: 'relative', width: '100%', maxWidth: maxSize + 2 * PANEL_PAD, background: 'var(--__s9cmpx-chart-surface)', color: 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: PANEL_PAD, boxSizing: 'border-box' }}
     >
       <div style={{ position: 'relative', display: tableOpen ? 'none' : 'block', width: size, height: size, margin: '0 auto' }}>
         <canvas
