@@ -283,3 +283,43 @@ export const ControlledMobileDrawerRestoresTriggerFocus: Story = {
     await expect(launchButton).toHaveFocus();
   },
 };
+
+function HostOwnedTriggerStory(args: SidebarNavProps) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div>
+      <button type="button" onClick={() => setOpen(true)}>Menu</button>
+      <SidebarNav {...args} open={open} onToggle={setOpen} hideMobileToggle />
+    </div>
+  );
+}
+
+/** hideMobileToggle: on mobile the floating "Open menu" button and the persistent action beside it are NOT rendered -- the host's own header button opens the drawer, and closing returns focus to it. */
+export const MobileHostSuppliesItsOwnMenuButton: Story = {
+  beforeEach: () => {
+    restoreMatchMediaStub = installMatchMediaStub(true);
+  },
+  afterEach: () => {
+    restoreMatchMediaStub?.();
+    restoreMatchMediaStub = undefined;
+  },
+  args: { open: undefined, persistentAction: { icon: 'sparkle', label: 'Ask the Agent', onClick: () => {} } },
+  render: (args) => <HostOwnedTriggerStory {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByRole('button', { name: 'Open menu' })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole('button', { name: 'Ask the Agent' })).not.toBeInTheDocument();
+
+    const host = canvas.getByRole('button', { name: 'Menu' });
+    host.focus();
+    await userEvent.click(host);
+    const close = await waitFor(() => canvas.getByRole('button', { name: 'Close menu' }));
+    await expect(close).toHaveFocus();
+    await userEvent.click(close);
+    await waitFor(() => expect(canvas.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument());
+    await expect(host).toHaveFocus();
+    // Still no floating controls once closed again.
+    await expect(canvas.queryByRole('button', { name: 'Open menu' })).not.toBeInTheDocument();
+  },
+};
+
