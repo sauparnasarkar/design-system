@@ -49,8 +49,13 @@ export interface GlobeProps {
   ariaLabel: string;
   /** Overlay at the top-left of the globe (e.g. the current year and a total). */
   title?: React.ReactNode;
-  /** Slowly spin the globe. Default true; always off under prefers-reduced-motion. */
+  /** Slowly spin the globe. Default true; off under prefers-reduced-motion unless `allowSpinWithReducedMotion`. */
   autoRotate?: boolean;
+  /** Let `autoRotate` spin the globe even under prefers-reduced-motion. Default false: reduced motion
+   * suppresses the spin, as it should for a spin nobody asked for. Set true only when `autoRotate` is itself
+   * the result of a deliberate user action -- e.g. it is on only while the user's own Play button is
+   * running -- since then the movement is requested, not imposed. Colour blending stays off either way. */
+  allowSpinWithReducedMotion?: boolean;
   /** Milliseconds per full turn. Set it to the consumer's step interval to keep one rotation per year-step. Default 12000. */
   rotationPeriodMs?: number;
   /** Milliseconds to blend colours between consecutive frames. Default 600; 0 disables (and is forced under reduced motion). */
@@ -127,7 +132,7 @@ type Loc = { name: string; value: number | null };
 export function Globe({
   isoCodes, locationNames, years, values, yearIndex, colorRange, colorScale, zLog = true, noDataColor,
   hoverUnit, legendTitle, noDataLabel = 'No data', ariaLabel, title,
-  autoRotate = true, rotationPeriodMs = 12000, blendMs = 600, initialLongitude = 80,
+  autoRotate = true, allowSpinWithReducedMotion = false, rotationPeriodMs = 12000, blendMs = 600, initialLongitude = 80,
   geometry, geometryUrl, showLegend = true, showControls = true, maxSize = 640, className,
 }: GlobeProps) {
   const reducedMotion = useReducedMotion();
@@ -143,8 +148,8 @@ export function Globe({
   const [tooltip, setTooltip] = React.useState<{ name: string; text: string; x: number; y: number } | null>(null);
 
   // Latest props for the draw loop, so effects don't re-create it on every prop change.
-  const propsRef = React.useRef({ isoCodes, locationNames, values, colorRange, colorScale, zLog, noDataColor, hoverUnit, noDataLabel, autoRotate, rotationPeriodMs, blendMs, reducedMotion, tableOpen });
-  propsRef.current = { isoCodes, locationNames, values, colorRange, colorScale, zLog, noDataColor, hoverUnit, noDataLabel, autoRotate, rotationPeriodMs, blendMs, reducedMotion, tableOpen };
+  const propsRef = React.useRef({ isoCodes, locationNames, values, colorRange, colorScale, zLog, noDataColor, hoverUnit, noDataLabel, autoRotate, allowSpinWithReducedMotion, rotationPeriodMs, blendMs, reducedMotion, tableOpen });
+  propsRef.current = { isoCodes, locationNames, values, colorRange, colorScale, zLog, noDataColor, hoverUnit, noDataLabel, autoRotate, allowSpinWithReducedMotion, rotationPeriodMs, blendMs, reducedMotion, tableOpen };
 
   const view = React.useRef({ rot: -initialLongitude, tilt: 15, zoom: 1 });
   const frame = React.useRef({ from: yearIndex, to: yearIndex, mix: 1 });
@@ -211,7 +216,7 @@ export function Globe({
       else f.from = f.to;
     }
     // Spin
-    const spinning = p.autoRotate && !p.reducedMotion && !p.tableOpen && !dragRef.current && hoverRef.current == null;
+    const spinning = p.autoRotate && (!p.reducedMotion || p.allowSpinWithReducedMotion) && !p.tableOpen && !dragRef.current && hoverRef.current == null;
     if (spinning) { view.current.rot += rotationStep(dt, p.rotationPeriodMs); animating = true; }
     drawRef.current();
     if (animating && visible.current) raf.current = requestAnimationFrame(frameLoop);
@@ -273,7 +278,7 @@ export function Globe({
   }, [yearIndex, years.length, blendMs, reducedMotion, schedule]);
 
   // --- redraw on any data/style/size change ---
-  React.useEffect(() => { schedule(); }, [features, featureLoc, values, colorRange, colorScale, zLog, noDataColor, size, tableOpen, autoRotate, reducedMotion, schedule]);
+  React.useEffect(() => { schedule(); }, [features, featureLoc, values, colorRange, colorScale, zLog, noDataColor, size, tableOpen, autoRotate, allowSpinWithReducedMotion, reducedMotion, schedule]);
 
   // --- draw ---
   drawRef.current = () => {
