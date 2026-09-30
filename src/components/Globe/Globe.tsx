@@ -71,6 +71,12 @@ export interface GlobeProps {
   showControls?: boolean;
   /** Upper bound on the rendered diameter (px). Default 640. */
   maxSize?: number;
+  /** No panel background: the globe sits directly on the page, and the text around it (legend, controls hint,
+   * overlay title) uses the page's text colour instead of the chart panel's. The ocean disc is still drawn in the
+   * chart-surface colour, so on a dark page it reads as part of the page and on a light page as a dark globe.
+   * Text uses `static-text-standard` (not `-weak`): the weak tone is fine on the dark chart panel but too faint
+   * (~3.8:1 in the light theme) for small legend text sitting on a light page. */
+  transparent?: boolean;
   className?: string;
 }
 
@@ -133,7 +139,7 @@ export function Globe({
   isoCodes, locationNames, years, values, yearIndex, colorRange, colorScale, zLog = true, noDataColor,
   hoverUnit, legendTitle, noDataLabel = 'No data', ariaLabel, title,
   autoRotate = true, allowSpinWithReducedMotion = false, rotationPeriodMs = 12000, blendMs = 600, initialLongitude = 80,
-  geometry, geometryUrl, showLegend = true, showControls = true, maxSize = 640, className,
+  geometry, geometryUrl, showLegend = true, showControls = true, maxSize = 640, transparent = false, className,
 }: GlobeProps) {
   const reducedMotion = useReducedMotion();
   const uid = React.useId();
@@ -374,7 +380,8 @@ export function Globe({
     ctx.font = `600 12px ${getComputedStyle(canvas).fontFamily || 'sans-serif'}`;
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
-    pickLabelCandidates(labelCandidates).forEach((c) => {
+    // Fewer labels on a small globe (phones): five names on a ~240px disc overprint each other.
+    pickLabelCandidates(labelCandidates, size < 420 ? 3 : 5).forEach((c) => {
       const pt = proj(centroids[c.index]);
       if (!pt) return;
       const text = `${nameOf(featureLoc[c.index], String(features[c.index].id))} ${formatGlobeValue(c.value)}`;
@@ -382,11 +389,17 @@ export function Globe({
       ctx.beginPath();
       ctx.arc(pt[0], pt[1], 3, 0, Math.PI * 2);
       ctx.fill();
+      // Normally to the right of the dot; flipped to its left if it would run off the canvas (a country near the
+      // right edge of a small phone globe otherwise gets its name cut off).
+      const flip = pt[0] + 8 + ctx.measureText(text).width > size - 2;
+      const tx = flip ? pt[0] - 8 : pt[0] + 8;
+      ctx.textAlign = flip ? 'right' : 'left';
       ctx.lineWidth = 3.5;
       ctx.strokeStyle = th.surface;
-      ctx.strokeText(text, pt[0] + 8, pt[1]);
+      ctx.strokeText(text, tx, pt[1]);
       ctx.fillStyle = th.hover;
-      ctx.fillText(text, pt[0] + 8, pt[1]);
+      ctx.fillText(text, tx, pt[1]);
+      ctx.textAlign = 'left';
     });
 
     pickRef.current = (x, y) => {
@@ -494,7 +507,7 @@ export function Globe({
     <div
       ref={wrapRef}
       className={cx(className)}
-      style={{ position: 'relative', width: '100%', maxWidth: maxSize + 2 * PANEL_PAD, background: 'var(--__s9cmpx-chart-surface)', color: 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: PANEL_PAD, boxSizing: 'border-box' }}
+      style={{ position: 'relative', width: '100%', maxWidth: maxSize + 2 * PANEL_PAD, background: transparent ? 'transparent' : 'var(--__s9cmpx-chart-surface)', color: transparent ? 'var(--__s9cmpx-static-text-standard)' : 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: PANEL_PAD, boxSizing: 'border-box' }}
     >
       <div style={{ position: 'relative', display: tableOpen ? 'none' : 'block', width: size, height: size, margin: '0 auto' }}>
         <canvas
@@ -538,9 +551,10 @@ export function Globe({
       )}
 
       {showLegend && (
-        <div style={{ marginTop: 12, display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 11 }}>
+        <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '6px 12px', fontSize: 12 }}>
           {legendTitle && <span style={{ paddingTop: 1, whiteSpace: 'nowrap' }}>{legendTitle}</span>}
-          <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* flex-basis/min-width: on a phone the colour bar gets its own row instead of being squeezed until its tick labels collide. */}
+          <div style={{ flex: '1 1 220px', minWidth: 200, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div aria-hidden="true" style={{ height: 10, borderRadius: 2, background: gradient }} />
             <div aria-hidden="true" style={{ position: 'relative', height: 14 }}>
               {ticks.map((t) => (
@@ -561,7 +575,7 @@ export function Globe({
           <Button variant="secondary" size="xs" aria-label="Zoom out" disabled={tableOpen} onClick={() => applyAction({ dLon: 0, dLat: 0, dZoom: -0.5, reset: false })}>−</Button>
           <Button variant="secondary" size="xs" disabled={tableOpen} onClick={() => applyAction({ dLon: 0, dLat: 0, dZoom: 0, reset: true })}>Reset view</Button>
           <Button variant="secondary" size="xs" aria-pressed={tableOpen} onClick={() => setTableOpen((o) => !o)}>{tableOpen ? 'Globe view' : 'Table view'}</Button>
-          <span id={hintId} style={{ marginLeft: 'auto', fontSize: 11 }}>Drag to spin · arrow keys rotate · + / − zoom · 0 resets</span>
+          <span id={hintId} style={{ marginLeft: 'auto', fontSize: 12 }}>Drag to spin · arrow keys rotate · + / − zoom · 0 resets</span>
         </div>
       )}
     </div>
