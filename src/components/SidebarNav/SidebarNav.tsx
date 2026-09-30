@@ -57,6 +57,12 @@ export interface SidebarNavProps {
    * control in its header on mobile (via this same package's `useIsMobile`) -- this prop doesn't
    * hide anything on the host's behalf. */
   mobileOnlyContent?: React.ReactNode;
+  /** Don't render the floating mobile menu button or the `persistentAction` beside it while the drawer is
+   * closed. For a host that puts its own "Menu" trigger in its header and drives the drawer through the
+   * controlled `open` / `onToggle` props (the host is then also responsible for offering whatever the
+   * persistent action was, e.g. inside `mobileOnlyContent`). Focus returns to the element that opened the
+   * drawer, as for any controlled trigger. Default false: unchanged behaviour. */
+  hideMobileToggle?: boolean;
 }
 
 export function SidebarNav({
@@ -70,6 +76,7 @@ export function SidebarNav({
   mobileToggleSide = 'left',
   persistentAction,
   mobileOnlyContent,
+  hideMobileToggle = false,
 }: SidebarNavProps) {
   // Normalize to a single list-of-groups shape internally, regardless of
   // which prop the consumer passed — `items` becomes one unlabeled group, so
@@ -217,7 +224,7 @@ export function SidebarNav({
 
   return (
     <>
-      {isMobile && !open && (
+      {isMobile && !open && !hideMobileToggle && (
         <>
           <button
             type="button"
