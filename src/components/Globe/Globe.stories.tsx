@@ -129,6 +129,26 @@ export const ReducedMotion: Story = {
   },
 };
 
+/** prefers-reduced-motion + `allowSpinWithReducedMotion`: the consumer's autoRotate (here standing in for "the user's Play button is running") is honoured -- the globe spins even though the OS asks for reduced motion. Colour blending stays off. */
+export const ReducedMotionSpinOnRequest: Story = {
+  args: { autoRotate: true, allowSpinWithReducedMotion: true, rotationPeriodMs: 1500 },
+  decorators: [
+    (Story) => {
+      const orig = window.matchMedia;
+      window.matchMedia = ((q: string) => ({ matches: q === '(prefers-reduced-motion: reduce)', media: q, addEventListener: () => {}, removeEventListener: () => {} })) as unknown as typeof window.matchMedia;
+      React.useEffect(() => () => { window.matchMedia = orig; }, [orig]);
+      return <Story />;
+    },
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement).getByRole('img') as HTMLCanvasElement;
+    const painted = () => canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data.some((v, i) => i % 4 === 3 && v > 0);
+    await waitFor(() => expect(painted()).toBe(true), { timeout: 5000 });
+    const a = canvas.toDataURL();
+    await waitFor(() => expect(canvas.toDataURL()).not.toBe(a), { timeout: 3000 });
+  },
+};
+
 /** Linear (non-log) scale, no legend/controls: the bare canvas for tight layouts. */
 export const BareLinear: Story = {
   args: { zLog: false, colorRange: [0, 6000], showLegend: false, showControls: false },
