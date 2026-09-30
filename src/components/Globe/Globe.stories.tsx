@@ -149,6 +149,12 @@ export const ReducedMotionSpinOnRequest: Story = {
   },
 };
 
+/** No panel background: sits on the page (check both themes in the toolbar -- on a dark page the ocean disc merges into it, on a light page it reads as a dark globe). */
+export const Transparent: Story = {
+  args: { transparent: true },
+  decorators: [(Story) => <div style={{ background: 'var(--__s9cmpx-static-background-weak)', padding: 24 }}><Story /></div>],
+};
+
 /** Linear (non-log) scale, no legend/controls: the bare canvas for tight layouts. */
 export const BareLinear: Story = {
   args: { zLog: false, colorRange: [0, 6000], showLegend: false, showControls: false },
