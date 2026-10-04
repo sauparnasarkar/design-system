@@ -7,6 +7,7 @@ import {
   filterNoData,
   formatChartValue,
   hasOnlyFlatTreemapParents,
+  hoverFormatSpec,
   logColorbarTicks,
   noDataHovertemplate,
   pickTileInk,
@@ -304,5 +305,15 @@ describe('usesSecondaryAxis', () => {
     expect(usesSecondaryAxis([{ kind: 'bar' }, { kind: 'line', yAxis: 'y' }], 'v')).toBe(false);
     expect(usesSecondaryAxis([{ kind: 'line', yAxis: 'y2' }], 'h')).toBe(false);
     expect(usesSecondaryAxis([{ kind: 'choropleth', yAxis: 'y2' }], 'v')).toBe(false);
+  });
+});
+
+describe('hoverFormatSpec', () => {
+  it('uses y2TickFormat only for a y2 trace in a vertical chart', () => {
+    expect(hoverFormatSpec('y2', 'v', '.0%', '.1f')).toBe('.1f');
+    expect(hoverFormatSpec('y', 'v', '.0%', '.1f')).toBe('.0%');
+    expect(hoverFormatSpec(undefined, 'v', '.0%', '.1f')).toBe('.0%');
+    expect(hoverFormatSpec('y2', 'h', '.0%', '.1f')).toBe('.0%');
+    expect(hoverFormatSpec('y2', 'v', '.0%', undefined)).toBeUndefined();
   });
 });

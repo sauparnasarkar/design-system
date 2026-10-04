@@ -271,3 +271,17 @@ export function usesSecondaryAxis(series: Array<{ yAxis?: 'y' | 'y2'; kind?: str
   if (orientation === 'h') return false;
   return series.some((s) => s.yAxis === 'y2' && s.kind !== 'choropleth' && s.kind !== 'treemap');
 }
+
+/**
+ * The d3-format spec for a hovered point's value: a trace drawn on the secondary axis ('y2')
+ * reads in that axis's own format, everything else (including every trace in a horizontal chart,
+ * which has no secondary axis) in the primary one.
+ */
+export function hoverFormatSpec(
+  traceYAxis: string | undefined,
+  orientation: 'v' | 'h',
+  yTickFormat?: string,
+  y2TickFormat?: string,
+): string | undefined {
+  return orientation !== 'h' && traceYAxis === 'y2' ? y2TickFormat : yTickFormat;
+}

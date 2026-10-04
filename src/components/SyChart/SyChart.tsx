@@ -16,6 +16,7 @@ import {
   cssVar,
   filterNoData,
   formatChartValue,
+  hoverFormatSpec,
   logColorbarTicks,
   noDataHovertemplate,
   normalizeReferenceX,
@@ -1373,7 +1374,7 @@ function SyChartPlotly({
       type HoverPoint = {
         x: number | string;
         y: number | string;
-        data: { name: string };
+        data: { name: string; yaxis?: string };
         fullData?: { line?: { color?: string }; marker?: { color?: string } };
         customdata?: string | null;
       };
@@ -1415,7 +1416,7 @@ function SyChartPlotly({
           // (the axis itself), so a bar/line's hover value otherwise reads in the same units as
           // its axis instead of a raw, unformatted number.
           const val =
-            p.customdata != null ? p.customdata : typeof rawValue === 'number' ? formatChartValue(rawValue, yTickFormat) : String(rawValue);
+            p.customdata != null ? p.customdata : typeof rawValue === 'number' ? formatChartValue(rawValue, hoverFormatSpec(p.data.yaxis, orientation, yTickFormat, y2TickFormat)) : String(rawValue);
           const row = document.createElement('div');
           row.style.cssText = 'display:flex;align-items:center;gap:6px;white-space:nowrap;';
           const swatch = document.createElement('span');
