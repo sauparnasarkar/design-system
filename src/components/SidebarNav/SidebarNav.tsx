@@ -215,8 +215,10 @@ export function SidebarNav({
         <span className="__s9cmpx-sidebar-nav__sidebar-item-icon" style={{ display: 'inline-flex', flexShrink: 0 }}>
           <Icon name={item.icon} size={20} />
         </span>
-        {open && <span className="__s9cmpx-sidebar-nav__sidebar-item-text __s9cmpx-label2" style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
-        {open && item.badge && <Tag color="green" size="small">{item.badge}</Tag>}
+        {/* With a badge the label may wrap onto a second line instead of truncating, so the badge is never clipped
+            (a long label like "Climate Correlation" plus "NEW" doesn't fit one line in the rail). */}
+        {open && <span className="__s9cmpx-sidebar-nav__sidebar-item-text __s9cmpx-label2" style={item.badge ? { flex: 1, minWidth: 0 } : { flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
+        {open && item.badge && <Tag color="green" size="small" style={{ flexShrink: 0 }}>{item.badge}</Tag>}
         {open && item.hasFlyout && <Icon name="chevron-right" size={14} style={{ color: 'var(--__s9cmpx-static-text-weak)' }} />}
       </a>
     </li>
