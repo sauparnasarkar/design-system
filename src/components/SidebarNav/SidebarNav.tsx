@@ -2,6 +2,7 @@ import React from 'react';
 import { cx } from '../../lib/cx';
 import { Icon, type IconName } from '../Icon/Icon';
 import { Button } from '../Button/Button';
+import { Tag } from '../Tag/Tag';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { getFocusableElements } from '../../lib/useFocusTrap';
@@ -11,6 +12,8 @@ export interface SidebarNavItem {
   label: string;
   icon: IconName;
   href?: string;
+  /** Short tag after the label while the rail is expanded, e.g. "NEW" for a recently added page. Hidden with the label when the rail is collapsed. Part of the item's accessible name while shown. */
+  badge?: string;
   /** Renders a chevron to indicate a flyout submenu */
   hasFlyout?: boolean;
   active?: boolean;
@@ -213,6 +216,7 @@ export function SidebarNav({
           <Icon name={item.icon} size={20} />
         </span>
         {open && <span className="__s9cmpx-sidebar-nav__sidebar-item-text __s9cmpx-label2" style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
+        {open && item.badge && <Tag color="green" size="small">{item.badge}</Tag>}
         {open && item.hasFlyout && <Icon name="chevron-right" size={14} style={{ color: 'var(--__s9cmpx-static-text-weak)' }} />}
       </a>
     </li>

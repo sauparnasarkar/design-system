@@ -580,6 +580,48 @@ export const Annotations: Story = {
   ),
 };
 
+/** Two value axes: annual emissions as bars against the left axis, a temperature anomaly line on a
+ * right-hand `yAxis: 'y2'` (set via `y2Title`/`y2Range`/`y2TickFormat`). Context chart: the two
+ * series share only the x axis, so say so in the caption. */
+export const DualAxis: Story = {
+  render: () => (
+    <ChartCard title="Emissions (left axis) and temperature anomaly (right axis)" onDownload={() => {}}>
+      <SyChart
+        height={300}
+        yTitle="GtCO₂ / yr"
+        y2Title="°C vs 1850–1900"
+        y2TickFormat=".1f"
+        y2Range={[0, 1.8]}
+        series={[
+          { name: 'CO₂ emissions', x: ['1990', '2000', '2010', '2020', '2024'], y: [22, 25, 33, 35, 37], kind: 'bar' },
+          { name: 'Temperature anomaly', x: ['1990', '2000', '2010', '2020', '2024'], y: [0.6, 0.8, 1.0, 1.3, 1.6], kind: 'line', yAxis: 'y2' },
+        ]}
+      />
+    </ChartCard>
+  ),
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(canvasElement.querySelector('.y2tick')).not.toBeNull());
+  },
+};
+
+/** Dashed vertical reference lines on the x axis, each optionally labelled at the top -- e.g. a data-source
+ * splice year and the start of a projection. */
+export const ReferenceXLines: Story = {
+  render: () => (
+    <ChartCard title="Atmospheric CO₂ with a splice and a scenario start" onDownload={() => {}}>
+      <SyChart
+        height={300}
+        showLegend={false}
+        referenceX={[{ value: 1959, label: '1959 · ice core → Mauna Loa' }, { value: 2025, label: '2025 · scenarios start' }]}
+        series={[{ name: 'CO₂ (ppm)', x: [1900, 1930, 1959, 1990, 2024], y: [296, 306, 316, 354, 425], kind: 'line' }]}
+      />
+    </ChartCard>
+  ),
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(canvasElement.querySelectorAll('.shapelayer path').length).toBeGreaterThanOrEqual(2));
+  },
+};
+
 /** `ChartCard`'s `expandable` control (SPEC.md §5.11) — click the expand icon to toggle a
  * safe-area-aware fixed overlay; `children` as a function of `isExpanded` lets the chart grow
  * with it, rather than just sitting in a bigger empty card. */

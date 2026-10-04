@@ -22,6 +22,8 @@ const PATHS: Record<string, React.ReactNode> = {
   search: (
     <path d="M10.5 3a7.5 7.5 0 015.916 12.111l4.236 4.237-1.414 1.414-4.237-4.236A7.5 7.5 0 1110.5 3zm0 2a5.5 5.5 0 100 11 5.5 5.5 0 000-11z" />
   ),
+  // Three ascending bars -- a generic "chart" glyph for analytics/trend pages.
+  chart: <path d="M4 13h3.5v7H4zm6.25-5h3.5v12h-3.5zM16.5 4H20v16h-3.5z" />,
   'chevron-down': <path d="M12 15.5l-6-6 1.414-1.414L12 12.672l4.586-4.586L18 9.5z" />,
   'chevron-up': <path d="M12 8.5l6 6-1.414 1.414L12 11.328l-4.586 4.586L6 14.5z" />,
   'chevron-right': <path d="M9.914 6l6 6-6 6L8.5 16.586 13.086 12 8.5 7.414z" />,

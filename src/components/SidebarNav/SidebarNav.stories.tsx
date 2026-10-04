@@ -163,6 +163,25 @@ export const LabeledGroups: Story = {
   },
 };
 
+/** `badge` renders a small tag after the label while the rail is expanded (e.g. "NEW" on a page added recently). */
+export const ItemWithBadge: Story = {
+  args: {
+    items: [
+      { id: 'overview', label: 'Overview', icon: 'home', active: true },
+      { id: 'correlation', label: 'Climate Correlation', icon: 'grid', badge: 'NEW' },
+    ],
+    footerItems: [],
+    open: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const item = canvas.getByRole('menuitem', { name: /Climate Correlation/ });
+    await expect(within(item).getByText('NEW')).toBeVisible();
+    await expect(canvas.getByRole('menuitem', { name: 'Overview' })).toBeVisible();
+    await expect(within(canvas.getByRole('menuitem', { name: 'Overview' })).queryByText('NEW')).toBeNull();
+  },
+};
+
 export const DesktopOmitsMobileOnlyContent: Story = {
   args: {
     mobileOnlyContent: (

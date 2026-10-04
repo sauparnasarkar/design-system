@@ -249,3 +249,25 @@ export function nextZoomScale(current: number, factor: number, min = 1, max = 8)
   const c = Number.isFinite(current) && current > 0 ? current : 1;
   return Math.min(max, Math.max(min, c * factor));
 }
+
+/** A vertical reference line on the x axis (e.g. a splice year, "scenarios start"). */
+export interface ReferenceXSpec {
+  value: string | number;
+  label?: string;
+}
+
+/** `referenceX` accepts one spec or several; callers downstream always want a list. */
+export function normalizeReferenceX(ref?: ReferenceXSpec | ReferenceXSpec[]): ReferenceXSpec[] {
+  if (ref == null) return [];
+  return Array.isArray(ref) ? ref : [ref];
+}
+
+/**
+ * Whether the chart needs a right-hand y axis: some series asked for `yAxis: 'y2'`. Never in
+ * horizontal mode (there y is the category axis, so a second value axis has no meaning), and never
+ * for choropleth/treemap series, which have no cartesian axes at all.
+ */
+export function usesSecondaryAxis(series: Array<{ yAxis?: 'y' | 'y2'; kind?: string }>, orientation: 'v' | 'h'): boolean {
+  if (orientation === 'h') return false;
+  return series.some((s) => s.yAxis === 'y2' && s.kind !== 'choropleth' && s.kind !== 'treemap');
+}
