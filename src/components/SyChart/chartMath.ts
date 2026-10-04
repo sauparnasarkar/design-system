@@ -249,3 +249,39 @@ export function nextZoomScale(current: number, factor: number, min = 1, max = 8)
   const c = Number.isFinite(current) && current > 0 ? current : 1;
   return Math.min(max, Math.max(min, c * factor));
 }
+
+/** A vertical reference line on the x axis (e.g. a splice year, "scenarios start"). */
+export interface ReferenceXSpec {
+  value: string | number;
+  label?: string;
+}
+
+/** `referenceX` accepts one spec or several; callers downstream always want a list. */
+export function normalizeReferenceX(ref?: ReferenceXSpec | ReferenceXSpec[]): ReferenceXSpec[] {
+  if (ref == null) return [];
+  return Array.isArray(ref) ? ref : [ref];
+}
+
+/**
+ * Whether the chart needs a right-hand y axis: some series asked for `yAxis: 'y2'`. Never in
+ * horizontal mode (there y is the category axis, so a second value axis has no meaning), and never
+ * for choropleth/treemap series, which have no cartesian axes at all.
+ */
+export function usesSecondaryAxis(series: Array<{ yAxis?: 'y' | 'y2'; kind?: string }>, orientation: 'v' | 'h'): boolean {
+  if (orientation === 'h') return false;
+  return series.some((s) => s.yAxis === 'y2' && s.kind !== 'choropleth' && s.kind !== 'treemap');
+}
+
+/**
+ * The d3-format spec for a hovered point's value: a trace drawn on the secondary axis ('y2')
+ * reads in that axis's own format, everything else (including every trace in a horizontal chart,
+ * which has no secondary axis) in the primary one.
+ */
+export function hoverFormatSpec(
+  traceYAxis: string | undefined,
+  orientation: 'v' | 'h',
+  yTickFormat?: string,
+  y2TickFormat?: string,
+): string | undefined {
+  return orientation !== 'h' && traceYAxis === 'y2' ? y2TickFormat : yTickFormat;
+}

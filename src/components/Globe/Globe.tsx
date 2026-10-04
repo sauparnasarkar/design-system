@@ -66,6 +66,9 @@ export interface GlobeProps {
   geometry?: FeatureCollection;
   /** URL of a custom TopoJSON whose `countries` object is keyed by ISO-3 `id`. Ignored if `geometry` is set. */
   geometryUrl?: string;
+  /** Names and values drawn beside the largest visible countries. Default true. Turn off for an
+   * ambient/autoplaying globe that should show only the colour and the year, and back on when paused. */
+  showLabels?: boolean;
   showLegend?: boolean;
   /** Zoom/reset/table buttons and the keyboard hint. Default true. */
   showControls?: boolean;
@@ -139,7 +142,7 @@ export function Globe({
   isoCodes, locationNames, years, values, yearIndex, colorRange, colorScale, zLog = true, noDataColor,
   hoverUnit, legendTitle, noDataLabel = 'No data', ariaLabel, title,
   autoRotate = true, allowSpinWithReducedMotion = false, rotationPeriodMs = 12000, blendMs = 600, initialLongitude = 80,
-  geometry, geometryUrl, showLegend = true, showControls = true, maxSize = 640, transparent = false, className,
+  geometry, geometryUrl, showLabels = true, showLegend = true, showControls = true, maxSize = 640, transparent = false, className,
 }: GlobeProps) {
   const reducedMotion = useReducedMotion();
   const uid = React.useId();
@@ -154,8 +157,8 @@ export function Globe({
   const [tooltip, setTooltip] = React.useState<{ name: string; text: string; x: number; y: number } | null>(null);
 
   // Latest props for the draw loop, so effects don't re-create it on every prop change.
-  const propsRef = React.useRef({ isoCodes, locationNames, values, colorRange, colorScale, zLog, noDataColor, hoverUnit, noDataLabel, autoRotate, allowSpinWithReducedMotion, rotationPeriodMs, blendMs, reducedMotion, tableOpen });
-  propsRef.current = { isoCodes, locationNames, values, colorRange, colorScale, zLog, noDataColor, hoverUnit, noDataLabel, autoRotate, allowSpinWithReducedMotion, rotationPeriodMs, blendMs, reducedMotion, tableOpen };
+  const propsRef = React.useRef({ isoCodes, locationNames, values, colorRange, colorScale, zLog, noDataColor, hoverUnit, noDataLabel, autoRotate, allowSpinWithReducedMotion, rotationPeriodMs, blendMs, reducedMotion, tableOpen, showLabels });
+  propsRef.current = { isoCodes, locationNames, values, colorRange, colorScale, zLog, noDataColor, hoverUnit, noDataLabel, autoRotate, allowSpinWithReducedMotion, rotationPeriodMs, blendMs, reducedMotion, tableOpen, showLabels };
 
   const view = React.useRef({ rot: -initialLongitude, tilt: 15, zoom: 1 });
   const frame = React.useRef({ from: yearIndex, to: yearIndex, mix: 1 });
@@ -284,7 +287,7 @@ export function Globe({
   }, [yearIndex, years.length, blendMs, reducedMotion, schedule]);
 
   // --- redraw on any data/style/size change ---
-  React.useEffect(() => { schedule(); }, [features, featureLoc, values, colorRange, colorScale, zLog, noDataColor, size, tableOpen, autoRotate, allowSpinWithReducedMotion, reducedMotion, schedule]);
+  React.useEffect(() => { schedule(); }, [features, featureLoc, values, colorRange, colorScale, zLog, noDataColor, size, tableOpen, showLabels, autoRotate, allowSpinWithReducedMotion, reducedMotion, schedule]);
 
   // --- draw ---
   drawRef.current = () => {
@@ -381,7 +384,7 @@ export function Globe({
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
     // Fewer labels on a small globe (phones): five names on a ~240px disc overprint each other.
-    pickLabelCandidates(labelCandidates, size < 420 ? 3 : 5).forEach((c) => {
+    (p.showLabels ? pickLabelCandidates(labelCandidates, size < 420 ? 3 : 5) : []).forEach((c) => {
       const pt = proj(centroids[c.index]);
       if (!pt) return;
       const text = `${nameOf(featureLoc[c.index], String(features[c.index].id))} ${formatGlobeValue(c.value)}`;

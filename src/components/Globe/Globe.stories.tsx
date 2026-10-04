@@ -155,6 +155,11 @@ export const Transparent: Story = {
   decorators: [(Story) => <div style={{ background: 'var(--__s9cmpx-static-background-weak)', padding: 24 }}><Story /></div>],
 };
 
+/** `showLabels={false}`: only colour (and the consumer's own year readout) while autoplaying; flip it back on when paused. */
+export const WithoutLabels: Story = {
+  args: { showLabels: false, showLegend: false, showControls: false },
+};
+
 /** Linear (non-log) scale, no legend/controls: the bare canvas for tight layouts. */
 export const BareLinear: Story = {
   args: { zLog: false, colorRange: [0, 6000], showLegend: false, showControls: false },

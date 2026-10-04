@@ -16,14 +16,18 @@ import {
   cssVar,
   filterNoData,
   formatChartValue,
+  hoverFormatSpec,
   logColorbarTicks,
   noDataHovertemplate,
+  normalizeReferenceX,
   resolveTileColors,
   shouldCancelTreemapClick,
   shouldUseSquarifiedTreemap,
   syPalette,
+  usesSecondaryAxis,
   withAlpha,
 } from './chartMath';
+import type { ReferenceXSpec } from './chartMath';
 import { SquarifiedTreemap } from './SquarifiedTreemap';
 
 // `PlotData.type: PlotType` already covers every trace kind this component emits (bar/scatter/
@@ -95,6 +99,13 @@ export interface SyChartSeries {
    * e.g. a net-value tick per bar; unlike 'line', points are never joined), 'choropleth', or
    * 'treemap' */
   kind?: 'bar' | 'line' | 'band' | 'area' | 'marker' | 'choropleth' | 'treemap';
+  /**
+   * Which value axis this series reads: the left axis ('y', default) or a right-hand axis ('y2',
+   * titled/ranged/formatted via `y2Title`/`y2Range`/`y2TickFormat` on SyChartProps) -- e.g. emissions
+   * bars against a temperature line. Vertical charts only: ignored in `orientation="h"`, and for
+   * 'choropleth'/'treemap'.
+   */
+  yAxis?: 'y' | 'y2';
   /** Lower bound for kind 'band'; `y` is the upper bound */
   yLower?: Array<number | null>;
   /** Fill opacity for kind 'band' (0–1). Defaults to 0.25. */
@@ -323,6 +334,18 @@ export interface SyChartProps {
   yTickFormat?: string;
   /** Dashed horizontal reference line (e.g. "1990 level"). Drawn on the y-axis — intended for vertical charts; in 'h' mode y is the category axis. */
   referenceY?: { value: number; label?: string };
+  /**
+   * Dashed vertical reference line(s) on the x axis, optionally labelled at the top (e.g. a
+   * "1959 · ice core → Mauna Loa" splice, or "2025 · scenarios start"). One spec or a list. Like
+   * `referenceY`, intended for vertical charts: in 'h' mode x is the value axis.
+   */
+  referenceX?: ReferenceXSpec | ReferenceXSpec[];
+  /** Title of the right-hand axis; only drawn when some series sets `yAxis: 'y2'` */
+  y2Title?: string;
+  /** Fixes the right-hand axis range */
+  y2Range?: [number, number];
+  /** d3-format spec for the right-hand axis ticks (e.g. '.1f') */
+  y2TickFormat?: string;
   /** Fixes the y-axis range instead of Plotly's auto-range (e.g. to keep small-multiple charts visually comparable) */
   yRange?: [number, number];
   /** Fixes the x-axis range instead of Plotly's auto-range */
@@ -433,6 +456,8 @@ function computeLegendReservedHeight(containerWidth: number, seriesCount: number
 }
 
 const BASE_MARGIN_T = 8; // matches the flat, non-choropleth base `margin.t` below
+// Room above the plot for `referenceX` labels, which sit at the top edge of the plot area.
+const REFERENCE_X_LABEL_MARGIN_T = 32;
 const BASE_MARGIN_B = 32; // matches the flat, non-choropleth base `margin.b` below
 const LEGEND_BOTTOM_BUFFER = 16; // gap kept between the legend's own bottom edge and the plot's top
 
@@ -556,6 +581,10 @@ function SyChartPlotly({
   showLegend = true,
   yTickFormat,
   referenceY,
+  referenceX,
+  y2Title,
+  y2Range,
+  y2TickFormat,
   yRange,
   xRange,
   annotations,
@@ -647,7 +676,7 @@ function SyChartPlotly({
       // defense-in-depth and is now redundant with this fix, not superseded by it.)
       color: cssVar(el, '--__s9cmpx-chart-surface-text-weak', cssVar(el, '--__s9cmpx-static-text-weak', '#757575')),
     };
-    const data = series.flatMap((s, i): SyChartTrace[] => {
+    const buildSeriesTraces = (s: SyChartSeries, i: number): SyChartTrace[] => {
       const color = s.color ?? palette[i % palette.length];
       if (s.kind === 'choropleth') {
         const colorValues = s.colorValues ?? [];
@@ -1031,7 +1060,26 @@ function SyChartPlotly({
           marker,
         },
       ];
+    };
+    const secondaryAxis = usesSecondaryAxis(series, orientation);
+    const data = series.flatMap((s, i): SyChartTrace[] => {
+      const traces = buildSeriesTraces(s, i);
+      return secondaryAxis && s.yAxis === 'y2' ? traces.map((t) => ({ ...t, yaxis: 'y2' }) as SyChartTrace) : traces;
     });
+    const referenceXs = normalizeReferenceX(referenceX);
+    const referenceXAnnotations = referenceXs
+      .filter((r) => r.label)
+      .map((r) => ({
+        xref: 'x' as const,
+        yref: 'paper' as const,
+        x: r.value,
+        y: 1,
+        xanchor: 'left' as const,
+        yanchor: 'bottom' as const,
+        text: r.label,
+        showarrow: false,
+        font: { ...font, size: 11 },
+      }));
     const referenceAnnotation = referenceY?.label
       ? [
           {
@@ -1053,7 +1101,7 @@ function SyChartPlotly({
       showarrow: a.showarrow ?? true,
       font: { ...font, size: 11 },
     }));
-    const allAnnotations = [...referenceAnnotation, ...customAnnotations];
+    const allAnnotations = [...referenceAnnotation, ...referenceXAnnotations, ...customAnnotations];
     // Seeds the very first draw with a row-count ESTIMATE (real container width, already laid
     // out by the time this effect runs) -- `reconcileLegendReserve`, called right after
     // `Plotly.react` below, immediately corrects this against the REAL rendered legend height,
@@ -1105,7 +1153,7 @@ function SyChartPlotly({
       // margin (sized for a y-axis title) would otherwise reduce usable map width and
       // shift it off-center. Bottom margin is sized for the horizontal colorbar (title +
       // scale + tick labels) that now sits below the map rather than beside it.
-      margin: hasChoropleth ? { l: 8, r: 8, t: 8, b: 64 } : { l: 48, r: 8, t: legendOverrides?.marginT ?? BASE_MARGIN_T, b: marginB },
+      margin: hasChoropleth ? { l: 8, r: 8, t: 8, b: 64 } : { l: 48, r: 8, t: Math.max(legendOverrides?.marginT ?? BASE_MARGIN_T, referenceXAnnotations.length > 0 ? REFERENCE_X_LABEL_MARGIN_T : 0), b: marginB },
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
       showlegend: showLegend,
@@ -1137,6 +1185,23 @@ function SyChartPlotly({
         gridcolor: cssVar(el, '--__s9cmpx-color-brand-100', '#ebebeb'),
         zerolinecolor: cssVar(el, '--__s9cmpx-color-brand-200', '#e0e0e0'),
       },
+      ...(secondaryAxis
+        ? {
+            yaxis2: {
+              title: y2Title ? { text: y2Title, font } : undefined,
+              overlaying: 'y',
+              side: 'right',
+              fixedrange: true,
+              tickfont: font,
+              automargin: true,
+              // The left axis owns the gridlines; a second set would double the lines and misalign.
+              showgrid: false,
+              tickformat: y2TickFormat,
+              range: y2Range,
+              zeroline: false,
+            },
+          }
+        : {}),
       geo: hasChoropleth
         ? {
             showframe: false,
@@ -1167,19 +1232,34 @@ function SyChartPlotly({
       // the category axis directly regardless of how far apart the value-axis segments land --
       // verified live via Plotly.relayout against both real cases above, correct in both.
       hovermode: orientation === 'h' ? 'y unified' : 'x unified',
-      shapes: referenceY
-        ? [
-            {
-              type: 'line',
-              xref: 'paper',
-              x0: 0,
-              x1: 1,
-              y0: referenceY.value,
-              y1: referenceY.value,
-              line: { color: cssVar(el, '--__s9cmpx-static-text-weak', '#757575'), width: 1, dash: 'dot' },
-            },
-          ]
-        : undefined,
+      shapes:
+        referenceY || referenceXs.length > 0
+          ? [
+              ...(referenceY
+                ? [
+                    {
+                      type: 'line' as const,
+                      xref: 'paper' as const,
+                      x0: 0,
+                      x1: 1,
+                      y0: referenceY.value,
+                      y1: referenceY.value,
+                      line: { color: cssVar(el, '--__s9cmpx-static-text-weak', '#757575'), width: 1, dash: 'dot' as const },
+                    },
+                  ]
+                : []),
+              ...referenceXs.map((r) => ({
+                type: 'line' as const,
+                xref: 'x' as const,
+                yref: 'paper' as const,
+                x0: r.value,
+                x1: r.value,
+                y0: 0,
+                y1: 1,
+                line: { color: cssVar(el, '--__s9cmpx-static-text-weak', '#757575'), width: 1, dash: 'dash' as const },
+              })),
+            ]
+          : undefined,
       annotations: allAnnotations.length > 0 ? allAnnotations : undefined,
     };
     const config = { displayModeBar: false, responsive: true };
@@ -1294,7 +1374,7 @@ function SyChartPlotly({
       type HoverPoint = {
         x: number | string;
         y: number | string;
-        data: { name: string };
+        data: { name: string; yaxis?: string };
         fullData?: { line?: { color?: string }; marker?: { color?: string } };
         customdata?: string | null;
       };
@@ -1336,7 +1416,7 @@ function SyChartPlotly({
           // (the axis itself), so a bar/line's hover value otherwise reads in the same units as
           // its axis instead of a raw, unformatted number.
           const val =
-            p.customdata != null ? p.customdata : typeof rawValue === 'number' ? formatChartValue(rawValue, yTickFormat) : String(rawValue);
+            p.customdata != null ? p.customdata : typeof rawValue === 'number' ? formatChartValue(rawValue, hoverFormatSpec(p.data.yaxis, orientation, yTickFormat, y2TickFormat)) : String(rawValue);
           const row = document.createElement('div');
           row.style.cssText = 'display:flex;align-items:center;gap:6px;white-space:nowrap;';
           const swatch = document.createElement('span');
@@ -1461,7 +1541,7 @@ function SyChartPlotly({
       detachPointClick?.();
       Plotly.purge(el);
     };
-  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, yRange, xRange, annotations, hasChoropleth, hasTreemap, hasPointClickableSeries, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick, outlineColor]);
+  }, [series, barmode, orientation, height, xTitle, yTitle, showLegend, yTickFormat, referenceY, referenceX, y2Title, y2Range, y2TickFormat, yRange, xRange, annotations, hasChoropleth, hasTreemap, hasPointClickableSeries, useFixedTooltip, worldAtlas, stackedAreaMode, onPointClick, outlineColor]);
 
   // Deliberately separate from the main effect above -- animationFrame is meant to update at
   // high frequency (e.g. once per ~600ms animation tick) via a direct Plotly.restyle, which

@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   nextZoomScale,
+  normalizeReferenceX,
+  usesSecondaryAxis,
   choroplethHovertemplate,
   filterNoData,
   formatChartValue,
   hasOnlyFlatTreemapParents,
+  hoverFormatSpec,
   logColorbarTicks,
   noDataHovertemplate,
   pickTileInk,
@@ -284,5 +287,33 @@ describe('nextZoomScale', () => {
   it('treats a missing/invalid current scale as 1', () => {
     expect(nextZoomScale(Number.NaN, 1.5)).toBe(1.5);
     expect(nextZoomScale(0, 2)).toBe(2);
+  });
+});
+
+describe('normalizeReferenceX', () => {
+  it('returns [] for nothing, wraps a single spec, and passes a list through', () => {
+    expect(normalizeReferenceX(undefined)).toEqual([]);
+    expect(normalizeReferenceX({ value: 1959 })).toEqual([{ value: 1959 }]);
+    const list = [{ value: 1959, label: 'splice' }, { value: 2025 }];
+    expect(normalizeReferenceX(list)).toEqual(list);
+  });
+});
+
+describe('usesSecondaryAxis', () => {
+  it('is true only when a cartesian series asks for y2 in a vertical chart', () => {
+    expect(usesSecondaryAxis([{ kind: 'bar' }, { kind: 'line', yAxis: 'y2' }], 'v')).toBe(true);
+    expect(usesSecondaryAxis([{ kind: 'bar' }, { kind: 'line', yAxis: 'y' }], 'v')).toBe(false);
+    expect(usesSecondaryAxis([{ kind: 'line', yAxis: 'y2' }], 'h')).toBe(false);
+    expect(usesSecondaryAxis([{ kind: 'choropleth', yAxis: 'y2' }], 'v')).toBe(false);
+  });
+});
+
+describe('hoverFormatSpec', () => {
+  it('uses y2TickFormat only for a y2 trace in a vertical chart', () => {
+    expect(hoverFormatSpec('y2', 'v', '.0%', '.1f')).toBe('.1f');
+    expect(hoverFormatSpec('y', 'v', '.0%', '.1f')).toBe('.0%');
+    expect(hoverFormatSpec(undefined, 'v', '.0%', '.1f')).toBe('.0%');
+    expect(hoverFormatSpec('y2', 'h', '.0%', '.1f')).toBe('.0%');
+    expect(hoverFormatSpec('y2', 'v', '.0%', undefined)).toBeUndefined();
   });
 });
