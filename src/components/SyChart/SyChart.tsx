@@ -18,7 +18,9 @@ import {
   formatChartValue,
   hoverFormatSpec,
   logColorbarTicks,
+  nonEmptyLayer,
   noDataHovertemplate,
+  EMPTY_LAYER_LOCATION,
   normalizeReferenceX,
   resolveTileColors,
   shouldCancelTreemapClick,
@@ -721,13 +723,16 @@ function SyChartPlotly({
           type: 'choropleth',
           meta: 'sychart-choropleth-nodata',
           name: `${s.name} (no data)`,
-          locations: noDataLocations,
-          text: noDataNames,
+          // An empty layer carries a placeholder location (EMPTY_LAYER_LOCATION): Plotly drops an empty choropleth trace, and the geo plot
+          // then throws, leaving the whole map blank. The placeholder matches no feature, so nothing is drawn or hoverable for it.
+          locations: nonEmptyLayer(noDataLocations, EMPTY_LAYER_LOCATION),
+          // Per-point arrays stay the same length as `locations`: the placeholder gets an empty label.
+          text: noDataNames ? nonEmptyLayer(noDataNames, '') : undefined,
           locationmode: s.locationmode ?? 'ISO-3',
           // Guaranteed non-null here -- the main effect returns before this runs whenever
           // hasChoropleth is true and worldAtlas hasn't resolved yet (see the gate above).
           geojson: worldAtlas ?? undefined,
-          z: noDataLocations.map(() => 0),
+          z: nonEmptyLayer(noDataLocations, EMPTY_LAYER_LOCATION).map(() => 0),
           colorscale: [
             [0, s.noDataColor ?? '#4a4a4a'],
             [1, s.noDataColor ?? '#4a4a4a'],
@@ -786,10 +791,10 @@ function SyChartPlotly({
           type: 'choropleth',
           meta: 'sychart-choropleth-outline',
           name: `${s.name} (outlined)`,
-          locations: outlineLocationsRef.current,
+          locations: nonEmptyLayer(outlineLocationsRef.current, EMPTY_LAYER_LOCATION), // see the no-data trace above
           locationmode: s.locationmode ?? 'ISO-3',
           geojson: worldAtlas ?? undefined,
-          z: outlineLocationsRef.current.map(() => 0),
+          z: nonEmptyLayer(outlineLocationsRef.current, EMPTY_LAYER_LOCATION).map(() => 0),
           zmin: 0,
           zmax: 1,
           colorscale: [
@@ -1559,7 +1564,7 @@ function SyChartPlotly({
     const el = ref.current;
     const idx = traceIndexRef.current.outline;
     if (!el || !plotDrawnRef.current || idx == null) return;
-    Plotly.restyle(el, { locations: [locations], z: [locations.map(() => 0)] } as unknown as Partial<PlotData>, [idx]);
+    Plotly.restyle(el, { locations: [nonEmptyLayer(locations, EMPTY_LAYER_LOCATION)], z: [nonEmptyLayer(locations, EMPTY_LAYER_LOCATION).map(() => 0)] } as unknown as Partial<PlotData>, [idx]);
   }, [outlineLocations]);
 
   React.useEffect(() => {
@@ -1597,9 +1602,11 @@ function SyChartPlotly({
       Plotly.restyle(
         el,
         {
-          locations: [noDataLocations],
-          z: [noDataLocations.map(() => 0)],
-          ...(noDataNames ? { text: [noDataNames] } : {}),
+          locations: [nonEmptyLayer(noDataLocations, EMPTY_LAYER_LOCATION)],
+          z: [nonEmptyLayer(noDataLocations, EMPTY_LAYER_LOCATION).map(() => 0)],
+          // Padded like `locations`/`z`, so the three per-point arrays stay aligned on the empty-layer transition (and a previous frame's
+          // labels are cleared).
+          ...(noDataNames ? { text: [nonEmptyLayer(noDataNames, '')] } : {}),
         } as unknown as Partial<Data>,
         [traceIndexRef.current.noData],
       );
