@@ -167,6 +167,7 @@ fg CSS v7.32.2, Storybook 10, all typechecked and visually verified.
 
 ## Known small defects (fix opportunistically)
 
+- **`analytics-bright-signal` and `analytics-bright-broadsheet`: muted text is below 4.5:1 on tinted surfaces (found 2026-10-05, not fixed; owner decision: backlog).** The Climate Analytics accessibility audit found the shared `--__s9cmpx-static-text-weak` token failing WCAG AA on tinted surfaces and retuned it in `analytics` and `analytics-bright-tidewater` (#105), the only two themes that app ships. These two themes have the same failure and were **not** retuned or measured with the same rigour. **When the India Allocation Monitor or India IPO Intelligence adopts either theme (or before), retune `--__s9cmpx-static-text-weak` (and `...text-sentiment-standard-neutral`) per theme, targeting ≥ 4.5:1 against the most tinted surface it sits on (page background, chips, map controls), then run axe on every page in both modes.** Do not add a second muted token; the shared one is retuned per theme. See `DESIGN.md` §A11y contrast.
 - Avatar default background is white (vendor-accurate but invisible on white
   surfaces) — consider defaulting `gray` to true.
 - KrfSlider track geometry uses approximated 4%-inset margins rather than the

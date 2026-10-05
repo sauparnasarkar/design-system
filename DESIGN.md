@@ -486,6 +486,8 @@ yet).
 
 ### Color token changes need a full-suite re-run
 
+**Known gap (2026-10-05):** `analytics-bright-signal` and `analytics-bright-broadsheet` have not been contrast-checked and their `--__s9cmpx-static-text-weak` is below 4.5:1 on tinted surfaces; `analytics` and `analytics-bright-tidewater` were retuned. Backlog, tracked in `ENHANCEMENTS.md` (Known small defects) for the India Allocation Monitor and India IPO Intelligence to pick up on adoption.
+
 A11y contrast failures cascade — a single shared token fix once resolved
 338 of 345 violations in one pass. If you need to compute a replacement
 color for a contrast failure, use the WCAG relative-luminance formula
