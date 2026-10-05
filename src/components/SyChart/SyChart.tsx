@@ -726,7 +726,8 @@ function SyChartPlotly({
           // An empty layer carries a placeholder location (EMPTY_LAYER_LOCATION): Plotly drops an empty choropleth trace, and the geo plot
           // then throws, leaving the whole map blank. The placeholder matches no feature, so nothing is drawn or hoverable for it.
           locations: nonEmptyLayer(noDataLocations, EMPTY_LAYER_LOCATION),
-          text: noDataNames && noDataNames.length > 0 ? noDataNames : undefined,
+          // Per-point arrays stay the same length as `locations`: the placeholder gets an empty label.
+          text: noDataNames ? nonEmptyLayer(noDataNames, '') : undefined,
           locationmode: s.locationmode ?? 'ISO-3',
           // Guaranteed non-null here -- the main effect returns before this runs whenever
           // hasChoropleth is true and worldAtlas hasn't resolved yet (see the gate above).
@@ -1603,7 +1604,9 @@ function SyChartPlotly({
         {
           locations: [nonEmptyLayer(noDataLocations, EMPTY_LAYER_LOCATION)],
           z: [nonEmptyLayer(noDataLocations, EMPTY_LAYER_LOCATION).map(() => 0)],
-          ...(noDataNames ? { text: [noDataNames] } : {}),
+          // Padded like `locations`/`z`, so the three per-point arrays stay aligned on the empty-layer transition (and a previous frame's
+          // labels are cleared).
+          ...(noDataNames ? { text: [nonEmptyLayer(noDataNames, '')] } : {}),
         } as unknown as Partial<Data>,
         [traceIndexRef.current.noData],
       );

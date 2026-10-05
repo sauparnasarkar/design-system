@@ -1,7 +1,8 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test';
+import { expect, fireEvent, fn, userEvent, waitFor, within } from 'storybook/test';
 import { SyChart } from './SyChart';
+import { EMPTY_LAYER_LOCATION } from './chartMath';
 import { ChartCard } from './ChartCard';
 import { Select } from '../Select/Select';
 
@@ -390,6 +391,49 @@ export const ChoroplethAnimated: Story = {
         <SyChart height={420} showLegend={false} series={series} animationFrame={{ colorValues: frames[frameIndex] }} />
       </ChartCard>
     );
+  },
+  // The no-data layer goes populated -> empty -> populated as the frames step (frame 0 has no value for Australia; frame 1 has none
+  // missing). Each restyle must keep `locations`, `z` and `text` the same length (an empty layer carries one placeholder), keep every
+  // country drawn, and leave the user's zoom alone.
+  play: async ({ canvasElement }) => {
+    type Gd = HTMLElement & {
+      data?: Array<{ meta?: string; locations?: string[]; z?: number[]; text?: string[] }>;
+      layout?: { geo?: { projection?: { scale?: number } } };
+    };
+    const c = within(canvasElement);
+    const gd = await waitFor(() => {
+      const el = canvasElement.querySelector('.js-plotly-plot') as Gd | null;
+      expect(el?.data?.some((d) => d.meta === 'sychart-choropleth-nodata')).toBe(true);
+      return el!;
+    }, { timeout: 10000 });
+    const noData = () => gd.data!.find((d) => d.meta === 'sychart-choropleth-nodata')!;
+    const aligned = () => {
+      const t = noData();
+      expect(t.z?.length).toBe(t.locations?.length);
+      expect(t.text?.length).toBe(t.locations?.length);
+    };
+    const drawn = () => canvasElement.querySelectorAll('.choroplethlayer path').length;
+    const slider = c.getByLabelText('Animation frame');
+
+    expect(noData().locations).toEqual(['AUS']);
+    aligned();
+    await userEvent.click(c.getByRole('button', { name: 'Zoom in' }));
+    await waitFor(() => expect(gd.layout?.geo?.projection?.scale ?? 1).toBeGreaterThan(1));
+    const zoomed = gd.layout!.geo!.projection!.scale!;
+
+    fireEvent.change(slider, { target: { value: '1' } }); // no value is missing: the no-data layer empties
+    await waitFor(() => expect(noData().locations).toEqual([EMPTY_LAYER_LOCATION]));
+    aligned();
+    expect(noData().text).toEqual(['']);
+    expect(drawn()).toBeGreaterThan(5);
+    expect(gd.layout!.geo!.projection!.scale).toBe(zoomed);
+
+    fireEvent.change(slider, { target: { value: '0' } }); // Australia is missing again: the layer refills
+    await waitFor(() => expect(noData().locations).toEqual(['AUS']));
+    aligned();
+    expect(noData().text).toEqual(['Australia']);
+    expect(drawn()).toBeGreaterThan(5);
+    expect(gd.layout!.geo!.projection!.scale).toBe(zoomed);
   },
 };
 
@@ -802,6 +846,7 @@ function OutlineAndZoomDemo() {
         <button type="button" onClick={() => setSelected((s) => (s.includes('USA') ? s.filter((c) => c !== 'USA') : [...s, 'USA']))}>
           Toggle United States
         </button>
+        <button type="button" onClick={() => setSelected([])}>Clear selection</button>
         <SyChart height={420} showLegend={false} series={series} outlineLocations={selected} />
       </ChartCard>
     );
@@ -840,5 +885,17 @@ export const ChoroplethOutlineAndZoom: Story = {
     expect(gd.layout!.geo!.projection!.scale).toBe(before);
     await userEvent.click(c.getByRole('button', { name: 'Toggle United States' }));
     await waitFor(() => expect(outline()).toEqual(['CHN', 'IND']));
+
+    // Non-empty -> empty -> non-empty: clearing the selection restyles the outline to its placeholder (an empty choropleth trace would
+    // throw in Plotly's geo plot and blank the map); the countries stay drawn and the zoom survives; refilling restores the outline.
+    const drawn = () => canvasElement.querySelectorAll('.choroplethlayer path').length;
+    await userEvent.click(c.getByRole('button', { name: 'Clear selection' }));
+    await waitFor(() => expect(outline()).toEqual([EMPTY_LAYER_LOCATION]));
+    expect(drawn()).toBeGreaterThan(5);
+    expect(gd.layout!.geo!.projection!.scale).toBe(before);
+    await userEvent.click(c.getByRole('button', { name: 'Toggle United States' }));
+    await waitFor(() => expect(outline()).toEqual(['USA']));
+    expect(drawn()).toBeGreaterThan(5);
+    expect(gd.layout!.geo!.projection!.scale).toBe(before);
   },
 };
