@@ -43,7 +43,10 @@
   /* Ink */
   --__s9cmpx-static-text-strong: #ffffff;
   --__s9cmpx-static-text-standard: #d7e0f0;
-  --__s9cmpx-static-text-weak: #8fa2c4;
+  /* Muted text: #B4C3DF is >= 4.8:1 on every surface it sits on -- the page canvas #121e35 (9.4:1), cards #1e2f52 (7.5:1),
+     the -strong chip/fill #28406c (5.8:1) and the map's control buttons #324c7c (4.8:1). The previous #8fa2c4 was 3.3:1-4.0:1
+     on the last two. */
+  --__s9cmpx-static-text-weak: #B4C3DF;
   --__s9cmpx-static-text-inverse-strong: #121e35;
   --__s9cmpx-static-text-inverse-standard: #2c3e63;
   --__s9cmpx-static-text-inverse-weak: #4a5f85;
@@ -70,7 +73,7 @@
   --__s9cmpx-static-text-sentiment-positive: #3ecf95;
   --__s9cmpx-static-text-sentiment-standard-info: #50c7e0;
   --__s9cmpx-static-text-sentiment-standard-negative: #f2637e;
-  --__s9cmpx-static-text-sentiment-standard-neutral: #8fa2c4;
+  --__s9cmpx-static-text-sentiment-standard-neutral: #B4C3DF;
   --__s9cmpx-static-text-sentiment-standard-notice: #e5b955;
   --__s9cmpx-static-text-sentiment-standard-positive: #3ecf95;
   --__s9cmpx-static-outline-sentiment-info: #6ba7f0;

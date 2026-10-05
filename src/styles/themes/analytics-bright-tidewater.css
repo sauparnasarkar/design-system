@@ -16,7 +16,9 @@
  * Chart panels stay dark (#061E28) for the same reason the other bright themes
  * keep them dark: the vivid categorical series need the luminance separation.
  *
- * Contrast: #3C5460 on #FFFFFF = 7.7:1, #5C7683 on #FFFFFF = 4.7:1,
+ * Contrast: #3C5460 on #FFFFFF = 7.7:1, #4A6270 (text-weak) on #FFFFFF = 6.4:1, on the -weak
+ * canvas #DCE8ED = 5.1:1 and on the -strong chip/fill #CFE3EA = 4.8:1 (the previous #5C7683 was 4.7:1
+ * on white but 3.8:1 / 3.6:1 on those two tinted surfaces, which muted text sits on throughout),
  * #071C24 on #DCE8ED (the -weak canvas, darkened from the mock's #EDF3F6 per direct
  * feedback) = 14.2:1, #0A6E8C on #FFFFFF = 5.8:1,
  * #0F7A6D on #FFFFFF = 5.3:1, #A2660A on #FFFFFF = 4.8:1 — all AA at body size.
@@ -60,7 +62,7 @@
   /* Ink */
   --__s9cmpx-static-text-strong: #071C24;
   --__s9cmpx-static-text-standard: #3C5460;
-  --__s9cmpx-static-text-weak: #5C7683;
+  --__s9cmpx-static-text-weak: #4A6270;
   --__s9cmpx-static-text-inverse-strong: #FFFFFF;
   --__s9cmpx-static-text-inverse-standard: #E4F2F8;
   --__s9cmpx-static-text-inverse-weak: #94B4C0;
@@ -88,7 +90,7 @@
   --__s9cmpx-static-text-sentiment-positive: #0F7A47;
   --__s9cmpx-static-text-sentiment-standard-info: #0A6E8C;
   --__s9cmpx-static-text-sentiment-standard-negative: #B3261E;
-  --__s9cmpx-static-text-sentiment-standard-neutral: #5C7683;
+  --__s9cmpx-static-text-sentiment-standard-neutral: #4A6270;
   --__s9cmpx-static-text-sentiment-standard-notice: #8A5A00;
   --__s9cmpx-static-text-sentiment-standard-positive: #0F7A47;
   --__s9cmpx-static-outline-sentiment-info: #0A6E8C;
