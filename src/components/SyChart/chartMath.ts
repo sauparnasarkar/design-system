@@ -285,3 +285,17 @@ export function hoverFormatSpec(
 ): string | undefined {
   return orientation !== 'h' && traceYAxis === 'y2' ? y2TickFormat : yTickFormat;
 }
+
+/**
+ * A location code no real geometry has. Plotly drops a choropleth trace that has no locations (`visible: false`, and with it the trace's
+ * `geojson`), and the geo plot then throws while reading a topology it was never given -- so the whole map stays blank. SyChart always
+ * builds its "no data" and "outline" layers (their indexes are captured once and restyled later), and either can legitimately be empty:
+ * a map with no missing values, a picker with nothing selected. An empty layer therefore carries this one placeholder location, which
+ * matches no feature and draws nothing, so the trace stays valid.
+ */
+export const EMPTY_LAYER_LOCATION = '__sychart_empty__';
+
+/** `items`, or a single placeholder when there are none (see EMPTY_LAYER_LOCATION). Used for a layer's `locations` and, with `placeholder: 0`, its `z`. */
+export function nonEmptyLayer<T>(items: T[], placeholder: T): T[] {
+  return items.length > 0 ? items : [placeholder];
+}

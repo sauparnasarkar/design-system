@@ -301,6 +301,11 @@ export const Choropleth: Story = {
       </ChartCard>
     );
   },
+  // Every location has a value and nothing is outlined, so SyChart's "no data" and "outline" layers are both empty. Plotly drops an empty
+  // choropleth trace and its geo plot then throws, which used to leave this whole map blank -- the countries must actually be drawn.
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(canvasElement.querySelectorAll('.choroplethlayer path').length).toBeGreaterThan(10), { timeout: 10000 });
+  },
 };
 
 /**

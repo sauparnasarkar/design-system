@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   nextZoomScale,
+  nonEmptyLayer,
+  EMPTY_LAYER_LOCATION,
   normalizeReferenceX,
   usesSecondaryAxis,
   choroplethHovertemplate,
@@ -315,5 +317,16 @@ describe('hoverFormatSpec', () => {
     expect(hoverFormatSpec(undefined, 'v', '.0%', '.1f')).toBe('.0%');
     expect(hoverFormatSpec('y2', 'h', '.0%', '.1f')).toBe('.0%');
     expect(hoverFormatSpec('y2', 'v', '.0%', undefined)).toBeUndefined();
+  });
+});
+
+describe('nonEmptyLayer', () => {
+  it('keeps a layer that has entries and gives an empty one a single placeholder, so Plotly never sees an empty choropleth trace', () => {
+    expect(nonEmptyLayer(['USA', 'CHN'], EMPTY_LAYER_LOCATION)).toEqual(['USA', 'CHN']);
+    expect(nonEmptyLayer([], EMPTY_LAYER_LOCATION)).toEqual([EMPTY_LAYER_LOCATION]);
+    expect(nonEmptyLayer([] as number[], 0)).toEqual([0]);
+  });
+  it('the placeholder is not an ISO-3 code, so it can never match a real country', () => {
+    expect(EMPTY_LAYER_LOCATION).not.toMatch(/^[A-Z]{3}$/);
   });
 });
