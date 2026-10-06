@@ -50,10 +50,10 @@ export interface GlobeProps {
   /** Overlay at the top-left of the globe (e.g. the current year and a total). */
   title?: React.ReactNode;
   /** A caption directly under the globe, before the legend and controls (e.g. the current year and a total on a phone, where the
-   * overlay `title` would sit on the dark disc). When given, the globe is rendered as a `<figure>` and this as its `<figcaption>`, so
+   * overlay `title` would sit on the dark disc). This is rendered as the `<figcaption>` of the globe's `<figure>`, so
    * the caption is tied to the canvas semantically, not just placed under it. It is **not** a live region: a caption that changes
    * every frame would announce every year while playing. A consumer that wants the year announced does so itself, when playback
-   * pauses or the slider is moved by hand. Omitted, the markup is unchanged (a plain `<div>`). */
+   * pauses or the slider is moved by hand. The root is always a `<figure>`, caption or not, so adding a caption later never remounts the globe. */
   caption?: React.ReactNode;
   /** Slowly spin the globe. Default true; off under prefers-reduced-motion unless `allowSpinWithReducedMotion`. */
   autoRotate?: boolean;
@@ -512,13 +512,14 @@ export function Globe({
 
   const label = `${ariaLabel}${year != null ? `, ${year}` : ''}`;
 
-  // A <figure> only when there is a caption to tie to the canvas; its default margins are reset. (Cast: both are HTMLElements and take the same props here.)
-  const Root = (caption != null ? 'figure' : 'div') as 'div';
+  // Always a <figure> (default margins reset), whether or not there is a caption: the root element must never change between renders. A consumer that adds
+  // the caption later (e.g. once a media query settles) would otherwise remount the whole subtree, leaving the size, theme and visibility observers on the
+  // detached old element -- a blank, zero-size canvas.
   return (
-    <Root
+    <figure
       ref={wrapRef}
       className={cx(className)}
-      style={{ margin: caption != null ? 0 : undefined, position: 'relative', width: '100%', maxWidth: maxSize + 2 * PANEL_PAD, background: transparent ? 'transparent' : 'var(--__s9cmpx-chart-surface)', color: transparent ? 'var(--__s9cmpx-static-text-standard)' : 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: PANEL_PAD, boxSizing: 'border-box' }}
+      style={{ margin: 0, position: 'relative', width: '100%', maxWidth: maxSize + 2 * PANEL_PAD, background: transparent ? 'transparent' : 'var(--__s9cmpx-chart-surface)', color: transparent ? 'var(--__s9cmpx-static-text-standard)' : 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: PANEL_PAD, boxSizing: 'border-box' }}
     >
       <div style={{ position: 'relative', display: tableOpen ? 'none' : 'block', width: size, height: size, margin: '0 auto' }}>
         <canvas
@@ -591,6 +592,6 @@ export function Globe({
           <span id={hintId} style={{ marginLeft: 'auto', fontSize: 12 }}>Drag to spin · arrow keys rotate · + / − zoom · 0 resets</span>
         </div>
       )}
-    </Root>
+    </figure>
   );
 }
