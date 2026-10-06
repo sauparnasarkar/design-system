@@ -12,7 +12,7 @@ import worldCountriesUrl from '../../assets/geo/world-countries-110m.topo.json?u
 import {
   MAX_TILT, MAX_ZOOM, MIN_TILT, MIN_ZOOM,
   blendValues, clamp, colorForValue, decadeTicks, easeInOut, formatGlobeValue, keyToAction,
-  lerpColor, pickLabelCandidates, relativeLuminance, rotationStep,
+  lerpColor, pickLabelCandidates, placeLabels, relativeLuminance, rotationStep,
   type ColorStop, type LabelCandidate,
 } from './globeMath';
 
@@ -389,27 +389,35 @@ export function Globe({
     ctx.font = `600 12px ${getComputedStyle(canvas).fontFamily || 'sans-serif'}`;
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
-    // Fewer labels on a small globe (phones): five names on a ~240px disc overprint each other.
-    (p.showLabels ? pickLabelCandidates(labelCandidates, size < 420 ? 3 : 5) : []).forEach((c) => {
-      const pt = proj(centroids[c.index]);
-      if (!pt) return;
-      const text = `${nameOf(featureLoc[c.index], String(features[c.index].id))} ${formatGlobeValue(c.value)}`;
-      ctx.fillStyle = th.hover;
-      ctx.beginPath();
-      ctx.arc(pt[0], pt[1], 3, 0, Math.PI * 2);
-      ctx.fill();
-      // Normally to the right of the dot; flipped to its left if it would run off the canvas (a country near the
-      // right edge of a small phone globe otherwise gets its name cut off).
-      const flip = pt[0] + 8 + ctx.measureText(text).width > size - 2;
-      const tx = flip ? pt[0] - 8 : pt[0] + 8;
-      ctx.textAlign = flip ? 'right' : 'left';
-      ctx.lineWidth = 3.5;
-      ctx.strokeStyle = th.surface;
-      ctx.strokeText(text, tx, pt[1]);
-      ctx.fillStyle = th.hover;
-      ctx.fillText(text, tx, pt[1]);
-      ctx.textAlign = 'left';
-    });
+    // Largest first; each label's box is measured, and one that would overprint an already placed label is skipped (the next-largest
+    // takes its place), up to a cap of 3 on a small globe (phones) and 5 on a large one.
+    if (p.showLabels) {
+      const measured = pickLabelCandidates(labelCandidates, Infinity).flatMap((c) => {
+        const pt = proj(centroids[c.index]);
+        if (!pt) return [];
+        const text = `${nameOf(featureLoc[c.index], String(features[c.index].id))} ${formatGlobeValue(c.value)}`;
+        const width = ctx.measureText(text).width;
+        // Normally to the right of the dot; flipped to its left if it would run off the canvas (a country near the
+        // right edge of a small phone globe otherwise gets its name cut off).
+        const flip = pt[0] + 8 + width > size - 2;
+        const box = flip ? { x: pt[0] - 8 - width, y: pt[1] - 8, w: 8 + width + 3, h: 16 } : { x: pt[0] - 3, y: pt[1] - 8, w: 8 + width + 3, h: 16 };
+        return [{ pt, text, flip, box }];
+      });
+      placeLabels(measured, size < 420 ? 3 : 5).forEach(({ pt, text, flip }) => {
+        ctx.fillStyle = th.hover;
+        ctx.beginPath();
+        ctx.arc(pt[0], pt[1], 3, 0, Math.PI * 2);
+        ctx.fill();
+        const tx = flip ? pt[0] - 8 : pt[0] + 8;
+        ctx.textAlign = flip ? 'right' : 'left';
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = th.surface;
+        ctx.strokeText(text, tx, pt[1]);
+        ctx.fillStyle = th.hover;
+        ctx.fillText(text, tx, pt[1]);
+        ctx.textAlign = 'left';
+      });
+    }
 
     pickRef.current = (x, y) => {
       const ll = proj.invert?.([x, y]);

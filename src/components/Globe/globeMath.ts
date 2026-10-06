@@ -161,6 +161,26 @@ export function pickLabelCandidates(candidates: LabelCandidate[], n = 5, maxDist
     .slice(0, n);
 }
 
+/** The on-canvas rectangle a label (its dot and text) takes, in canvas px. */
+export interface LabelBox { x: number; y: number; w: number; h: number }
+
+/** Whether two label boxes overlap, with `pad` px of breathing room kept between them. */
+export function labelBoxesOverlap(a: LabelBox, b: LabelBox, pad = 2): boolean {
+  return a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
+}
+
+/** Greedy label placement: walks `ordered` (largest value first) and keeps a label only if its box clears every label already kept,
+ * until `n` are kept. A big country whose label would collide is skipped and the next-largest takes the place, so a small globe
+ * shows fewer, never overprinted, names. */
+export function placeLabels<T extends { box: LabelBox }>(ordered: T[], n: number, pad = 2): T[] {
+  const kept: T[] = [];
+  for (const c of ordered) {
+    if (kept.length >= n) break;
+    if (kept.every((k) => !labelBoxesOverlap(k.box, c.box, pad))) kept.push(c);
+  }
+  return kept;
+}
+
 export interface LegendTick {
   value: number;
   /** Position along the colour bar, 0-100 (percent). */
