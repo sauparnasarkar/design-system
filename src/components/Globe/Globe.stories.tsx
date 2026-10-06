@@ -129,10 +129,40 @@ export const WithCaption: Story = {
   },
 };
 
-/** Without a caption the markup is unchanged: a plain div, no figure. */
-export const WithoutCaptionIsNotAFigure: Story = {
+/** Without a caption there is simply no figcaption (the root is the same element either way, see the next story). */
+export const WithoutCaption: Story = {
   play: async ({ canvasElement }) => {
-    await expect(canvasElement.querySelector('figure')).toBeNull();
+    await expect(canvasElement.querySelector('figcaption')).toBeNull();
+  },
+};
+
+function CaptionLaterDemo(args: React.ComponentProps<typeof Globe>) {
+  const [on, setOn] = React.useState(false);
+  return (
+    <div style={{ maxWidth: 640 }}>
+      <Button variant="secondary" onClick={() => setOn(true)}>Add caption</Button>
+      <Globe {...args} caption={on ? <span>2024 · caption added after mount</span> : undefined} />
+    </div>
+  );
+}
+
+/** Regression: a consumer that adds the caption after mount (e.g. once a media query settles) must not lose the drawing. Changing the root element between
+ * renders remounted it, leaving the size/theme/visibility observers on the detached old element and the new canvas blank. */
+export const CaptionAddedAfterMount: Story = {
+  render: (args) => <CaptionLaterDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const c = within(canvasElement);
+    const painted = (cv: HTMLCanvasElement) => cv.getContext('2d')!.getImageData(0, 0, cv.width, cv.height).data.some((v, i) => i % 4 === 3 && v > 0);
+    await waitFor(() => expect(painted(canvasElement.querySelector('canvas')!)).toBe(true), { timeout: 5000 });
+    const figureBefore = canvasElement.querySelector('figure');
+    const canvasBefore = canvasElement.querySelector('canvas');
+    await userEvent.click(c.getByRole('button', { name: 'Add caption' }));
+    await expect(await c.findByText(/caption added after mount/)).toBeInTheDocument();
+    // Same elements, not remounted ones: the observers on them are still live.
+    await expect(canvasElement.querySelector('figure')).toBe(figureBefore);
+    await expect(canvasElement.querySelector('canvas')).toBe(canvasBefore);
+    // The globe on screen after the caption appears is drawn.
+    await waitFor(() => expect(painted(canvasElement.querySelector('canvas')!)).toBe(true), { timeout: 5000 });
   },
 };
 
