@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   decadeTicks, blendValues, clamp, colorAt, colorForValue, easeInOut, formatGlobeValue, keyToAction, lerpColor,
-  normalizeValue, parseColor, pickLabelCandidates, relativeLuminance, rotationStep,
+  labelBoxesOverlap, normalizeValue, parseColor, pickLabelCandidates, placeLabels, relativeLuminance, rotationStep,
 } from './globeMath';
 
 const SCALE: Array<[number, string]> = [[0, '#000000'], [0.5, '#ff0000'], [1, '#ffffff']];
@@ -96,6 +96,21 @@ describe('formatting, rotation, keys, labels', () => {
       { index: 4, value: 9, dist: 1.0 },
     ], 2);
     expect(out.map((c) => c.index)).toEqual([2, 4]);
+  });
+  it('labelBoxesOverlap: overlapping and padded-close boxes collide, clear ones do not', () => {
+    const a = { x: 0, y: 0, w: 50, h: 16 };
+    expect(labelBoxesOverlap(a, { x: 40, y: 8, w: 50, h: 16 })).toBe(true);
+    expect(labelBoxesOverlap(a, { x: 51, y: 0, w: 50, h: 16 })).toBe(true); // 1 px apart, inside the 2 px pad
+    expect(labelBoxesOverlap(a, { x: 53, y: 0, w: 50, h: 16 })).toBe(false);
+    expect(labelBoxesOverlap(a, { x: 0, y: 40, w: 50, h: 16 })).toBe(false);
+  });
+  it('placeLabels keeps the largest first, skips a colliding one and lets the next-largest fill in, up to n', () => {
+    const c = (id: string, x: number, y: number) => ({ id, box: { x, y, w: 60, h: 16 } });
+    // Ordered largest first: A and B overlap, C is clear of A, D overlaps C.
+    const out = placeLabels([c('A', 0, 0), c('B', 30, 4), c('C', 0, 60), c('D', 20, 62), c('E', 0, 120)], 3);
+    expect(out.map((l) => l.id)).toEqual(['A', 'C', 'E']);
+    expect(placeLabels([c('A', 0, 0), c('B', 0, 60)], 1).map((l) => l.id)).toEqual(['A']);
+    expect(placeLabels([], 5)).toEqual([]);
   });
   it('luminance orders dark below light; clamp bounds', () => {
     expect(relativeLuminance('#061e28')).toBeLessThan(relativeLuminance('#f4f7f9'));
