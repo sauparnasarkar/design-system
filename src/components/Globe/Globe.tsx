@@ -49,6 +49,12 @@ export interface GlobeProps {
   ariaLabel: string;
   /** Overlay at the top-left of the globe (e.g. the current year and a total). */
   title?: React.ReactNode;
+  /** A caption directly under the globe, before the legend and controls (e.g. the current year and a total on a phone, where the
+   * overlay `title` would sit on the dark disc). When given, the globe is rendered as a `<figure>` and this as its `<figcaption>`, so
+   * the caption is tied to the canvas semantically, not just placed under it. It is **not** a live region: a caption that changes
+   * every frame would announce every year while playing. A consumer that wants the year announced does so itself, when playback
+   * pauses or the slider is moved by hand. Omitted, the markup is unchanged (a plain `<div>`). */
+  caption?: React.ReactNode;
   /** Slowly spin the globe. Default true; off under prefers-reduced-motion unless `allowSpinWithReducedMotion`. */
   autoRotate?: boolean;
   /** Let `autoRotate` spin the globe even under prefers-reduced-motion. Default false: reduced motion
@@ -140,7 +146,7 @@ type Loc = { name: string; value: number | null };
  * arrows rotate/tilt, +/- zoom, 0 resets; "Table view" gives every value as a real table. */
 export function Globe({
   isoCodes, locationNames, years, values, yearIndex, colorRange, colorScale, zLog = true, noDataColor,
-  hoverUnit, legendTitle, noDataLabel = 'No data', ariaLabel, title,
+  hoverUnit, legendTitle, noDataLabel = 'No data', ariaLabel, title, caption,
   autoRotate = true, allowSpinWithReducedMotion = false, rotationPeriodMs = 12000, blendMs = 600, initialLongitude = 80,
   geometry, geometryUrl, showLabels = true, showLegend = true, showControls = true, maxSize = 640, transparent = false, className,
 }: GlobeProps) {
@@ -506,11 +512,13 @@ export function Globe({
 
   const label = `${ariaLabel}${year != null ? `, ${year}` : ''}`;
 
+  // A <figure> only when there is a caption to tie to the canvas; its default margins are reset. (Cast: both are HTMLElements and take the same props here.)
+  const Root = (caption != null ? 'figure' : 'div') as 'div';
   return (
-    <div
+    <Root
       ref={wrapRef}
       className={cx(className)}
-      style={{ position: 'relative', width: '100%', maxWidth: maxSize + 2 * PANEL_PAD, background: transparent ? 'transparent' : 'var(--__s9cmpx-chart-surface)', color: transparent ? 'var(--__s9cmpx-static-text-standard)' : 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: PANEL_PAD, boxSizing: 'border-box' }}
+      style={{ margin: caption != null ? 0 : undefined, position: 'relative', width: '100%', maxWidth: maxSize + 2 * PANEL_PAD, background: transparent ? 'transparent' : 'var(--__s9cmpx-chart-surface)', color: transparent ? 'var(--__s9cmpx-static-text-standard)' : 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: PANEL_PAD, boxSizing: 'border-box' }}
     >
       <div style={{ position: 'relative', display: tableOpen ? 'none' : 'block', width: size, height: size, margin: '0 auto' }}>
         <canvas
@@ -538,6 +546,8 @@ export function Globe({
           </div>
         )}
       </div>
+
+      {caption != null && <figcaption style={{ marginTop: 8 }}>{caption}</figcaption>}
 
       {tableOpen && (
         <div style={{ maxHeight: 360, overflow: 'auto' }} tabIndex={0} role="region" aria-label={`${ariaLabel}, table view`}>
@@ -581,6 +591,6 @@ export function Globe({
           <span id={hintId} style={{ marginLeft: 'auto', fontSize: 12 }}>Drag to spin · arrow keys rotate · + / − zoom · 0 resets</span>
         </div>
       )}
-    </div>
+    </Root>
   );
 }

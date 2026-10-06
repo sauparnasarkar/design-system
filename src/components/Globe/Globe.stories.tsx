@@ -109,6 +109,33 @@ export const KeyboardAndTable: Story = {
   },
 };
 
+/** `caption` puts a figcaption right under the globe, before the legend and controls; the globe becomes a `<figure>`. The caption is not a live region. */
+export const WithCaption: Story = {
+  args: { caption: <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}><span style={{ fontWeight: 700 }}>2024</span><span>37,398 MtCO₂ · all countries</span></div> },
+  play: async ({ canvasElement }) => {
+    const figure = canvasElement.querySelector('figure')!;
+    await expect(figure).toBeInTheDocument();
+    const caption = figure.querySelector('figcaption')!;
+    await expect(caption).toHaveTextContent('2024');
+    // Not announced as it changes: no live region on or inside the caption.
+    await expect(caption.closest('[aria-live]')).toBeNull();
+    await expect(caption.querySelector('[aria-live]')).toBeNull();
+    // Directly after the canvas wrapper, before the legend and the controls.
+    const canvasBox = figure.querySelector('canvas')!.parentElement!;
+    await expect(canvasBox.nextElementSibling).toBe(caption);
+    const legend = within(figure).getByText('Emissions (MtCO₂)').parentElement!;
+    await expect(caption.compareDocumentPosition(legend) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await expect(caption.compareDocumentPosition(within(figure).getByRole('button', { name: 'Zoom in' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  },
+};
+
+/** Without a caption the markup is unchanged: a plain div, no figure. */
+export const WithoutCaptionIsNotAFigure: Story = {
+  play: async ({ canvasElement }) => {
+    await expect(canvasElement.querySelector('figure')).toBeNull();
+  },
+};
+
 /** prefers-reduced-motion: no spin even with autoRotate, and year steps snap instead of blending. */
 export const ReducedMotion: Story = {
   args: { autoRotate: true, rotationPeriodMs: 500 },
