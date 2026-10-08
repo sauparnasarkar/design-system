@@ -129,6 +129,35 @@ export const WithCaption: Story = {
   },
 };
 
+/** `fullWidth`: the panel spans its parent (no max-width, no side padding) so the caption, legend and controls use the whole width; the globe is unchanged. */
+export const FullWidth: Story = {
+  args: { fullWidth: true, maxSize: 200, caption: <div>2024 · 37,398 MtCO₂</div> },
+  render: (args) => <div style={{ width: 360 }}><Globe {...args} /></div>,
+  play: async ({ canvasElement }) => {
+    const figure = canvasElement.querySelector('figure')!;
+    const style = getComputedStyle(figure);
+    await expect(style.maxWidth).toBe('none');
+    await expect(style.paddingLeft).toBe('0px');
+    await expect(style.paddingRight).toBe('0px');
+    // The panel fills the 360px parent although the globe is capped at 200px...
+    await expect(Math.round(figure.getBoundingClientRect().width)).toBe(360);
+    // ...and the globe stays at its cap, centred.
+    const canvasBox = figure.querySelector('canvas')!.parentElement!;
+    await expect(Math.round(canvasBox.getBoundingClientRect().width)).toBe(200);
+  },
+};
+
+/** The default is unchanged: the panel is capped at the globe's width plus its padding. */
+export const DefaultWidthIsCapped: Story = {
+  args: { maxSize: 200, caption: <div>2024 · 37,398 MtCO₂</div> },
+  render: (args) => <div style={{ width: 360 }}><Globe {...args} /></div>,
+  play: async ({ canvasElement }) => {
+    const figure = canvasElement.querySelector('figure')!;
+    await expect(Math.round(figure.getBoundingClientRect().width)).toBe(224); // 200 + 2 * 12
+    await expect(getComputedStyle(figure).paddingLeft).toBe('12px');
+  },
+};
+
 /** Without a caption there is simply no figcaption (the root is the same element either way, see the next story). */
 export const WithoutCaption: Story = {
   play: async ({ canvasElement }) => {

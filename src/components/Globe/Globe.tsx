@@ -80,6 +80,10 @@ export interface GlobeProps {
   showControls?: boolean;
   /** Upper bound on the rendered diameter (px). Default 640. */
   maxSize?: number;
+  /** Let the panel (and the caption, legend and controls in it) span the parent's whole width instead of being capped at the globe's width, with no
+   * side padding so the text lines up with the content around it. The globe itself is unchanged: still `maxSize` at most, centred. For a phone,
+   * where the globe is narrower than the screen. Default false. */
+  fullWidth?: boolean;
   /** No panel background: the globe sits directly on the page, and the text around it (legend, controls hint,
    * overlay title) uses the page's text colour instead of the chart panel's. The ocean disc is still drawn in the
    * chart-surface colour, so on a dark page it reads as part of the page and on a light page as a dark globe.
@@ -148,7 +152,7 @@ export function Globe({
   isoCodes, locationNames, years, values, yearIndex, colorRange, colorScale, zLog = true, noDataColor,
   hoverUnit, legendTitle, noDataLabel = 'No data', ariaLabel, title, caption,
   autoRotate = true, allowSpinWithReducedMotion = false, rotationPeriodMs = 12000, blendMs = 600, initialLongitude = 80,
-  geometry, geometryUrl, showLabels = true, showLegend = true, showControls = true, maxSize = 640, transparent = false, className,
+  geometry, geometryUrl, showLabels = true, showLegend = true, showControls = true, maxSize = 640, fullWidth = false, transparent = false, className,
 }: GlobeProps) {
   const reducedMotion = useReducedMotion();
   const uid = React.useId();
@@ -527,7 +531,7 @@ export function Globe({
     <figure
       ref={wrapRef}
       className={cx(className)}
-      style={{ margin: 0, position: 'relative', width: '100%', maxWidth: maxSize + 2 * PANEL_PAD, background: transparent ? 'transparent' : 'var(--__s9cmpx-chart-surface)', color: transparent ? 'var(--__s9cmpx-static-text-standard)' : 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: PANEL_PAD, boxSizing: 'border-box' }}
+      style={{ margin: 0, position: 'relative', width: '100%', maxWidth: fullWidth ? 'none' : maxSize + 2 * PANEL_PAD, background: transparent ? 'transparent' : 'var(--__s9cmpx-chart-surface)', color: transparent ? 'var(--__s9cmpx-static-text-standard)' : 'var(--__s9cmpx-chart-surface-text-weak)', borderRadius: 8, padding: fullWidth ? `${PANEL_PAD}px 0` : PANEL_PAD, boxSizing: 'border-box' }}
     >
       <div style={{ position: 'relative', display: tableOpen ? 'none' : 'block', width: size, height: size, margin: '0 auto' }}>
         <canvas

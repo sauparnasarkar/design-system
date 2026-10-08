@@ -1097,3 +1097,18 @@ own tokens), and any change to `Textarea`.
   unaffected. Reproduced by a story that failed before the fix. (2) The "disabled dims the field, not the slots" check is now its own story that
   renders the disabled state and asserts field `0.6` / wrapper `1` (opacity is not inherited, so asserting on a child proved nothing); mutation-checked.
 
+## Globe `fullWidth` (2026-10-08, docs-first)
+
+**Problem (owner, iPhone screenshot of the Climate Analytics landing page).** On a phone the globe's diameter is capped by the viewport height, so it is
+narrower than the screen; the figure that wraps it is capped to `maxSize + 2 * PANEL_PAD`, so the caption (year / total), the legend and the controls
+under it are confined to that narrow column while the text above them uses the full width. They could use the real estate.
+
+**Change (additive, opt-in).** New prop `fullWidth?: boolean` (default false). When true the figure drops its `maxWidth` and its horizontal padding, so
+the caption, legend and controls span the parent's whole width. The canvas is unchanged: it is already sized `min(maxSize, wrapper width - padding)`
+and centred, so on a phone it stays exactly as big and where it is. Default behaviour (every existing consumer) is byte-for-byte the same.
+
+**Not in scope.** The globe's own diameter (still driven by `maxSize`), the legend's internal layout (its colour bar already takes `flex: 1 1 220px`
+so it widens to fill), the controls row. Consumer: `climate-dashboard-react`'s landing page passes `fullWidth` on phones only.
+
+**Tests.** A story asserting the figure has no max-width and no horizontal padding with `fullWidth`, and the default keeps both; mutation-checked.
+
