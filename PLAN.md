@@ -1076,3 +1076,24 @@ check in Storybook in both themes at desktop and 390px widths, shown to the owne
 
 **Not in scope:** the follow-up chip and prompt-card components themselves (the consumer builds them from its
 own tokens), and any change to `Textarea`.
+
+**As built (2026-10-08).** Implemented as planned, additive, in `PromptBar.tsx` + `src/styles/overrides.css`: the root is now a wrapper
+(`__inner` with a 960px readable max-width, `__above`, the bordered `__field`, `__hint`, `__below`); the focus ring is on
+`__field:focus-within` and the inner textarea's own outline is removed; send is 40x40 (44x44 under 640px); `hint`, `belowContent`,
+`aboveContent` and `pinned` are new optional props, and `expandedContent` is unchanged and still lives inside the field.
+
+- **Behavioural change to know about:** the disabled dimming (`opacity: .6`, `cursor: not-allowed`) moved from the root to the field, so
+  content below the field is not dimmed while a query is in flight; `aria-busy` stays on the root. The `Docked` story's assertion moved with it.
+- 6 new stories with `play` functions (focus ring on the field; 40x40 send, disabled when empty; hint and below content outside the field;
+  pinned + chips above; pinned ignored on landing; Enter still submits). A mutation check (disabling the `:focus-within` and sticky rules)
+  confirmed the focus-ring and pinned stories fail without them.
+- Visual check in Storybook, both themes: dark (`analytics`) and light (`analytics-bright-signal`) at 1920px, and at phone width (send 44x44,
+  hint hidden, no horizontal overflow). Pinned bar verified at the bottom of its scroller with the chips above the field.
+- Pre-existing, unrelated: `no-vendor-strings.test.ts` already fails on `main` (`styles/overrides.css:101` mentions `syena-default-theme.css` in
+  a comment); `tsc -b` reports the same 9 existing errors with and without this change.
+- **Copilot review of #109 (two follow-ups).** (1) Focus handling stays on the *wrapper*, not the bordered field: `expandedContent`'s contract is
+  "open while focus is anywhere inside the bar, closed when it leaves it", and the bar now also holds the above/below slots, so with the handlers
+  on the field a chip or prompt would count as "outside" (collapsing the panel) and could not open it. The ring is CSS (`__field:focus-within`) and
+  unaffected. Reproduced by a story that failed before the fix. (2) The "disabled dims the field, not the slots" check is now its own story that
+  renders the disabled state and asserts field `0.6` / wrapper `1` (opacity is not inherited, so asserting on a child proved nothing); mutation-checked.
+

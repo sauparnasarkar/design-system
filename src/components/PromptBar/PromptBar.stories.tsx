@@ -65,8 +65,11 @@ export const Docked: Story = {
     // disabled (not loading) gets its own dimmed visual, distinct from the loading state.
     await expect(textarea).toBeDisabled();
     await expect(sendButton).toBeDisabled();
-    await expect(getComputedStyle(container).opacity).toBe('0.6');
-    await expect(getComputedStyle(container).cursor).toBe('not-allowed');
+    // The dimming is on the field (not the root), so content below the field is not dimmed with it.
+    const field = canvasElement.querySelector('.__s9cmpx-prompt-bar__field') as HTMLElement;
+    await expect(getComputedStyle(field).opacity).toBe('0.6');
+    await expect(getComputedStyle(field).cursor).toBe('not-allowed');
+    await expect(getComputedStyle(container).opacity).toBe('1');
   },
 };
 
@@ -362,3 +365,214 @@ export const WithActions: Story = {
     await expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   },
 };
+
+
+// --- Ask-page redesign (PLAN.md "PromptBar redesign for the Ask page") ------------------------------
+
+const fieldOf = (root: HTMLElement) => root.querySelector('.__s9cmpx-prompt-bar__field') as HTMLElement;
+
+export const FocusRingWrapsTheField: Story = {
+  render: (args) => <PromptBarDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const field = fieldOf(canvasElement);
+    const textarea = canvas.getByRole('textbox', { name: 'Ask a question' });
+
+    // Landing autofocuses: the ring is on the whole field, and the inner input draws no rectangle of its own.
+    await expect(textarea).toHaveFocus();
+    await expect(getComputedStyle(field).boxShadow).not.toBe('none');
+    await expect(getComputedStyle(textarea).outlineStyle).toBe('none');
+    await expect(getComputedStyle(textarea).boxShadow).toBe('none');
+
+    // Blur removes the ring (a focus indicator, not a permanent decoration).
+    textarea.blur();
+    await waitFor(() => expect(getComputedStyle(field).boxShadow).toBe('none'));
+  },
+};
+
+export const SendButtonIs40ByFortyAndDisabledNotHiddenWhenEmpty: Story = {
+  render: (args) => <PromptBarDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const send = within(canvasElement).getByRole('button', { name: 'Send' });
+    const box = send.getBoundingClientRect();
+    await expect([Math.round(box.width), Math.round(box.height)]).toEqual([40, 40]);
+    await expect(send).toBeDisabled(); // empty: disabled, still in the layout
+    await expect(send).toBeVisible();
+  },
+};
+
+function HintBelowDemo(args: React.ComponentProps<typeof PromptBar>) {
+  const [value, setValue] = React.useState(args.value);
+  return (
+    <PromptBar
+      {...args}
+      value={value}
+      onChange={setValue}
+      hint="Enter to send · Shift + Enter for a new line"
+      belowContent={
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          {['Historical trends', 'Climate outcomes', 'Forecasts'].map((label) => (
+            <div key={label} data-testid="column">
+              <div style={{ fontFamily: 'monospace', fontSize: 11, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
+              <button type="button" style={{ width: '100%', textAlign: 'left', padding: '14px 16px', minHeight: 84 }}>
+                A starter prompt for {label.toLowerCase()} →
+              </button>
+            </div>
+          ))}
+        </div>
+      }
+    />
+  );
+}
+
+export const HintAndBelowContentSitOutsideTheField: Story = {
+  render: (args) => <HintBelowDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const field = fieldOf(canvasElement);
+    const hint = canvas.getByText('Enter to send · Shift + Enter for a new line');
+    const columns = canvas.getAllByTestId('column');
+
+    await expect(hint).toBeVisible();
+    await expect(field.contains(hint)).toBe(false);
+    for (const c of columns) await expect(field.contains(c)).toBe(false);
+    // Order in the page: field, then hint, then the prompts.
+    await expect(field.compareDocumentPosition(hint) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    await expect(hint.compareDocumentPosition(columns[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  },
+};
+
+function PinnedDemo(args: React.ComponentProps<typeof PromptBar>) {
+  const [value, setValue] = React.useState(args.value);
+  return (
+    <div style={{ height: 320, overflowY: 'auto', background: 'var(--__s9cmpx-static-background-weak)' }} data-testid="scroller">
+      <div style={{ height: 800, padding: 16 }}>Page content that scrolls under the pinned bar.</div>
+      <PromptBar
+        {...args}
+        value={value}
+        onChange={setValue}
+        placeholder="Ask a follow-up…"
+        aboveContent={
+          <div data-testid="chips" style={{ display: 'flex', gap: 8 }}>
+            <button type="button">How has global CO₂ tracked warming since 1850?</button>
+            <button type="button">What are the 2040 forecasts?</button>
+          </div>
+        }
+      />
+    </div>
+  );
+}
+
+export const PinnedDockedSticksToTheBottomWithChipsAbove: Story = {
+  args: { variant: 'docked', pinned: true },
+  render: (args) => <PinnedDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector('.__s9cmpx-prompt-bar') as HTMLElement;
+    const scroller = within(canvasElement).getByTestId('scroller');
+    const chips = within(canvasElement).getByTestId('chips');
+    const field = fieldOf(canvasElement);
+
+    const cs = getComputedStyle(root);
+    await expect(cs.position).toBe('sticky');
+    await expect(cs.bottom).toBe('0px');
+    await expect(cs.borderTopWidth).toBe('1px');
+    // Chips are above the field, inside the pinned bar.
+    await expect(root.contains(chips)).toBe(true);
+    await expect(chips.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // It is actually pinned: with the content scrolled to the top, the bar's bottom edge is at the
+    // scroller's bottom edge (its natural position is 800px down, far below the 320px viewport).
+    scroller.scrollTop = 0;
+    await waitFor(() => expect(Math.round(root.getBoundingClientRect().bottom)).toBe(Math.round(scroller.getBoundingClientRect().bottom)));
+  },
+};
+
+export const PinnedIsIgnoredOnTheLandingVariant: Story = {
+  args: { variant: 'landing', pinned: true },
+  render: (args) => <PromptBarDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector('.__s9cmpx-prompt-bar') as HTMLElement;
+    await expect(getComputedStyle(root).position).not.toBe('sticky');
+  },
+};
+
+export const EnterStillSubmitsWithTheNewSlots: Story = {
+  render: (args) => <HintBelowDemo {...args} />,
+  play: async ({ canvasElement, args }) => {
+    const textarea = within(canvasElement).getByRole('textbox', { name: 'Ask a question' });
+    await userEvent.type(textarea, 'Show the relationship{Enter}');
+    await expect(args.onSubmit).toHaveBeenCalledWith('Show the relationship');
+  },
+};
+
+
+// --- Copilot review of #109 ----------------------------------------------------------------------------
+
+function ExpandedPlusSlotsDemo(args: React.ComponentProps<typeof PromptBar>) {
+  const [value, setValue] = React.useState(args.value);
+  return (
+    <div>
+      <button type="button" data-testid="outside">Outside the bar</button>
+      <PromptBar
+        {...args}
+        value={value}
+        onChange={setValue}
+        expandedContent={<button type="button">Suggested prompt one</button>}
+        aboveContent={<button type="button" data-testid="chip">A follow-up chip</button>}
+        belowContent={<button type="button" data-testid="below">A starter prompt</button>}
+      />
+    </div>
+  );
+}
+
+// The expandedContent focus contract is "shown while focus is anywhere inside the bar, hidden once it
+// leaves the bar entirely" -- and the bar now has more inside it (above/below slots). Focus handling must
+// therefore live on the WRAPPER, not on the bordered field (the ring stays on the field via :focus-within).
+export const FocusInsideAnySlotKeepsTheExpandedPanelOpen: Story = {
+  args: { variant: 'docked' },
+  render: (args) => <ExpandedPlusSlotsDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const panel = canvasElement.querySelector('.__s9cmpx-prompt-bar__expanded-panel') as HTMLElement;
+    const textarea = canvas.getByRole('textbox', { name: 'Ask a question' });
+    const chip = canvas.getByTestId('chip');
+    const below = canvas.getByTestId('below');
+
+    await userEvent.click(textarea);
+    await waitFor(() => expect(panel).toHaveAttribute('data-expanded', 'true'));
+
+    // Focus moves from the field to a chip ABOVE it: still inside the bar, so the panel stays open.
+    await userEvent.click(chip);
+    await expect(chip).toHaveFocus();
+    await expect(panel).toHaveAttribute('data-expanded', 'true');
+
+    // ...and to content BELOW the field: same.
+    await userEvent.click(below);
+    await expect(below).toHaveFocus();
+    await expect(panel).toHaveAttribute('data-expanded', 'true');
+
+    // Leaving the bar entirely collapses it.
+    await userEvent.click(canvas.getByTestId('outside'));
+    await waitFor(() => expect(panel).toHaveAttribute('data-expanded', 'false'));
+
+    // Focus entering through a slot (not the textarea) opens it, like focus entering anywhere else in the bar.
+    chip.focus();
+    await waitFor(() => expect(panel).toHaveAttribute('data-expanded', 'true'));
+  },
+};
+
+export const DisabledDimsTheFieldNotTheSlots: Story = {
+  args: { disabled: true },
+  render: (args) => <HintBelowDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector('.__s9cmpx-prompt-bar') as HTMLElement;
+    const field = fieldOf(canvasElement);
+    // opacity is not inherited, so a child's own computed opacity says nothing about its ancestor being
+    // dimmed -- assert on the elements that carry it: the field is dimmed, the wrapper (which holds the hint
+    // and the prompts below) is not. A regression that moved the dimming back to the wrapper fails here.
+    await expect(getComputedStyle(field).opacity).toBe('0.6');
+    await expect(getComputedStyle(root).opacity).toBe('1');
+    await expect(getComputedStyle(field).cursor).toBe('not-allowed');
+  },
+};
+

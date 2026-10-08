@@ -34,6 +34,18 @@ export interface PromptBarProps {
    *  bar (the textarea or anything inside this content), hidden on focus leaving the bar entirely
    *  or on a successful submit. Omit to get the original, unexpandable bar exactly as before. */
   expandedContent?: React.ReactNode;
+  /** A small muted line under the field, outside its border -- e.g. "Enter to send · Shift + Enter for a
+   *  new line". Hidden under 640px. */
+  hint?: React.ReactNode;
+  /** Content that is always visible BELOW the field, outside it (e.g. the landing prompt columns) --
+   *  the non-popover alternative to `expandedContent`, which opens inside the field on focus. */
+  belowContent?: React.ReactNode;
+  /** Content ABOVE the field inside the bar (e.g. follow-up prompt chips on the docked bar). */
+  aboveContent?: React.ReactNode;
+  /** Docked variant only: stick the bar to the bottom of its scroll container (`position: sticky`,
+   *  not fixed, so it never overlaps an app sidebar), on the page background with a top border and
+   *  the safe-area inset. Ignored for the landing variant. */
+  pinned?: boolean;
   /** Accessible label for the textarea, since there's no visible <label> in either state. */
   ariaLabel?: string;
   className?: string;
@@ -57,6 +69,10 @@ export const PromptBar = React.forwardRef<HTMLTextAreaElement, PromptBarProps>(f
   disabled = false,
   actions,
   expandedContent,
+  hint,
+  belowContent,
+  aboveContent,
+  pinned = false,
   ariaLabel = 'Ask a question',
   className,
 }, ref) {
@@ -124,103 +140,119 @@ export const PromptBar = React.forwardRef<HTMLTextAreaElement, PromptBarProps>(f
   };
 
   const heightTransition = reduceMotion ? 'none' : 'height 200ms ease';
-  const containerTransition = reduceMotion ? 'none' : 'max-width 220ms ease, padding 220ms ease';
+  const containerTransition = reduceMotion
+    ? 'none'
+    : 'padding 220ms ease, min-height 220ms ease, border-color 150ms ease, box-shadow 150ms ease';
   const panelTransition = reduceMotion ? 'none' : 'grid-template-rows 200ms ease';
   const showExpanded = expanded && !!expandedContent;
+  const isPinned = pinned && !isLanding;
 
+  // Structure (PLAN.md "PromptBar redesign for the Ask page"): the root is the wrapper -- above
+  // content, the bordered FIELD, the hint, below content. The field carries the focus ring
+  // (:focus-within, see overrides.css) so it wraps the whole field rather than the inner textarea,
+  // and the legacy expandedContent panel stays inside it, exactly as before. aria-busy stays on the
+  // root; the disabled dimming moves to the field so the prompts below are not dimmed with it.
   return (
     <div
-      className={cx('__s9cmpx-prompt-bar', `__s9cmpx-prompt-bar--${variant}`, className)}
+      className={cx('__s9cmpx-prompt-bar', `__s9cmpx-prompt-bar--${variant}`, isPinned && '__s9cmpx-prompt-bar--pinned', className)}
       aria-busy={loading ? 'true' : undefined}
+      // Focus handling is on the WRAPPER, not the bordered field: expandedContent is "shown while focus is
+      // anywhere inside the bar, hidden once it leaves the bar entirely", and the bar now also holds the
+      // above/below slots. On the field, moving focus to a chip above or a prompt below would count as
+      // leaving the bar (collapsing the panel), and focusing a slot could not open it. The ring is
+      // unaffected: it is CSS (:focus-within) on the field.
       onFocus={handleFocus}
       onBlur={handleBlur}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        boxSizing: 'border-box',
-        // Landing no longer caps at a narrower 540px than docked -- the two variants now render
-        // at the same width (whatever their container provides), not just the same visual style,
-        // so the bar doesn't visibly resize between "before the first submit" and "after".
-        padding: isLanding ? '12px 12px 12px 20px' : '8px 8px 8px 16px',
-        borderRadius: 'var(--__s9cmpx-border-radius-40)',
-        background: 'var(--__s9cmpx-static-background-standard)',
-        border: '1px solid var(--__s9cmpx-interactive-outline-secondary-default)',
-        opacity: disabled ? 0.6 : 1,
-        cursor: disabled ? 'not-allowed' : undefined,
-        transition: containerTransition,
-      }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, width: '100%' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Textarea
-            ref={textareaRef}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            aria-label={ariaLabel}
-            rows={1}
-            disabled={disabled || loading}
-            autoFocus={isLanding}
-            textareaClassName="__s9cmpx-prompt-bar__textarea"
-            style={{
-              border: 'none',
-              boxShadow: 'none',
-              background: 'transparent',
-              resize: 'none',
-              borderRadius: 0,
-              padding: 0,
-              width: '100%',
-              transition: heightTransition,
-              // Below 16px, iOS Safari auto-zooms the whole page in on focus (its own
-              // legibility heuristic, not something CSS can opt out of) -- the underlying
-              // Textarea's 'm' size is body-3-short, 14px. Reported directly, with screenshots:
-              // submitting disables (and blurs) this field abruptly rather than through a
-              // natural tap-away, and iOS's zoom-restore doesn't reliably run on that path,
-              // leaving the whole page pinch-zoomed in (header scrolled off-screen, content
-              // wider than the visual viewport) until the user manually zooms back out. 16px
-              // keeps iOS from ever zooming in the first place, sidestepping the restore-on-
-              // blur behavior entirely rather than trying to trigger it more reliably.
-              fontSize: 16,
-            }}
-          />
-        </div>
-        {actions}
-        <Button
-          iconOnly
-          iconLeft="send"
-          aria-label="Send"
-          variant="primary"
-          size={isLanding ? 'm' : 's'}
-          isLoading={loading}
-          loadingIcon={<Spinner size={isLanding ? 'sm' : 'xs'} />}
-          disabled={disabled || !value.trim()}
-          onClick={trySubmit}
-        />
-      </div>
-      {expandedContent && (
-        // grid-template-rows 0fr -> 1fr, not max-height, so the panel animates to its real
-        // content height without guessing a cap -- expandedContent's own size is unknown to this
-        // component (a 2x2 vs 3x3 prompt grid, say). The inner div is the grid item that actually
-        // gets clipped by the animated row height; overflow:hidden on both layers is required for
-        // the 0fr state to actually hide (a grid item's own content otherwise still influences the
-        // implicit minimum row size).
+      <div className="__s9cmpx-prompt-bar__inner">
+        {aboveContent && <div className="__s9cmpx-prompt-bar__above">{aboveContent}</div>}
         <div
-          className="__s9cmpx-prompt-bar__expanded-panel"
-          data-expanded={showExpanded}
-          aria-hidden={!showExpanded}
-          inert={!showExpanded}
+          className="__s9cmpx-prompt-bar__field"
           style={{
-            display: 'grid',
-            gridTemplateRows: showExpanded ? '1fr' : '0fr',
-            transition: panelTransition,
-            overflow: 'hidden',
+            // Landing no longer caps at a narrower 540px than docked -- the two variants render at the
+            // same width (whatever their container provides), so the bar doesn't visibly resize
+            // between "before the first submit" and "after".
+            padding: isLanding ? '12px 12px 12px 20px' : '8px 8px 8px 16px',
+            opacity: disabled ? 0.6 : 1,
+            cursor: disabled ? 'not-allowed' : undefined,
+            transition: containerTransition,
           }}
         >
-          <div style={{ overflow: 'hidden', minHeight: 0, paddingTop: 12 }}>{expandedContent}</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, width: '100%' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Textarea
+                ref={textareaRef}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder}
+                aria-label={ariaLabel}
+                rows={1}
+                disabled={disabled || loading}
+                autoFocus={isLanding}
+                textareaClassName="__s9cmpx-prompt-bar__textarea"
+                style={{
+                  border: 'none',
+                  boxShadow: 'none',
+                  background: 'transparent',
+                  resize: 'none',
+                  borderRadius: 0,
+                  padding: 0,
+                  width: '100%',
+                  transition: heightTransition,
+                  // Below 16px, iOS Safari auto-zooms the whole page in on focus (its own
+                  // legibility heuristic, not something CSS can opt out of) -- the underlying
+                  // Textarea's 'm' size is body-3-short, 14px. Reported directly, with screenshots:
+                  // submitting disables (and blurs) this field abruptly rather than through a
+                  // natural tap-away, and iOS's zoom-restore doesn't reliably run on that path,
+                  // leaving the whole page pinch-zoomed in (header scrolled off-screen, content
+                  // wider than the visual viewport) until the user manually zooms back out. 16px
+                  // keeps iOS from ever zooming in the first place, sidestepping the restore-on-
+                  // blur behavior entirely rather than trying to trigger it more reliably.
+                  fontSize: 16,
+                }}
+              />
+            </div>
+            {actions}
+            <Button
+              className="__s9cmpx-prompt-bar__send"
+              iconOnly
+              iconLeft="send"
+              aria-label="Send"
+              variant="primary"
+              size={isLanding ? 'm' : 's'}
+              isLoading={loading}
+              loadingIcon={<Spinner size={isLanding ? 'sm' : 'xs'} />}
+              disabled={disabled || !value.trim()}
+              onClick={trySubmit}
+            />
+          </div>
+          {expandedContent && (
+            // grid-template-rows 0fr -> 1fr, not max-height, so the panel animates to its real
+            // content height without guessing a cap -- expandedContent's own size is unknown to this
+            // component (a 2x2 vs 3x3 prompt grid, say). The inner div is the grid item that actually
+            // gets clipped by the animated row height; overflow:hidden on both layers is required for
+            // the 0fr state to actually hide (a grid item's own content otherwise still influences the
+            // implicit minimum row size).
+            <div
+              className="__s9cmpx-prompt-bar__expanded-panel"
+              data-expanded={showExpanded}
+              aria-hidden={!showExpanded}
+              inert={!showExpanded}
+              style={{
+                display: 'grid',
+                gridTemplateRows: showExpanded ? '1fr' : '0fr',
+                transition: panelTransition,
+                overflow: 'hidden',
+              }}
+            >
+              <div style={{ overflow: 'hidden', minHeight: 0, paddingTop: 12 }}>{expandedContent}</div>
+            </div>
+          )}
         </div>
-      )}
+        {hint && <div className="__s9cmpx-prompt-bar__hint">{hint}</div>}
+        {belowContent && <div className="__s9cmpx-prompt-bar__below">{belowContent}</div>}
+      </div>
     </div>
   );
 });
