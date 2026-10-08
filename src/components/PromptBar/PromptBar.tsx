@@ -140,7 +140,9 @@ export const PromptBar = React.forwardRef<HTMLTextAreaElement, PromptBarProps>(f
   };
 
   const heightTransition = reduceMotion ? 'none' : 'height 200ms ease';
-  const containerTransition = reduceMotion ? 'none' : 'padding 220ms ease, min-height 220ms ease';
+  const containerTransition = reduceMotion
+    ? 'none'
+    : 'padding 220ms ease, min-height 220ms ease, border-color 150ms ease, box-shadow 150ms ease';
   const panelTransition = reduceMotion ? 'none' : 'grid-template-rows 200ms ease';
   const showExpanded = expanded && !!expandedContent;
   const isPinned = pinned && !isLanding;
