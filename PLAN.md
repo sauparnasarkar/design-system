@@ -1091,3 +1091,9 @@ own tokens), and any change to `Textarea`.
   hint hidden, no horizontal overflow). Pinned bar verified at the bottom of its scroller with the chips above the field.
 - Pre-existing, unrelated: `no-vendor-strings.test.ts` already fails on `main` (`styles/overrides.css:101` mentions `syena-default-theme.css` in
   a comment); `tsc -b` reports the same 9 existing errors with and without this change.
+- **Copilot review of #109 (two follow-ups).** (1) Focus handling stays on the *wrapper*, not the bordered field: `expandedContent`'s contract is
+  "open while focus is anywhere inside the bar, closed when it leaves it", and the bar now also holds the above/below slots, so with the handlers
+  on the field a chip or prompt would count as "outside" (collapsing the panel) and could not open it. The ring is CSS (`__field:focus-within`) and
+  unaffected. Reproduced by a story that failed before the fix. (2) The "disabled dims the field, not the slots" check is now its own story that
+  renders the disabled state and asserts field `0.6` / wrapper `1` (opacity is not inherited, so asserting on a child proved nothing); mutation-checked.
+

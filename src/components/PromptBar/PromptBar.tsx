@@ -156,13 +156,18 @@ export const PromptBar = React.forwardRef<HTMLTextAreaElement, PromptBarProps>(f
     <div
       className={cx('__s9cmpx-prompt-bar', `__s9cmpx-prompt-bar--${variant}`, isPinned && '__s9cmpx-prompt-bar--pinned', className)}
       aria-busy={loading ? 'true' : undefined}
+      // Focus handling is on the WRAPPER, not the bordered field: expandedContent is "shown while focus is
+      // anywhere inside the bar, hidden once it leaves the bar entirely", and the bar now also holds the
+      // above/below slots. On the field, moving focus to a chip above or a prompt below would count as
+      // leaving the bar (collapsing the panel), and focusing a slot could not open it. The ring is
+      // unaffected: it is CSS (:focus-within) on the field.
+      onFocus={handleFocus}
+      onBlur={handleBlur}
     >
       <div className="__s9cmpx-prompt-bar__inner">
         {aboveContent && <div className="__s9cmpx-prompt-bar__above">{aboveContent}</div>}
         <div
           className="__s9cmpx-prompt-bar__field"
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           style={{
             // Landing no longer caps at a narrower 540px than docked -- the two variants render at the
             // same width (whatever their container provides), so the bar doesn't visibly resize

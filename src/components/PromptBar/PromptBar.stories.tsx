@@ -439,8 +439,6 @@ export const HintAndBelowContentSitOutsideTheField: Story = {
     // Order in the page: field, then hint, then the prompts.
     await expect(field.compareDocumentPosition(hint) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     await expect(hint.compareDocumentPosition(columns[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    // Dimming for a disabled/loading field must not dim the prompts: opacity lives on the field only.
-    await expect(getComputedStyle(columns[0]).opacity).toBe('1');
   },
 };
 
@@ -504,6 +502,77 @@ export const EnterStillSubmitsWithTheNewSlots: Story = {
     const textarea = within(canvasElement).getByRole('textbox', { name: 'Ask a question' });
     await userEvent.type(textarea, 'Show the relationship{Enter}');
     await expect(args.onSubmit).toHaveBeenCalledWith('Show the relationship');
+  },
+};
+
+
+// --- Copilot review of #109 ----------------------------------------------------------------------------
+
+function ExpandedPlusSlotsDemo(args: React.ComponentProps<typeof PromptBar>) {
+  const [value, setValue] = React.useState(args.value);
+  return (
+    <div>
+      <button type="button" data-testid="outside">Outside the bar</button>
+      <PromptBar
+        {...args}
+        value={value}
+        onChange={setValue}
+        expandedContent={<button type="button">Suggested prompt one</button>}
+        aboveContent={<button type="button" data-testid="chip">A follow-up chip</button>}
+        belowContent={<button type="button" data-testid="below">A starter prompt</button>}
+      />
+    </div>
+  );
+}
+
+// The expandedContent focus contract is "shown while focus is anywhere inside the bar, hidden once it
+// leaves the bar entirely" -- and the bar now has more inside it (above/below slots). Focus handling must
+// therefore live on the WRAPPER, not on the bordered field (the ring stays on the field via :focus-within).
+export const FocusInsideAnySlotKeepsTheExpandedPanelOpen: Story = {
+  args: { variant: 'docked' },
+  render: (args) => <ExpandedPlusSlotsDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const panel = canvasElement.querySelector('.__s9cmpx-prompt-bar__expanded-panel') as HTMLElement;
+    const textarea = canvas.getByRole('textbox', { name: 'Ask a question' });
+    const chip = canvas.getByTestId('chip');
+    const below = canvas.getByTestId('below');
+
+    await userEvent.click(textarea);
+    await waitFor(() => expect(panel).toHaveAttribute('data-expanded', 'true'));
+
+    // Focus moves from the field to a chip ABOVE it: still inside the bar, so the panel stays open.
+    await userEvent.click(chip);
+    await expect(chip).toHaveFocus();
+    await expect(panel).toHaveAttribute('data-expanded', 'true');
+
+    // ...and to content BELOW the field: same.
+    await userEvent.click(below);
+    await expect(below).toHaveFocus();
+    await expect(panel).toHaveAttribute('data-expanded', 'true');
+
+    // Leaving the bar entirely collapses it.
+    await userEvent.click(canvas.getByTestId('outside'));
+    await waitFor(() => expect(panel).toHaveAttribute('data-expanded', 'false'));
+
+    // Focus entering through a slot (not the textarea) opens it, like focus entering anywhere else in the bar.
+    chip.focus();
+    await waitFor(() => expect(panel).toHaveAttribute('data-expanded', 'true'));
+  },
+};
+
+export const DisabledDimsTheFieldNotTheSlots: Story = {
+  args: { disabled: true },
+  render: (args) => <HintBelowDemo {...args} />,
+  play: async ({ canvasElement }) => {
+    const root = canvasElement.querySelector('.__s9cmpx-prompt-bar') as HTMLElement;
+    const field = fieldOf(canvasElement);
+    // opacity is not inherited, so a child's own computed opacity says nothing about its ancestor being
+    // dimmed -- assert on the elements that carry it: the field is dimmed, the wrapper (which holds the hint
+    // and the prompts below) is not. A regression that moved the dimming back to the wrapper fails here.
+    await expect(getComputedStyle(field).opacity).toBe('0.6');
+    await expect(getComputedStyle(root).opacity).toBe('1');
+    await expect(getComputedStyle(field).cursor).toBe('not-allowed');
   },
 };
 
