@@ -1037,3 +1037,42 @@ finding. Don't treat silence or a failed `copilot` check-run as "reviewed, nothi
 verify via the timeline events/check-run discipline in `copilot-review-loop`'s own Step 3a, and
 treat any commit the coding-agent pushes directly to the branch with the same scrutiny as a human
 PR — including running `tsc`/tests against it — before accepting it, not just its comments.
+
+## PromptBar redesign for the Ask page (2026-10-08, docs-first)
+
+Consumer: `climate-emissions-analysis-project`'s Ask the Agent page (its `ENHANCEMENTS.md` decisions 102-109;
+design reference `climate-dashboard-react/design/ask-the-agent/`). Owner decision: redesign the shared
+`PromptBar` rather than style around it. Everything below is **additive** — the current props and the
+`expandedContent` slot keep working — so other consumers are unaffected.
+
+**What changes**
+
+1. **The focus ring wraps the whole field.** The bordered "field" (textarea + send button) gets the ring on
+   `:focus-within` (1px focus-coloured border + a 3px soft ring), and the inner textarea's own
+   `:focus-visible` outline is removed. The visible indicator is still there (on the field), so this is a move,
+   not a removal — an a11y story asserts the field shows the ring when the textarea is focused. Never an inner
+   rectangle on the text input.
+2. **Field sizing.** Landing field min-height 64px, radius 12px; send button 40x40 (44x44 under 640px), radius 8px,
+   accent fill, up-arrow glyph (the existing `send` icon already draws an up arrow). Disabled — not hidden —
+   while the field is empty.
+3. **`hint?: ReactNode`** — a small muted line below the field and outside its border ("Enter to send · Shift +
+   Enter for a new line"); hidden under 640px.
+4. **`belowContent?: ReactNode`** — always-visible content *below the field, outside it* (the landing prompt
+   columns). This is the non-popover alternative to `expandedContent`, which stays for the existing behaviour.
+5. **`aboveContent?: ReactNode`** — content above the field inside the bar's wrapper (the follow-up chips).
+6. **`pinned?: boolean`** (docked variant) — the bar sticks to the bottom of its scroll container
+   (`position: sticky; bottom: 0`) on the page background with a top border and the safe-area inset, with the
+   content centred in a readable max-width. Sticky rather than fixed so it does not overlap an app sidebar; a
+   consumer wanting it at the viewport bottom on a short page lays the page out as a column with the bar last.
+
+**Structure.** The root `.__s9cmpx-prompt-bar` becomes the wrapper (above content, field, hint, below content);
+a new `.__s9cmpx-prompt-bar__field` is the bordered field. The `expandedContent` panel stays inside the field, as
+before.
+
+**Verification plan.** Stories with `play` functions (the repo's test mechanism, with the automatic axe check):
+focus ring on the field; hint present; below/above content rendered outside the field; `pinned` sticky styles;
+Enter still submits, Shift+Enter does not; send disabled when empty; existing stories unchanged. Plus a visual
+check in Storybook in both themes at desktop and 390px widths, shown to the owner before merge.
+
+**Not in scope:** the follow-up chip and prompt-card components themselves (the consumer builds them from its
+own tokens), and any change to `Textarea`.
