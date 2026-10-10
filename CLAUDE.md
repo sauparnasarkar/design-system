@@ -15,7 +15,7 @@ anything brand-specific.
 npm run storybook       # dev server, http://localhost:6006 (probe the port first — often already running in the user's own terminal)
 npm test                # vitest run — full suite (storybook project + unit project)
 npm run test:watch      # vitest watch mode
-npm run build            # tsc -b && vite build
+npm run build            # tsc -b (type-check only; Storybook is the sole runtime, no app or library bundle)
 npm run build-storybook  # static Storybook build
 npm run lint              # oxlint
 ```
@@ -44,7 +44,7 @@ properties:
   Provenance below.
 - `src/styles/vendor/sy-design-system-reset.min.css` — CSS reset, loaded
   first.
-- `src/styles/themes/{green,blue,analytics}.css` — small overrides (~30
+- `src/styles/themes/analytics*.css` — small overrides (~30
   tokens each) scoped to `[data-theme="..."]`, loaded after the base theme.
   A new theme is a new file in this pattern plus registering it in
   `.storybook/preview.tsx`'s toolbar `items` list.
