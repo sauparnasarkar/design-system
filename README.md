@@ -12,8 +12,6 @@ npm test            # runs every story as a smoke/a11y test, plus unit tests
 Switch themes with the **Theme** dropdown in the Storybook toolbar:
 
 - **Syena Default** — neutral/black primary (base tokens, no override)
-- **Green theme** — teal accent (`[data-theme="green"]`)
-- **Blue theme** — royal blue accent (`[data-theme="blue"]`)
 - **Analytics theme** — dark data-viz look (`[data-theme="analytics"]`,
   SciChart-inspired): deep navy canvas, cyan accent, and its own vivid
   chart palette validated for the dark surface
@@ -90,12 +88,17 @@ variables. Themes are small override files in `src/styles/themes/` scoped to
   `PromptBar` additionally has `play`-function tests covering autofocus
   per variant, Enter/Shift+Enter handling, the empty-value submit guard,
   loading/disabled states, refocus-after-loading, and auto-grow capping.
+  `FileUpload` (pick/drop/drag-highlight, disabled and loading guards),
+  `SearchInput` (typing and the clear button), `Textarea` (label wiring,
+  error and disabled states) and `Breadcrumb` (links vs. current page) also
+  have `play`-function tests.
 - **`unit`** — plain Node-environment tests: `src/__tests__/no-vendor-strings.test.ts`
   (fails if a hardcoded `Syena`/`syena` string is reintroduced into non-story
-  component source or CSS), plus `SyChart/chartMath.test.ts` and
-  `Score/Score.test.ts` unit-testing pure logic extracted out of those two
+  component source or CSS), `lib/cx.test.ts` (class-name joiner), plus
+  `SyChart/chartMath.test.ts`, `Score/Score.test.ts` and
+  `Globe/globeMath.test.ts` unit-testing pure logic extracted out of those
   components (colorbar tick math / alpha-blend color math; ESG-score-to-ramp
-  mapping).
+  mapping; globe color interpolation).
 
 `npm run test:watch` for interactive/watch mode.
 

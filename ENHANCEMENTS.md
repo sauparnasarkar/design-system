@@ -174,8 +174,10 @@ fg CSS v7.32.2, Storybook 10, all typechecked and visually verified.
   vendor's `--option-width` calc; fine at 10 notches, drifts slightly at 3.
 - Toast reproduces react-toastify's box styles inline; if exact parity
   matters, add react-toastify and mount ours inside its container.
-- `npm run dev` is broken (the Vite app entry was removed in favor of
-  Storybook-only); either restore a minimal `main.tsx` or delete the script.
+- No app entry or library bundle: `npm run build` is `tsc -b` only, and the
+  `dev`/`preview` scripts and `index.html` were removed (2026-10-10). A real
+  consumable package would need a Vite library-mode build (`build.lib`,
+  `exports`, peer deps, CSS handling under `sideEffects: false`).
 - `TableFilter`'s per-option checkbox is a real `<input type="checkbox">`
   nested inside a `<li role="option">` — the same axe "nested-interactive"
   violation found and fixed in `MultiSelect` (sauparnasarkar/design-system#5).

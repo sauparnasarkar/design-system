@@ -5,10 +5,8 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b",
     "lint": "oxlint",
-    "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest run",

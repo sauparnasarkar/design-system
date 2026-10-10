@@ -18,7 +18,7 @@ type Story = StoryObj<typeof Chip>;
 export const Playground: Story = {};
 
 export const FilterBar: Story = {
-  render: () => {
+  render: function Render() {
     const [selected, setSelected] = React.useState<Set<string>>(new Set(['Outlook']));
     const filters = ['Outlook', 'Rating Action', 'Special Report', 'Criteria', 'Data Comparator'];
     return (

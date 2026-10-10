@@ -47,7 +47,7 @@ by hand-authored vendor CSS classes, in three layers loaded in this order:
    diffable against upstream). **Every consuming app must import this file**
    directly, not just rely on Storybook's preview importing it — a real bug
    once shipped silently to a consumer because this file was Storybook-only.
-5. **Theme overrides** — `src/styles/themes/{green,blue,analytics}.css`,
+5. **Theme overrides** — `src/styles/themes/analytics*.css`,
    loaded last, each scoped under `[data-theme="..."]`. See §2.
 
 A React component's job is prop → class name/variant mapping onto these
@@ -65,7 +65,7 @@ A theme is a small override file — roughly 30 tokens — layered after the
 base theme, scoped to `[data-theme="name"]`, redefining only what changes
 for that brand/context (brand color ramp, primary interactive/button
 tokens). Everything else falls through to the base theme's tokens
-unchanged. `src/styles/themes/green.css` is the template: it redefines
+unchanged. The theme override pattern redefines
 `--__s9cmpx-color-brand-*` (the 50–1000 ramp), `--__s9cmpx-interactive-fill-primary-*`,
 and `--__s9cmpx-button-primary-*-{background,border,label}` per state
 (default/hover/focused/pressed/loading) — nothing else.
@@ -109,7 +109,7 @@ Current themes:
   paper canvas (`#F4F2ED`), near-black ink hierarchy, one hot accent
   (vermillion `#D8361B`), square geometry. Hierarchy comes from type size
   and rules, not color everywhere. Like `analytics`, this is a full-coverage
-  theme (brand ramp through AG Grid tokens), not the minimal `green.css`
+  theme (brand ramp through AG Grid tokens), not a minimal ~30-token
   template. One deliberate exception it and `analytics-bright-signal` share:
   chart panels stay **dark** (`--__s9cmpx-chart-surface: #171614`) inside an
   otherwise-light shell, so the existing vivid categorical series keeps the

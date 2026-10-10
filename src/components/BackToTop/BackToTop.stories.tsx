@@ -20,7 +20,7 @@ function installReducedMotionStub() {
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
-  })) as typeof window.matchMedia;
+  })) as unknown as typeof window.matchMedia;
   return () => {
     window.matchMedia = originalMatchMedia;
   };

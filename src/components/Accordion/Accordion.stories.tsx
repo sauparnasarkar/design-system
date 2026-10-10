@@ -78,7 +78,7 @@ export const DisabledItemDoesNotToggle: Story = {
  * as in the uncontrolled stories above; the difference is the parent owns the open-id array.
  */
 export const Controlled: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [openIds, setOpenIds] = React.useState<string[]>(['1']);
     return <Accordion {...args} openIds={openIds} onOpenChange={setOpenIds} />;
   },

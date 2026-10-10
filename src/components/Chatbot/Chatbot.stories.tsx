@@ -43,7 +43,7 @@ export default meta;
 type Story = StoryObj<typeof Chatbot>;
 
 export const Playground: Story = {
-  render: (args) => {
+  render: function Render(args) {
     const [messages, setMessages] = React.useState(args.messages);
     return (
       <div style={{ maxWidth: 420 }}>
