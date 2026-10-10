@@ -82,7 +82,7 @@ export const ClickDoesNotScrollWhenTargetAlreadyVisible: Story = {
       media: query,
       addEventListener: () => {},
       removeEventListener: () => {},
-    })) as typeof window.matchMedia;
+    })) as unknown as typeof window.matchMedia;
   },
   render: (args) => (
     <div>
@@ -149,7 +149,7 @@ export const ClickScrollsNonTopSectionEvenWhenAlreadyVisible: Story = {
       media: query,
       addEventListener: () => {},
       removeEventListener: () => {},
-    })) as typeof window.matchMedia;
+    })) as unknown as typeof window.matchMedia;
   },
   render: (args) => (
     <div>
@@ -195,7 +195,7 @@ export const ClickDoesNotScrollWhenMarkedTopSectionAndAlreadyVisible: Story = {
       media: query,
       addEventListener: () => {},
       removeEventListener: () => {},
-    })) as typeof window.matchMedia;
+    })) as unknown as typeof window.matchMedia;
   },
   render: (args) => (
     <div>
@@ -233,7 +233,7 @@ export const ClickScrollsMarkedTopSectionWhenNotVisible: Story = {
       media: query,
       addEventListener: () => {},
       removeEventListener: () => {},
-    })) as typeof window.matchMedia;
+    })) as unknown as typeof window.matchMedia;
   },
   render: (args) => (
     <div>
@@ -280,7 +280,7 @@ export const ClickNeverScrollsPastTheDocumentsNaturalEnd: Story = {
       media: query,
       addEventListener: () => {},
       removeEventListener: () => {},
-    })) as typeof window.matchMedia;
+    })) as unknown as typeof window.matchMedia;
   },
   render: (args) => (
     <div>
@@ -358,7 +358,7 @@ export const RowWrapsInsteadOfOverflowingANarrowContainer: Story = {
  * by the time the jump completes -- not scrolled to a stale, still-collapsed position.
  */
 export const OnBeforeJumpOpensAnAccordionPanel: Story = {
-  render: () => {
+  render: function Render() {
     const [openIds, setOpenIds] = React.useState<string[]>([]);
     const items = [
       {

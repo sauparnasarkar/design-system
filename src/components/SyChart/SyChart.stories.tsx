@@ -320,7 +320,7 @@ export const Choropleth: Story = {
  * Built for SPEC.md §5.17 (Animated Choropleth Time-Series).
  */
 export const ChoroplethAnimated: Story = {
-  render: () => {
+  render: function Render() {
     const countries = ['CHN', 'USA', 'IND', 'RUS', 'JPN', 'DEU', 'BRA', 'GBR', 'ZAF', 'AUS'];
     // Parallel to `countries` -- lets this story double as manual coverage for locationNames'
     // hover-text behavior, including the animation-frame case (Copilot review, PR #78): frame 0
@@ -520,9 +520,9 @@ export const TreemapWithoutColorValues: Story = {
  * (not Plotly's continuous scale, which this layout doesn't support) and an `onTileClick`
  * handler exercised by the play function below.
  */
+const onTileClick = fn();
 export const SquarifiedTreemap: Story = {
-  args: { onTileClick: fn() },
-  render: (args) => {
+  render: () => {
     const sectors = ['Financials', 'Communication Services', 'Industrials', 'Health Care'];
     const values = [5250, 2430, 2010, 1180];
     return (
@@ -547,17 +547,18 @@ export const SquarifiedTreemap: Story = {
             // ink that clears the threshold but not the real WCAG ratio.
             tileColors: ['#7C2D12', '#1E3A8A', '#134E4A', '#7F1D1D'],
             tileMeta: values.map((v) => `$${(v / 1000).toFixed(2)}B`),
-            onTileClick: args.onTileClick,
+            onTileClick,
           }]}
         />
       </ChartCard>
     );
   },
-  play: async ({ args, canvasElement }) => {
+  play: async ({ canvasElement }) => {
+    onTileClick.mockClear();
     const canvas = within(canvasElement);
     const tile = await waitFor(() => canvas.getByText('Financials'));
     await userEvent.click(tile);
-    await waitFor(() => expect(args.onTileClick).toHaveBeenCalledWith(0, 'Financials'));
+    await waitFor(() => expect(onTileClick).toHaveBeenCalledWith(0, 'Financials'));
   },
 };
 

@@ -56,7 +56,7 @@ function installMatchMediaStub(initialMobile = false) {
       listeners.get(query)?.delete(listener);
     },
     dispatchEvent: () => true,
-  })) as typeof window.matchMedia;
+  })) as unknown as typeof window.matchMedia;
 
   setMobileMatch = (matches: boolean) => {
     matchesByQuery.set(MOBILE_QUERY, matches);

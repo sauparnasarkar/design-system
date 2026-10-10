@@ -98,7 +98,7 @@
    is `#e8eefb` (analytics.css), a pale near-white -- legible as text against this app's dark
    navy card background (the *default*, inactive-segment case), but the active segment's own
    pill background (`-background-color-active`, `--__s9cmpx-interactive-fill-inverse-default` =
-   `#ffffff`, `syena-default-theme.css`) is white, so that same pale color on white reads as
+   `#ffffff`, the base theme) is white, so that same pale color on white reads as
    near-invisible (confirmed live with a screenshot: "Claude Sonnet 5 (Anthropic)" essentially
    unreadable against its own white pill once bug 1's selector fix let this color apply at all).
    The vendor CSS already defines the *correct* pairing for exactly this fill elsewhere --
