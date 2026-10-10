@@ -9,8 +9,6 @@ import '../src/styles/vendor/sy-design-system-reset.min.css';
 import '../src/styles/vendor/syena-default-theme.css';
 import '../src/styles/vendor/sy-design-system.min.css';
 import '../src/styles/overrides.css';
-import '../src/styles/themes/green.css';
-import '../src/styles/themes/blue.css';
 import '../src/styles/themes/analytics.css';
 import '../src/styles/themes/analytics-admiralty.css';
 import '../src/styles/themes/analytics-bright-broadsheet.css';
@@ -26,8 +24,6 @@ const preview: Preview = {
         icon: 'paintbrush',
         items: [
           { value: 'default', title: 'Syena Default' },
-          { value: 'green', title: 'Green theme' },
-          { value: 'blue', title: 'Blue theme' },
           { value: 'analytics', title: 'Analytics theme' },
           { value: 'analytics-admiralty', title: 'Analytics Admiralty (Poppins, deep ink)' },
           { value: 'analytics-bright-broadsheet', title: 'Analytics Bright — Broadsheet' },
